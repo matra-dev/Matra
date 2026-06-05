@@ -124,7 +124,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
       appBar: AppBar(
         title: Text(
           _isEdit ? 'Edit Supplement' : 'Add to Stack',
-          style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 17, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontFamily: 'Artific', fontSize: 17, fontWeight: FontWeight.w600),
         ),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
@@ -145,7 +145,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                   prefixIcon: Icon(Icons.medication_rounded, size: 20),
                 ),
                 textCapitalization: TextCapitalization.words,
-                style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+                style: const TextStyle(fontFamily: 'Artific', fontSize: 14),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Please enter a name';
                   return null;
@@ -165,7 +165,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                         hintText: 'Amount',
                         prefixIcon: Icon(Icons.scale_rounded, size: 20),
                       ),
-                      style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+                      style: const TextStyle(fontFamily: 'Artific', fontSize: 14),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) return 'Required';
@@ -188,7 +188,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                           isExpanded: true,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           borderRadius: BorderRadius.circular(16),
-                          style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14, color: Colors.black),
+                          style: const TextStyle(fontFamily: 'Artific', fontSize: 14, color: Colors.black),
                           items: _dosageUnits.map((unit) {
                             return DropdownMenuItem(value: unit, child: Text(unit));
                           }).toList(),
@@ -220,7 +220,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                             hintText: '1',
                             prefixIcon: Icon(Icons.repeat_rounded, size: 20),
                           ),
-                          style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+                          style: const TextStyle(fontFamily: 'Artific', fontSize: 14),
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Required';
@@ -244,7 +244,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                             hintText: '30',
                             prefixIcon: Icon(Icons.inventory_2_rounded, size: 20),
                           ),
-                          style: const TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+                          style: const TextStyle(fontFamily: 'Artific', fontSize: 14),
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Required';
@@ -301,7 +301,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
                             Text(
                               _isEdit ? 'Save Changes' : 'Add to Stack',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
+                                fontFamily: 'Artific',
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
@@ -326,7 +326,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
+          fontFamily: 'Artific',
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: Color(0xFF999999),

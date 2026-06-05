@@ -41,7 +41,7 @@ class LowStockBadge extends StatelessWidget {
               color: Color(0xFFEF6C00),
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              fontFamily: 'PlusJakartaSans',
+              fontFamily: 'Artific',
             ),
           ),
         ],

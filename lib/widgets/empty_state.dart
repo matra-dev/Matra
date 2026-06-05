@@ -44,7 +44,7 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
+                fontFamily: 'Artific',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
@@ -58,7 +58,7 @@ class EmptyState extends StatelessWidget {
             Text(
               subtitle,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
+                fontFamily: 'Artific',
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,

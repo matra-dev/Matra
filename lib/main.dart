@@ -178,7 +178,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                           child: Text(
                                             item.label,
                                             style: const TextStyle(
-                                              fontFamily: 'PlusJakartaSans',
+                                              fontFamily: 'Artific',
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
                                               color: Colors.white,

@@ -63,7 +63,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                               const Text(
                                 'My Stack',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
+                                  fontFamily: 'Artific',
                                   fontSize: 28,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1A1A1A),
@@ -79,7 +79,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                               Text(
                                 '${supplements.length} supplement${supplements.length == 1 ? '' : 's'} in your stack',
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
+                                  fontFamily: 'Artific',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w400,
                                   color: Color(0xFF999999),
@@ -240,7 +240,7 @@ class _AnimatedSupplementCard extends StatelessWidget {
                     Text(
                       supplement.name,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
+                        fontFamily: 'Artific',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1A1A1A),
@@ -253,7 +253,7 @@ class _AnimatedSupplementCard extends StatelessWidget {
                         Text(
                           supplement.dosageText,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
+                            fontFamily: 'Artific',
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                             color: Color(0xFF999999),
@@ -272,7 +272,7 @@ class _AnimatedSupplementCard extends StatelessWidget {
                         Text(
                           '${supplement.frequency}x/day',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
+                            fontFamily: 'Artific',
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                             color: Color(0xFF999999),
@@ -296,7 +296,7 @@ class _AnimatedSupplementCard extends StatelessWidget {
                   child: Text(
                     '${supplement.stockCount} left',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                      fontFamily: 'Artific',
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFF9A825),

@@ -117,7 +117,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                       Text(
                         supplement.name,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                          fontFamily: 'Artific',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
@@ -126,7 +126,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                       Text(
                         supplement.dosageText,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                          fontFamily: 'Artific',
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFFAAAAAA),
@@ -190,7 +190,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                       const Text(
                         'Last 7 Days',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                          fontFamily: 'Artific',
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
@@ -206,7 +206,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                                     child: Text(
                                       'No data yet',
                                       style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
+                                        fontFamily: 'Artific',
                                         fontSize: 13,
                                         color: Color(0xFFBBBBBB),
                                       ),
@@ -233,7 +233,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                                                     style: const TextStyle(
                                                       fontSize: 11,
                                                       color: Color(0xFFBBBBBB),
-                                                      fontFamily: 'PlusJakartaSans',
+                                                      fontFamily: 'Artific',
                                                     ),
                                                   ),
                                                 );
@@ -284,7 +284,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                       const Text(
                         'Details',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                          fontFamily: 'Artific',
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
@@ -329,7 +329,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                                 child: Text(
                                   'Only ${supplement.stockCount} doses remaining',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
+                                    fontFamily: 'Artific',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.warning.withValues(alpha: 0.85),
@@ -374,7 +374,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                               Text(
                                 'Edit',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
+                                  fontFamily: 'Artific',
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
@@ -404,7 +404,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                               Text(
                                 'Delete',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
+                                  fontFamily: 'Artific',
                                   color: AppColors.danger.withValues(alpha: 0.85),
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
@@ -457,7 +457,7 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
+              fontFamily: 'Artific',
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: color,
@@ -467,7 +467,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
+              fontFamily: 'Artific',
               fontSize: 11,
               fontWeight: FontWeight.w400,
               color: Color(0xFFAAAAAA),
@@ -510,7 +510,7 @@ class _DetailRow extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
+                  fontFamily: 'Artific',
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFFAAAAAA),
@@ -519,7 +519,7 @@ class _DetailRow extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
+                  fontFamily: 'Artific',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.black,
