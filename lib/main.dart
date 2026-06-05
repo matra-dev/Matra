@@ -7,6 +7,8 @@ import 'screens/my_supplements_screen.dart';
 import 'screens/settings_screen.dart';
 import 'utils/haptics.dart';
 
+// Matra@DEV
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Animate.restartOnHotReload = true;
@@ -48,9 +50,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
 
   final List<_NavItemData> _items = [
-    _NavItemData(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-    _NavItemData(icon: Icons.folder_outlined, activeIcon: Icons.folder_rounded, label: 'My Stack'),
-    _NavItemData(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Settings'),
+    _NavItemData(
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home_rounded,
+        label: 'Home'),
+    _NavItemData(
+        icon: Icons.folder_outlined,
+        activeIcon: Icons.folder_rounded,
+        label: 'My Stack'),
+    _NavItemData(
+        icon: Icons.settings_outlined,
+        activeIcon: Icons.settings_rounded,
+        label: 'Settings'),
   ];
 
   void _onTap(int index) {
@@ -110,9 +121,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.black : Colors.transparent,
+                              color: isSelected
+                                  ? Colors.black
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: Row(
@@ -121,13 +135,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                 AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 200),
                                   transitionBuilder: (child, animation) {
-                                    return FadeTransition(opacity: animation, child: child);
+                                    return FadeTransition(
+                                        opacity: animation, child: child);
                                   },
                                   child: Icon(
                                     isSelected ? item.activeIcon : item.icon,
                                     key: ValueKey(isSelected),
                                     size: 18,
-                                    color: isSelected ? Colors.white : const Color(0xFF999999),
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF999999),
                                   ),
                                 ),
                                 AnimatedSize(
@@ -135,7 +152,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   curve: Curves.easeOutCubic,
                                   child: isSelected
                                       ? Padding(
-                                          padding: const EdgeInsets.only(left: 6),
+                                          padding:
+                                              const EdgeInsets.only(left: 6),
                                           child: Text(
                                             item.label,
                                             style: const TextStyle(
