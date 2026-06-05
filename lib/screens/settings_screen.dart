@@ -54,7 +54,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     const Text(
                       'Settings',
                       style: TextStyle(
-                        fontFamily: 'Artific',
+                        fontFamily: 'PlusJakartaSans',
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A1A),
@@ -70,7 +70,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     const Text(
                       'Customize your StackSense experience',
                       style: TextStyle(
-                        fontFamily: 'Artific',
+                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         color: Color(0xFF999999),
@@ -252,7 +252,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             Text(
               title.toUpperCase(),
               style: const TextStyle(
-                fontFamily: 'Artific',
+                fontFamily: 'PlusJakartaSans',
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFFAAAAAA),
@@ -318,7 +318,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 Text(
                   title,
                   style: const TextStyle(
-                    fontFamily: 'Artific',
+                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1A1A1A),
@@ -329,7 +329,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    fontFamily: 'Artific',
+                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                     color: Color(0xFFAAAAAA),
@@ -368,7 +368,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontFamily: 'Artific',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF1A1A1A),
@@ -385,7 +385,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               child: Text(
                 time.format(context),
                 style: const TextStyle(
-                  fontFamily: 'Artific',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF666666),
@@ -423,7 +423,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             child: Text(
               title,
               style: const TextStyle(
-                fontFamily: 'Artific',
+                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF1A1A1A),
@@ -434,7 +434,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Text(
             value,
             style: const TextStyle(
-              fontFamily: 'Artific',
+              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w400,
               color: Color(0xFF999999),
@@ -471,7 +471,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontFamily: 'Artific',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF1A1A1A),
@@ -495,7 +495,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         title: const Text(
           'Coming Soon',
           style: TextStyle(
-            fontFamily: 'Artific',
+            fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1A1A1A),
@@ -505,7 +505,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         content: const Text(
           'This feature will be available in a future update.',
           style: TextStyle(
-            fontFamily: 'Artific',
+            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: Color(0xFF666666),
@@ -517,7 +517,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             child: const Text(
               'Got it',
               style: TextStyle(
-                fontFamily: 'Artific',
+                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,

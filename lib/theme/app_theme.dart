@@ -4,7 +4,7 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static const String fontFamily = 'Artific';
+  static const String fontFamily = 'PlusJakartaSans';
 
   static ThemeData get lightTheme {
     return ThemeData(

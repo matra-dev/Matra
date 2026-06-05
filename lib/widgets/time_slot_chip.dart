@@ -62,7 +62,7 @@ class TimeSlotChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Artific',
+                fontFamily: 'PlusJakartaSans',
                 color: isSelected ? Colors.white : AppColors.textSecondary,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

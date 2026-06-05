@@ -173,11 +173,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   curve: Curves.easeOutCubic,
                                   child: isSelected
                                       ? Padding(
-                                          padding: const EdgeInsets.only(left: 6),
+                                          padding:
+                                              const EdgeInsets.only(left: 6),
                                           child: Text(
                                             item.label,
                                             style: const TextStyle(
-                                              fontFamily: 'Artific',
+                                              fontFamily: 'PlusJakartaSans',
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
                                               color: Colors.white,

@@ -138,7 +138,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                             DateFormat('EEE').format(selectedDate),
                             key: ValueKey(_selectedDayOffset),
                             style: const TextStyle(
-                              fontFamily: 'Artific',
+                              fontFamily: 'PlusJakartaSans',
                               fontSize: 36,
                               fontWeight: FontWeight.w700,
                               color: Colors.black,
@@ -180,7 +180,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           Text(
                             DateFormat('MMMM d').format(selectedDate),
                             style: const TextStyle(
-                              fontFamily: 'Artific',
+                              fontFamily: 'PlusJakartaSans',
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
                               color: Color(0xFF999999),
@@ -189,7 +189,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           Text(
                             DateFormat('yyyy').format(selectedDate),
                             style: const TextStyle(
-                              fontFamily: 'Artific',
+                              fontFamily: 'PlusJakartaSans',
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
                               color: Color(0xFF999999),
@@ -232,7 +232,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                               duration: const Duration(milliseconds: 350),
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
-                                fontFamily: 'Artific',
+                                fontFamily: 'PlusJakartaSans',
                                 fontSize: isSelected ? 20 : 18,
                                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                                 color: isSelected ? Colors.white : Colors.black,
@@ -244,7 +244,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                               duration: const Duration(milliseconds: 350),
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
-                                fontFamily: 'Artific',
+                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: isSelected ? Colors.white70 : const Color(0xFFAAAAAA),
@@ -408,7 +408,7 @@ class _TimeSlotSection extends StatelessWidget {
               Text(
                 slot,
                 style: TextStyle(
-                  fontFamily: 'Artific',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: _slotColor,
@@ -424,7 +424,7 @@ class _TimeSlotSection extends StatelessWidget {
                 child: Text(
                   '${supplements.length}',
                   style: TextStyle(
-                    fontFamily: 'Artific',
+                    fontFamily: 'PlusJakartaSans',
                     color: _slotColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -526,7 +526,7 @@ class _SupplementRow extends StatelessWidget {
                     Text(
                       supplement.name,
                       style: TextStyle(
-                        fontFamily: 'Artific',
+                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
                         color: isTaken ? const Color(0xFFBBBBBB) : Colors.black,
@@ -539,7 +539,7 @@ class _SupplementRow extends StatelessWidget {
                       Text(
                         supplement.dosageText,
                         style: const TextStyle(
-                          fontFamily: 'Artific',
+                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFFAAAAAA),
