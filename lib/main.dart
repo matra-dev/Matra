@@ -51,17 +51,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<_NavItemData> _items = [
     _NavItemData(
-        icon: Icons.home_outlined,
-        activeIcon: Icons.home_rounded,
-        label: 'Home'),
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+      label: 'Home',
+    ),
     _NavItemData(
-        icon: Icons.folder_outlined,
-        activeIcon: Icons.folder_rounded,
-        label: 'My Stack'),
+      icon: Icons.folder_outlined,
+      activeIcon: Icons.folder_rounded,
+      label: 'My Stack',
+    ),
     _NavItemData(
-        icon: Icons.settings_outlined,
-        activeIcon: Icons.settings_rounded,
-        label: 'Settings'),
+      icon: Icons.settings_outlined,
+      activeIcon: Icons.settings_rounded,
+      label: 'Settings',
+    ),
   ];
 
   void _onTap(int index) {
@@ -77,10 +80,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       backgroundColor: const Color(0xFFFAFAFA),
       body: Stack(
         children: [
-          IndexedStack(
-            index: _currentIndex,
-            children: _screens,
+          // Screens with smooth crossfade
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey<int>(_currentIndex),
+              child: _screens[_currentIndex],
+            ),
           ),
+
+          // Floating bottom nav
           Positioned(
             left: 0,
             right: 0,
@@ -92,7 +109,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withValues(alpha: 0.88),
                     borderRadius: BorderRadius.circular(26),
                     border: Border.all(
                       color: const Color(0xFFEEEEEE),
@@ -101,7 +118,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 20,
+                        blurRadius: 24,
                         offset: const Offset(0, 4),
                         spreadRadius: -4,
                       ),
@@ -119,10 +136,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           onTap: () => _onTap(index),
                           behavior: HitTestBehavior.opaque,
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
+                            duration: const Duration(milliseconds: 350),
                             curve: Curves.easeOutCubic,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 6),
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? Colors.black
@@ -136,7 +155,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   duration: const Duration(milliseconds: 200),
                                   transitionBuilder: (child, animation) {
                                     return FadeTransition(
-                                        opacity: animation, child: child);
+                                      opacity: animation,
+                                      child: child,
+                                    );
                                   },
                                   child: Icon(
                                     isSelected ? item.activeIcon : item.icon,
@@ -148,12 +169,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   ),
                                 ),
                                 AnimatedSize(
-                                  duration: const Duration(milliseconds: 300),
+                                  duration: const Duration(milliseconds: 350),
                                   curve: Curves.easeOutCubic,
                                   child: isSelected
                                       ? Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 6),
+                                          padding: const EdgeInsets.only(left: 6),
                                           child: Text(
                                             item.label,
                                             style: const TextStyle(
