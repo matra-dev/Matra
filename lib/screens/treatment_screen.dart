@@ -1,20 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
+import '../theme/app_text_styles.dart';
 import 'add_medication_screen.dart';
 import 'appointment_screen.dart';
-
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-const _orange = Color(0xFFFFA726);
 
 class TreatmentScreen extends StatefulWidget {
   const TreatmentScreen({super.key});
@@ -33,19 +22,19 @@ class _TreatmentScreenState extends State<TreatmentScreen>
       'name': 'Vitamin D3 2000 IU',
       'schedule': 'Daily—08:00',
       'stock': 29,
-      'color': _accentDark,
+      'color': AppColors.accentDark,
     },
     {
       'name': 'Omega-3 Fish Oil',
       'schedule': 'Daily—08:00',
       'stock': 45,
-      'color': const Color(0xFF448AFF),
+      'color': AppColors.blue,
     },
     {
       'name': 'Magnesium 400mg',
       'schedule': 'Evening—20:00',
       'stock': 12,
-      'color': const Color(0xFF9C27B0),
+      'color': AppColors.purple,
     },
   ];
 
@@ -82,48 +71,38 @@ class _TreatmentScreenState extends State<TreatmentScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Stack(
           children: [
             SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: GR.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
+                    SizedBox(height: GR.sm),
 
-                    // ── Header ───────────────────────────────────────────
+                    // Header
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Treatment',
-                          style: TextStyle(
-                            fontFamily: 'Artific',
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: _textPrimary,
-                            letterSpacing: -0.8,
-                          ),
+                          style: AppTextStyles.h1(context),
                         ),
                         const Spacer(),
                         GestureDetector(
                           onTap: () => Haptics.light(),
                           child: Container(
-                            width: 40,
-                            height: 40,
+                            width: GR.lg + 2,
+                            height: GR.lg + 2,
                             decoration: BoxDecoration(
-                              color: _cardBg,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: _cardBorder),
+                              color: AppColors.cardBg,
+                              borderRadius: BorderRadius.circular(GR.radiusMd),
+                              border: Border.all(color: AppColors.border),
                             ),
-                            child: const Icon(
-                              Icons.settings_outlined,
-                              size: 18,
-                              color: _textPrimary,
-                            ),
+                            child: Icon(Icons.settings_outlined, size: GR.iconSm, color: AppColors.textPrimary),
                           ),
                         ),
                       ],
@@ -132,27 +111,27 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                         .fadeIn(delay: 0.ms, duration: 500.ms)
                         .slideY(begin: -0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: GR.lg),
 
-                    // ── Add Button ───────────────────────────────────────
+                    // Add Button
                     GestureDetector(
                       onTap: _showAddOptions,
                       child: Container(
                         width: double.infinity,
-                        height: 52,
+                        height: GR.buttonMd,
                         decoration: BoxDecoration(
-                          color: _accentLight.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _accentLight),
+                          color: AppColors.accentLight.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(GR.radiusMd),
+                          border: Border.all(color: AppColors.accentLight),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
                             'Add',
                             style: TextStyle(
                               fontFamily: 'Artific',
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: _accentDark,
+                              color: AppColors.accentDark,
                             ),
                           ),
                         ),
@@ -162,104 +141,77 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                         .fadeIn(delay: 100.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: GR.lg),
 
-                    // ── Medication Cards ─────────────────────────────────
+                    // Medication Cards
                     ..._medications.asMap().entries.map((entry) {
                       final i = entry.key;
                       final med = entry.value;
                       final isLow = (med['stock'] as int) < 15;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: _cardBg,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: _cardBorder),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 12,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
+                      return GoldenCard(
+                        padding: EdgeInsets.all(GR.md + 3),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Container(
-                                  width: 36,
-                                  height: 36,
+                                  width: GR.lg + 2,
+                                  height: GR.lg + 2,
                                   decoration: BoxDecoration(
                                     color: (med['color'] as Color).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(GR.radiusMd),
                                   ),
                                   child: Icon(
                                     Icons.medication_rounded,
-                                    size: 18,
+                                    size: GR.iconSm,
                                     color: med['color'] as Color,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                SizedBox(width: GR.md),
                                 Expanded(
                                   child: Text(
                                     med['name'] as String,
-                                    style: const TextStyle(
-                                      fontFamily: 'Artific',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: _textPrimary,
-                                    ),
+                                    style: AppTextStyles.h3(context, weight: FontWeight.w700),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: GR.sm),
                             Padding(
-                              padding: const EdgeInsets.only(left: 48),
+                              padding: EdgeInsets.only(left: GR.lg + 2 + GR.md),
                               child: Text(
                                 med['schedule'] as String,
-                                style: const TextStyle(
-                                  fontFamily: 'Artific',
-                                  fontSize: 13,
-                                  color: _textSecondary,
-                                ),
+                                style: AppTextStyles.bodySmall(context),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: GR.md),
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.xs + 2),
                                   decoration: BoxDecoration(
-                                    color: isLow ? const Color(0xFFFFF3E0) : const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: isLow ? AppColors.orangeLight : AppColors.surface,
+                                    borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                   ),
                                   child: Text(
                                     '${med['stock']} pill(s) left',
-                                    style: TextStyle(
-                                      fontFamily: 'Artific',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isLow ? _orange : _textSecondary,
-                                    ),
+                                    style: AppTextStyles.caption(context, weight: FontWeight.w600, color: isLow ? AppColors.orange : AppColors.textSecondary),
                                   ),
                                 ),
                                 const Spacer(),
                                 Container(
-                                  width: 36,
-                                  height: 36,
+                                  width: GR.lg + 2,
+                                  height: GR.lg + 2,
                                   decoration: BoxDecoration(
-                                    color: isLow ? const Color(0xFFFFF3E0) : _accentLight.withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: isLow ? AppColors.orangeLight : AppColors.accentLight.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(GR.radiusMd),
                                   ),
                                   child: Icon(
                                     isLow ? Icons.warning_amber_rounded : Icons.alarm_rounded,
-                                    size: 18,
-                                    color: isLow ? _orange : _accentDark,
+                                    size: GR.iconSm,
+                                    color: isLow ? AppColors.orange : AppColors.accentDark,
                                   ),
                                 ),
                               ],
@@ -272,13 +224,13 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                           .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 200 + i * 100), duration: 500.ms, curve: Curves.easeOutCubic);
                     }),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: GR.lg),
                   ],
                 ),
               ),
             ),
 
-            // ── Add Options Overlay ──────────────────────────────
+            // Add Options Overlay
             if (_showAddMenu)
               GestureDetector(
                 onTap: _hideAddOptions,
@@ -286,12 +238,12 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                   color: Colors.black.withValues(alpha: 0.4),
                   child: Center(
                     child: GestureDetector(
-                      onTap: () {}, // prevent tap through
+                      onTap: () {},
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
+                        margin: EdgeInsets.symmetric(horizontal: GR.lg + 2),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(GR.radiusLg),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -306,7 +258,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                                 );
                               },
                             ),
-                            const Divider(height: 1),
+                            Divider(height: 1),
                             _AddOption(
                               label: 'Measurement',
                               onTap: () {
@@ -314,7 +266,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                                 Haptics.light();
                               },
                             ),
-                            const Divider(height: 1),
+                            Divider(height: 1),
                             _AddOption(
                               label: 'Activity',
                               onTap: () {
@@ -322,7 +274,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                                 Haptics.light();
                               },
                             ),
-                            const Divider(height: 1),
+                            Divider(height: 1),
                             _AddOption(
                               label: 'Symptom check',
                               onTap: () {
@@ -330,7 +282,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                                 Haptics.light();
                               },
                             ),
-                            const Divider(height: 1),
+                            Divider(height: 1),
                             _AddOption(
                               label: 'Doctor appointment',
                               onTap: () {
@@ -341,20 +293,20 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                                 );
                               },
                             ),
-                            const Divider(height: 1),
+                            Divider(height: 1),
                             GestureDetector(
                               onTap: _hideAddOptions,
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                child: const Center(
+                                padding: EdgeInsets.symmetric(vertical: GR.md + 3),
+                                child: Center(
                                   child: Text(
                                     'Cancel',
                                     style: TextStyle(
                                       fontFamily: 'Artific',
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: _accentDark,
+                                      color: AppColors.accentDark,
                                     ),
                                   ),
                                 ),
@@ -374,7 +326,6 @@ class _TreatmentScreenState extends State<TreatmentScreen>
   }
 }
 
-// ─── Add Option ──────────────────────────────────────────────────────────────
 class _AddOption extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -387,15 +338,15 @@ class _AddOption extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: GR.md + 3),
         child: Center(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Artific',
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: _accentDark,
+              color: AppColors.accentDark,
             ),
           ),
         ),

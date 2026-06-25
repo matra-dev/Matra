@@ -1,18 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
-
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-const _amber = Color(0xFFFFB74D);
+import '../theme/app_text_styles.dart';
 
 class MetricDetailScreen extends StatefulWidget {
   const MetricDetailScreen({super.key});
@@ -65,16 +54,16 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
+                SizedBox(height: GR.sm),
 
                 // ── Header ───────────────────────────────────────────
                 Row(
@@ -85,17 +74,17 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                         Navigator.of(context).pop();
                       },
                       child: Container(
-                        width: 40,
-                        height: 40,
+                        width: GR.lg + 2,
+                        height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: _cardBg,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _cardBorder),
+                          color: AppColors.cardBg,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                          border: Border.all(color: AppColors.border),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_rounded,
-                          size: 18,
-                          color: _textPrimary,
+                          size: GR.iconSm + 2,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -103,17 +92,17 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     GestureDetector(
                       onTap: () => Haptics.light(),
                       child: Container(
-                        width: 40,
-                        height: 40,
+                        width: GR.lg + 2,
+                        height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: _cardBg,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _cardBorder),
+                          color: AppColors.cardBg,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                          border: Border.all(color: AppColors.border),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.share_outlined,
-                          size: 18,
-                          color: _textPrimary,
+                          size: GR.iconSm + 2,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -123,31 +112,20 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 0.ms, duration: 600.ms)
                     .slideY(begin: -0.3, end: 0, delay: 0.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 24),
+                SizedBox(height: GR.xl),
 
                 // ── Title ────────────────────────────────────────────
                 Center(
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Vitamin D',
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: _textPrimary,
-                          letterSpacing: -0.8,
-                        ),
+                        style: AppTextStyles.h1(context),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: GR.xs + 2),
                       Text(
                         'December 16, 2025 · Daily Intake',
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: _textMuted,
-                        ),
+                        style: AppTextStyles.bodySmall(context),
                       ),
                     ],
                   ),
@@ -156,7 +134,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 150.ms, duration: 700.ms)
                     .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl + 2),
 
                 // ── Big Value ──────────────────────────────────────────
                 Center(
@@ -172,28 +150,16 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           );
                           return Text(
                             (2000 * v).toStringAsFixed(0),
-                            style: const TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 56,
-                              fontWeight: FontWeight.w900,
-                              color: _textPrimary,
-                              height: 1.0,
-                              letterSpacing: -2,
-                            ),
+                            style: AppTextStyles.display(context),
                           );
                         },
                       ),
-                      const SizedBox(width: 8),
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
+                      SizedBox(width: GR.xs + 2),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: GR.md + 2),
                         child: Text(
                           'IU',
-                          style: TextStyle(
-                            fontFamily: 'Artific',
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: _textMuted,
-                          ),
+                          style: AppTextStyles.h3(context, color: AppColors.textMuted),
                         ),
                       ),
                     ],
@@ -203,25 +169,20 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 300.ms, duration: 800.ms)
                     .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0), delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 16),
+                SizedBox(height: GR.lg),
 
                 // ── Status Pill ──────────────────────────────────────
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
-                      color: _accentLight.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _accentLight),
+                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+                      border: Border.all(color: AppColors.accentLight),
                     ),
-                    child: const Text(
+                    child: Text(
                       'On Track',
-                      style: TextStyle(
-                        fontFamily: 'Artific',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _accentDark,
-                      ),
+                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
                     ),
                   ),
                 )
@@ -229,7 +190,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 500.ms, duration: 500.ms)
                     .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0), delay: 500.ms, duration: 500.ms, curve: Curves.easeOutBack),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl + 2),
 
                 // ── Dot Matrix Scale ───────────────────────────────────
                 AnimatedBuilder(
@@ -245,68 +206,37 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                   },
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl + 2),
 
                 // ── About Card ─────────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _cardBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                GoldenCard(
+                  padding: EdgeInsets.all(GR.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.info_outline_rounded,
-                            size: 14,
-                            color: _textMuted,
+                            size: GR.iconSm - 2,
+                            color: AppColors.textMuted,
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: GR.xs + 2),
                           Text(
                             'ABOUT',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: _textMuted,
-                              letterSpacing: 1,
-                            ),
+                            style: AppTextStyles.caption(context),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
+                      SizedBox(height: GR.md),
+                      Text(
                         'Essential for calcium absorption and bone health. Supports immune function and muscle strength.',
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: _textPrimary,
-                          height: 1.5,
-                        ),
+                        style: AppTextStyles.body(context, weight: FontWeight.w500),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: GR.sm + 2),
+                      Text(
                         'Take with a meal containing fat for best absorption. Morning doses align with natural sunlight rhythms.',
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: _textSecondary,
-                          height: 1.5,
-                        ),
+                        style: AppTextStyles.bodySmall(context),
                       ),
                     ],
                   ),
@@ -315,95 +245,60 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 700.ms, duration: 700.ms)
                     .slideY(begin: 0.2, end: 0, delay: 700.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 16),
+                SizedBox(height: GR.md + 3),
 
                 // ── Trend Card ─────────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _cardBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                GoldenCard(
+                  padding: EdgeInsets.all(GR.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.trending_up_rounded,
-                            size: 14,
-                            color: _textMuted,
+                            size: GR.iconSm - 2,
+                            color: AppColors.textMuted,
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: GR.xs + 2),
                           Text(
                             'TREND',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: _textMuted,
-                              letterSpacing: 1,
-                            ),
+                            style: AppTextStyles.caption(context),
                           ),
                           const Spacer(),
                           Text(
                             'Dec 1 - Dec 16',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: _textMuted,
-                            ),
+                            style: AppTextStyles.caption(context),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: GR.lg),
                       Row(
                         children: [
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: GR.xs + 2,
+                            height: GR.xs + 2,
                             decoration: const BoxDecoration(
-                              color: _accent,
+                              color: AppColors.accent,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Text(
+                          SizedBox(width: GR.xs + 2),
+                          Text(
                             '+12%',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: _accentDark,
-                              height: 1.0,
-                            ),
+                            style: AppTextStyles.h2(context, color: AppColors.accentDark),
                           ),
-                          const SizedBox(width: 4),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 2),
+                          SizedBox(width: GR.xs - 2),
+                          Padding(
+                            padding: EdgeInsets.only(top: GR.xs - 2),
                             child: Text(
                               'this month',
-                              style: TextStyle(
-                                fontFamily: 'Artific',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: _textSecondary,
-                              ),
+                              style: AppTextStyles.bodySmall(context),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: GR.lg + 2),
                       SizedBox(
                         height: 140,
                         child: AnimatedBuilder(
@@ -424,65 +319,41 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 900.ms, duration: 700.ms)
                     .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 16),
+                SizedBox(height: GR.md + 3),
 
                 // ── Weekly Breakdown ───────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _cardBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                GoldenCard(
+                  padding: EdgeInsets.all(GR.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_today_rounded,
-                            size: 14,
-                            color: _textMuted,
+                            size: GR.iconSm - 2,
+                            color: AppColors.textMuted,
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: GR.xs + 2),
                           Text(
                             'THIS WEEK',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: _textMuted,
-                              letterSpacing: 1,
-                            ),
+                            style: AppTextStyles.caption(context),
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
                             decoration: BoxDecoration(
-                              color: _accentLight.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(10),
+                              color: AppColors.accentLight.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                             ),
-                            child: const Text(
+                            child: Text(
                               '6/7 days',
-                              style: TextStyle(
-                                fontFamily: 'Artific',
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: _accentDark,
-                              ),
+                              style: AppTextStyles.micro(context, weight: FontWeight.w700, color: AppColors.accentDark),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: GR.lg),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -502,7 +373,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                     .fadeIn(delay: 1100.ms, duration: 700.ms)
                     .slideY(begin: 0.2, end: 0, delay: 1100.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl + 2),
               ],
             ),
           ),
@@ -540,13 +411,13 @@ class _DotMatrixScale extends StatelessWidget {
             final isActive = i < activeCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(_amber, _accentDark, intensity)!
+                ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
                 : const Color(0xFFE5E7EB);
 
             return Container(
               width: 5.5,
               height: 5.5,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
+              margin: EdgeInsets.symmetric(horizontal: GR.xs - 2),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(3),
@@ -562,27 +433,17 @@ class _DotMatrixScale extends StatelessWidget {
                 );
           }),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: GR.sm + 2),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               min.toStringAsFixed(0),
-              style: const TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _textMuted,
-              ),
+              style: AppTextStyles.caption(context),
             ),
             Text(
               max.toStringAsFixed(0),
-              style: const TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _textMuted,
-              ),
+              style: AppTextStyles.caption(context),
             ),
           ],
         ),
@@ -616,7 +477,7 @@ class _TrendChart extends StatelessWidget {
             _YLabel(minVal.toStringAsFixed(0)),
           ],
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: GR.sm + 2),
         // Chart area
         Expanded(
           child: CustomPaint(
@@ -642,12 +503,7 @@ class _YLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
-        fontFamily: 'Artific',
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        color: _textMuted,
-      ),
+      style: AppTextStyles.micro(context),
     );
   }
 }
@@ -691,7 +547,7 @@ class _TrendDotsPainter extends CustomPainter {
         final intensity = isActive ? (row / activeDots).clamp(0.3, 1.0) : 0.0;
 
         final color = isActive
-            ? Color.lerp(_amber, _accentDark, intensity)!
+            ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
             : const Color(0xFFE5E7EB);
 
         final alpha = isActive ? 1.0 : 0.3;
@@ -734,14 +590,14 @@ class _DayPill extends StatelessWidget {
       width: 38,
       height: 52,
       decoration: BoxDecoration(
-        color: taken ? _accentLight.withValues(alpha: 0.3) : _cardBg,
-        borderRadius: BorderRadius.circular(14),
+        color: taken ? AppColors.accentLight.withValues(alpha: 0.3) : AppColors.cardBg,
+        borderRadius: BorderRadius.circular(GR.radiusMd + 1),
         border: Border.all(
           color: isToday
-              ? _accent
+              ? AppColors.accent
               : taken
-                  ? _accentLight
-                  : _cardBorder,
+                  ? AppColors.accentLight
+                  : AppColors.border,
           width: isToday ? 2 : 1,
         ),
       ),
@@ -752,16 +608,16 @@ class _DayPill extends StatelessWidget {
             day,
             style: TextStyle(
               fontFamily: 'Artific',
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
-              color: isToday ? _accentDark : _textSecondary,
+              color: isToday ? AppColors.accentDark : AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: GR.xs),
           Icon(
             taken ? Icons.check_circle_rounded : Icons.circle_outlined,
-            size: 14,
-            color: taken ? _accent : _textMuted,
+            size: GR.iconSm - 2,
+            color: taken ? AppColors.accent : AppColors.textMuted,
           ),
         ],
       ),

@@ -2,17 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-
+import '../theme/app_text_styles.dart';
 class MeasurementListScreen extends StatefulWidget {
   const MeasurementListScreen({super.key});
 
@@ -27,16 +17,16 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
   String _query = '';
 
   final List<Map<String, dynamic>> _measurements = [
-    {'name': 'Blood Pressure', 'unit': 'mmHg', 'icon': Icons.favorite_rounded, 'color': _accentDark},
-    {'name': 'Resting Heart Rate', 'unit': 'bpm', 'icon': Icons.monitor_heart_rounded, 'color': const Color(0xFFE53935)},
-    {'name': 'Weight', 'unit': 'kg', 'icon': Icons.scale_rounded, 'color': const Color(0xFF448AFF)},
-    {'name': 'Blood Sugar (before meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': const Color(0xFFFF9800)},
-    {'name': 'Blood Sugar (after meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': const Color(0xFFFF9800)},
-    {'name': 'Temperature', 'unit': '°C', 'icon': Icons.thermostat_rounded, 'color': const Color(0xFF9C27B0)},
+    {'name': 'Blood Pressure', 'unit': 'mmHg', 'icon': Icons.favorite_rounded, 'color': AppColors.accentDark},
+    {'name': 'Resting Heart Rate', 'unit': 'bpm', 'icon': Icons.monitor_heart_rounded, 'color': AppColors.red},
+    {'name': 'Weight', 'unit': 'kg', 'icon': Icons.scale_rounded, 'color': AppColors.blue},
+    {'name': 'Blood Sugar (before meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.orange},
+    {'name': 'Blood Sugar (after meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.orange},
+    {'name': 'Temperature', 'unit': '°C', 'icon': Icons.thermostat_rounded, 'color': AppColors.purple},
     {'name': 'Oxygen Saturation', 'unit': '%', 'icon': Icons.air_rounded, 'color': const Color(0xFF00BCD4)},
     {'name': 'Sleep Duration', 'unit': 'hours', 'icon': Icons.bedtime_rounded, 'color': const Color(0xFF3F51B5)},
     {'name': 'Steps', 'unit': 'count', 'icon': Icons.directions_walk_rounded, 'color': const Color(0xFF4CAF50)},
-    {'name': 'Vitamin D Level', 'unit': 'ng/mL', 'icon': Icons.wb_sunny_rounded, 'color': const Color(0xFFFFB74D)},
+    {'name': 'Vitamin D Level', 'unit': 'ng/mL', 'icon': Icons.wb_sunny_rounded, 'color': AppColors.amber},
   ];
 
   @override
@@ -71,15 +61,15 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 8),
+            SizedBox(height: GR.sm),
 
-            // ── Header ───────────────────────────────────────────
+            // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
                 children: [
                   GestureDetector(
@@ -88,32 +78,28 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       Navigator.pop(context);
                     },
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: GR.lg + 2,
+                      height: GR.lg + 2,
                       decoration: BoxDecoration(
-                        color: _cardBg,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _cardBorder),
+                        color: AppColors.cardBg,
+                        borderRadius: BorderRadius.circular(GR.radiusMd),
+                        border: Border.all(color: AppColors.border),
                       ),
-                      child: const Icon(
-                        Icons.arrow_back_rounded,
-                        size: 18,
-                        color: _textPrimary,
-                      ),
+                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: AppColors.textPrimary),
                     ),
                   ),
                   const Spacer(),
-                  const Text(
+                  Text(
                     'Select from List',
                     style: TextStyle(
                       fontFamily: 'Artific',
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: _textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 40),
+                  SizedBox(width: GR.lg + 2),
                 ],
               ),
             )
@@ -121,44 +107,44 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                 .fadeIn(delay: 0.ms, duration: 500.ms)
                 .slideY(begin: -0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 20),
+            SizedBox(height: GR.lg),
 
-            // ── Search Bar ───────────────────────────────────────
+            // Search Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Container(
-                height: 48,
+                height: GR.buttonSm + 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F0F0),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(GR.radiusMd),
                 ),
                 child: Row(
                   children: [
-                    const SizedBox(width: 14),
-                    const Icon(Icons.search_rounded, size: 18, color: _textMuted),
-                    const SizedBox(width: 10),
+                    SizedBox(width: GR.md),
+                    Icon(Icons.search_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                    SizedBox(width: GR.md),
                     Expanded(
                       child: TextField(
                         controller: _searchController,
                         onChanged: (v) => setState(() => _query = v),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Artific',
-                          fontSize: 15,
-                          color: _textPrimary,
+                          fontSize: 16,
+                          color: AppColors.textPrimary,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Search',
                           hintStyle: TextStyle(
                             fontFamily: 'Artific',
-                            fontSize: 15,
-                            color: _textMuted,
+                            fontSize: 16,
+                            color: AppColors.textMuted,
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: GR.sm),
                   ],
                 ),
               ),
@@ -167,20 +153,20 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                 .fadeIn(delay: 100.ms, duration: 500.ms)
                 .slideY(begin: 0.15, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 24),
+            SizedBox(height: GR.lg),
 
-            // ── Section Title ────────────────────────────────────
+            // Section Title
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
                 children: [
                   Text(
                     'Popular measurements',
                     style: TextStyle(
                       fontFamily: 'Artific',
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: _textMuted,
+                      color: AppColors.textMuted,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -190,12 +176,12 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                 .animate(controller: _entranceCtrl)
                 .fadeIn(delay: 200.ms, duration: 400.ms),
 
-            const SizedBox(height: 12),
+            SizedBox(height: GR.md),
 
-            // ── List ─────────────────────────────────────────────
+            // List
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: GR.lg),
                 itemCount: _filtered.length,
                 itemBuilder: (context, index) {
                   final item = _filtered[index];
@@ -205,12 +191,12 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       Navigator.pushNamed(context, '/metric_detail');
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(bottom: 1),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      margin: EdgeInsets.only(bottom: 1),
+                      padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 3),
                       decoration: BoxDecoration(
-                        color: _cardBg,
+                        color: AppColors.cardBg,
                         border: Border(
-                          bottom: BorderSide(color: _cardBorder),
+                          bottom: BorderSide(color: AppColors.border),
                         ),
                       ),
                       child: Row(
@@ -218,19 +204,15 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                           Expanded(
                             child: Text(
                               item['name']!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Artific',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: _textPrimary,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            size: 20,
-                            color: _textMuted,
-                          ),
+                          Icon(Icons.chevron_right_rounded, size: GR.iconSm, color: AppColors.textMuted),
                         ],
                       ),
                     ),

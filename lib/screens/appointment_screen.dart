@@ -1,21 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
-
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-const _orange = Color(0xFFFFA726);
-const _blue = Color(0xFF448AFF);
-const _purple = Color(0xFF7E57C2);
-const _red = Color(0xFFEF5350);
+import '../theme/app_text_styles.dart';
 
 class AppointmentScreen extends StatefulWidget {
   const AppointmentScreen({super.key});
@@ -82,19 +68,17 @@ class _AppointmentScreenState extends State<AppointmentScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: _accentDark,
+              primary: AppColors.accentDark,
               onPrimary: Colors.white,
               surface: Colors.white,
-              onSurface: _textPrimary,
+              onSurface: AppColors.textPrimary,
             ),
           ),
           child: child!,
         );
       },
     );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
+    if (picked != null) setState(() => _selectedDate = picked);
   }
 
   Future<void> _pickTime() async {
@@ -106,19 +90,17 @@ class _AppointmentScreenState extends State<AppointmentScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: _accentDark,
+              primary: AppColors.accentDark,
               onPrimary: Colors.white,
               surface: Colors.white,
-              onSurface: _textPrimary,
+              onSurface: AppColors.textPrimary,
             ),
           ),
           child: child!,
         );
       },
     );
-    if (picked != null) {
-      setState(() => _selectedTime = picked);
-    }
+    if (picked != null) setState(() => _selectedTime = picked);
   }
 
   void _showDoctorPicker() {
@@ -127,63 +109,63 @@ class _AppointmentScreenState extends State<AppointmentScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg)),
         ),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: EdgeInsets.only(top: GR.sm),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: _cardBorder,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(20),
+              Padding(
+                padding: EdgeInsets.all(GR.lg),
                 child: Text(
                   'Select Healthcare Professional',
                   style: TextStyle(
                     fontFamily: 'Artific',
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: _textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
               ..._doctors.map((doc) {
                 return ListTile(
                   leading: Container(
-                    width: 44,
-                    height: 44,
+                    width: GR.lg + 2,
+                    height: GR.lg + 2,
                     decoration: BoxDecoration(
-                      color: _accentLight.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(GR.radiusMd),
                     ),
-                    child: const Icon(Icons.person_rounded, color: _accentDark),
+                    child: const Icon(Icons.person_rounded, color: AppColors.accentDark, size: 20),
                   ),
                   title: Text(
                     doc['name']!,
                     style: const TextStyle(
                       fontFamily: 'Artific',
                       fontWeight: FontWeight.w700,
-                      color: _textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   subtitle: Text(
                     doc['specialty']!,
                     style: const TextStyle(
                       fontFamily: 'Artific',
-                      color: _textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   trailing: _selectedDoctor == doc['name']
-                      ? const Icon(Icons.check_circle_rounded, color: _accent)
+                      ? const Icon(Icons.check_circle_rounded, color: AppColors.accent)
                       : null,
                   onTap: () {
                     Haptics.success();
@@ -192,7 +174,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                   },
                 );
               }),
-              const SizedBox(height: 20),
+              SizedBox(height: GR.lg),
             ],
           ),
         ),
@@ -208,9 +190,9 @@ class _AppointmentScreenState extends State<AppointmentScreen>
           'Appointment saved successfully!',
           style: TextStyle(fontFamily: 'Artific'),
         ),
-        backgroundColor: _accentDark,
+        backgroundColor: AppColors.accentDark,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusMd)),
       ),
     );
   }
@@ -220,18 +202,18 @@ class _AppointmentScreenState extends State<AppointmentScreen>
     final isFormValid = _selectedDoctor != null;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: GR.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
+                SizedBox(height: GR.sm),
 
-                // ── Header ───────────────────────────────────────────
+                // Header
                 Row(
                   children: [
                     GestureDetector(
@@ -239,43 +221,39 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                         Haptics.light();
                         Navigator.pop(context);
                       },
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: _textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),
                     const Spacer(),
-                    const Text(
+                    Text(
                       'New Appointment',
                       style: TextStyle(
                         fontFamily: 'Artific',
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: _textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(width: 50),
+                    SizedBox(width: 50),
                   ],
                 )
                     .animate(controller: _entranceCtrl)
                     .fadeIn(delay: 0.ms, duration: 500.ms)
                     .slideY(begin: -0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl),
 
-                // ── Date & Time Fields ───────────────────────────────
-                Container(
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _cardBorder),
-                  ),
+                // Date & Time Fields
+                GoldenCard(
+                  padding: EdgeInsets.zero,
                   child: Column(
                     children: [
                       _FieldRow(
@@ -285,7 +263,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                         delay: 100,
                         controller: _entranceCtrl,
                       ),
-                      const Divider(height: 1, indent: 20, color: _cardBorder),
+                      Divider(height: 1, indent: GR.lg, color: AppColors.border),
                       _FieldRow(
                         label: 'Time',
                         value: _formatTime(_selectedTime),
@@ -300,32 +278,27 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     .fadeIn(delay: 100.ms, duration: 600.ms)
                     .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 24),
+                SizedBox(height: GR.lg),
 
-                // ── Doctor Selector ──────────────────────────────────
+                // Doctor Selector
                 GestureDetector(
                   onTap: _showDoctorPicker,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: _cardBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _selectedDoctor == null ? _cardBorder : _accentLight,
-                      ),
+                  child: GoldenCard(
+                    padding: EdgeInsets.all(GR.lg),
+                    border: Border.all(
+                      color: _selectedDoctor == null ? AppColors.border : AppColors.accentLight,
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           child: _selectedDoctor == null
-                              ? const Text(
+                              ? Text(
                                   'Select healthcare professional ...',
                                   style: TextStyle(
                                     fontFamily: 'Artific',
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: _accentDark,
+                                    color: AppColors.accentDark,
                                   ),
                                 )
                               : Column(
@@ -333,29 +306,26 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                                   children: [
                                     Text(
                                       _selectedDoctor!,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Artific',
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: _textPrimary,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    SizedBox(height: GR.xs),
                                     Text(
                                       _doctors.firstWhere((d) => d['name'] == _selectedDoctor)['specialty']!,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Artific',
-                                        fontSize: 13,
-                                        color: _textSecondary,
+                                        fontSize: 14,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                   ],
                                 ),
                         ),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: _textMuted,
-                        ),
+                        const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                       ],
                     ),
                   ),
@@ -364,31 +334,31 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     .fadeIn(delay: 300.ms, duration: 600.ms)
                     .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.xl),
 
-                // ── Reminders Section ────────────────────────────────
+                // Reminders Section
                 Text(
                   'Reminders',
                   style: TextStyle(
                     fontFamily: 'Artific',
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: _textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 )
                     .animate(controller: _entranceCtrl)
                     .fadeIn(delay: 400.ms, duration: 500.ms)
                     .slideY(begin: 0.2, end: 0, delay: 400.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 10),
+                SizedBox(height: GR.md),
 
                 Text(
                   'Two default reminders have been automatically set for your appointment: one for 6 PM the day before, and the other 2 hours before the appointment.',
                   style: TextStyle(
                     fontFamily: 'Artific',
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: _textSecondary,
+                    color: AppColors.textSecondary,
                     height: 1.6,
                   ),
                 )
@@ -396,18 +366,18 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     .fadeIn(delay: 500.ms, duration: 500.ms)
                     .slideY(begin: 0.2, end: 0, delay: 500.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 40),
+                SizedBox(height: GR.xxl),
 
-                // ── Save Button ──────────────────────────────────────
+                // Save Button
                 GestureDetector(
                   onTap: isFormValid ? _saveAppointment : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     width: double.infinity,
-                    height: 56,
+                    height: GR.buttonMd,
                     decoration: BoxDecoration(
-                      color: isFormValid ? _accentDark : const Color(0xFFE0E0E0),
-                      borderRadius: BorderRadius.circular(16),
+                      color: isFormValid ? AppColors.accentDark : AppColors.borderLight,
+                      borderRadius: BorderRadius.circular(GR.radiusMd),
                     ),
                     child: Center(
                       child: Text(
@@ -416,7 +386,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                           fontFamily: 'Artific',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isFormValid ? Colors.white : _textMuted,
+                          color: isFormValid ? Colors.white : AppColors.textMuted,
                         ),
                       ),
                     ),
@@ -426,7 +396,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     .fadeIn(delay: 600.ms, duration: 500.ms)
                     .slideY(begin: 0.3, end: 0, delay: 600.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.lg),
               ],
             ),
           ),
@@ -436,7 +406,6 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 }
 
-// ─── Field Row ───────────────────────────────────────────────────────────────
 class _FieldRow extends StatelessWidget {
   final String label;
   final String value;
@@ -458,26 +427,26 @@ class _FieldRow extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.md + 3),
         child: Row(
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: _textPrimary,
+                color: AppColors.textPrimary,
               ),
             ),
             const Spacer(),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: _textSecondary,
+                color: AppColors.textSecondary,
               ),
             ),
           ],

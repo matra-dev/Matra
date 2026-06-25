@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
+import '../theme/golden_ratio.dart';
 import 'main_navigation_screen.dart';
 
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-const _orange = Color(0xFFFFA726);
-const _blue = Color(0xFF448AFF);
-const _purple = Color(0xFF7E57C2);
-const _red = Color(0xFFEF5350);
+// ─── Local aliases for backward compatibility ─────────────────────────────────
+const _bg = AppColors.bg;
+const _cardBg = AppColors.cardBg;
+const _cardBorder = AppColors.border;
+const _textPrimary = AppColors.textPrimary;
+const _textSecondary = AppColors.textSecondary;
+const _textMuted = AppColors.textMuted;
+const _accent = AppColors.accent;
+const _accentLight = AppColors.accentLight;
+const _accentDark = AppColors.accentDark;
+const _orange = AppColors.orange;
+const _blue = AppColors.blue;
+const _purple = AppColors.purple;
+const _red = AppColors.red;
 
 class HealthDashboardScreen extends StatefulWidget {
   const HealthDashboardScreen({super.key});

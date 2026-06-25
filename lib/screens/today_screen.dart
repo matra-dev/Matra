@@ -4,9 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../models/supplement_model.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../utils/haptics.dart';
-import '../widgets/animated_checkbox.dart';
+import '../widgets/split_capsule_icon.dart';
 import '../widgets/low_stock_badge.dart';
 import '../widgets/empty_state.dart';
 
@@ -71,7 +71,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
         Haptics.error();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Out of stock!'), backgroundColor: AppColors.danger),
+            const SnackBar(content: Text('Out of stock!'), backgroundColor: AppColors.red),
           );
         }
       }
@@ -106,14 +106,14 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final selectedDate = _selectedDate;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: EdgeInsets.fromLTRB(GR.lg, GR.md, GR.lg, 0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -137,20 +137,14 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                           child: Text(
                             DateFormat('EEE').format(selectedDate),
                             key: ValueKey(_selectedDayOffset),
-                            style: const TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 36,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                              letterSpacing: -1,
-                            ),
+                            style: AppTextStyles.h1(context),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: GR.xs + 2),
                         Container(
-                          width: 8,
-                          height: 8,
-                          margin: const EdgeInsets.only(top: 6),
+                          width: GR.xs + 2,
+                          height: GR.xs + 2,
+                          margin: EdgeInsets.only(top: GR.xs + 2),
                           decoration: const BoxDecoration(
                             color: Color(0xFFFF6B6B),
                             shape: BoxShape.circle,
@@ -179,21 +173,11 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         children: [
                           Text(
                             DateFormat('MMMM d').format(selectedDate),
-                            style: const TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF999999),
-                            ),
+                            style: AppTextStyles.bodySmall(context),
                           ),
                           Text(
                             DateFormat('yyyy').format(selectedDate),
-                            style: const TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF999999),
-                            ),
+                            style: AppTextStyles.bodySmall(context),
                           ),
                         ],
                       ),
@@ -206,7 +190,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             // Week strip
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                padding: EdgeInsets.fromLTRB(GR.md, GR.sm, GR.md, GR.md),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: weekDays.asMap().entries.map((entry) {
@@ -222,8 +206,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         width: 48,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.black : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
+                          color: isSelected ? AppColors.textPrimary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 3),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -233,21 +217,21 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
                                 fontFamily: 'Artific',
-                                fontSize: isSelected ? 20 : 18,
+                                fontSize: isSelected ? 24 : 20,
                                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                color: isSelected ? Colors.white : Colors.black,
+                                color: isSelected ? Colors.white : AppColors.textPrimary,
                               ),
                               child: Text('${day.day}'),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: GR.xs),
                             AnimatedDefaultTextStyle(
                               duration: const Duration(milliseconds: 350),
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
                                 fontFamily: 'Artific',
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.white70 : const Color(0xFFAAAAAA),
+                                color: isSelected ? Colors.white70 : AppColors.textMuted,
                                 letterSpacing: 0.5,
                               ),
                               child: Text(DateFormat('EEE').format(day).toUpperCase()),
@@ -265,10 +249,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             ),
 
             // Divider
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+                padding: EdgeInsets.symmetric(horizontal: GR.lg),
+                child: Divider(height: 1, color: AppColors.border),
               ),
             ),
 
@@ -299,7 +283,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                 }
 
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                  padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, GR.xl),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -368,7 +352,7 @@ class _TimeSlotSection extends StatelessWidget {
       case 'Evening':
         return const Color(0xFF9575CD);
       default:
-        return AppColors.primary;
+        return AppColors.accent;
     }
   }
 
@@ -392,41 +376,41 @@ class _TimeSlotSection extends StatelessWidget {
       children: [
         // Time slot header
         Padding(
-          padding: const EdgeInsets.only(bottom: 12, top: 8),
+          padding: EdgeInsets.only(bottom: GR.md, top: GR.sm),
           child: Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: GR.lg + 2,
+                height: GR.lg + 2,
                 decoration: BoxDecoration(
                   color: _slotColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                 ),
-                child: Icon(_slotIcon, size: 16, color: _slotColor),
+                child: Icon(_slotIcon, size: GR.iconSm, color: _slotColor),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: GR.sm + 2),
               Text(
                 slot,
                 style: TextStyle(
                   fontFamily: 'Artific',
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: _slotColor,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: GR.sm + 2),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
                 decoration: BoxDecoration(
                   color: _slotColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(GR.radiusSm),
                 ),
                 child: Text(
                   '${supplements.length}',
                   style: TextStyle(
                     fontFamily: 'Artific',
                     color: _slotColor,
-                    fontSize: 12,
+                    fontSize: GR.textSm + 1,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -510,15 +494,15 @@ class _SupplementRow extends StatelessWidget {
         onTap: onToggle,
         behavior: HitTestBehavior.opaque,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: EdgeInsets.symmetric(vertical: GR.sm - 2),
           child: Row(
             children: [
-              AnimatedCheckbox(
-                value: isTaken,
-                onChanged: (_) => onToggle(),
-                size: 40,
+              SplitCapsuleIcon(
+                checked: isTaken,
+                onTap: onToggle,
+                size: 48,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: GR.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,20 +513,20 @@ class _SupplementRow extends StatelessWidget {
                         fontFamily: 'Artific',
                         fontSize: 16,
                         fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
-                        color: isTaken ? const Color(0xFFBBBBBB) : Colors.black,
+                        color: isTaken ? AppColors.textMuted : AppColors.textPrimary,
                         decoration: isTaken ? TextDecoration.lineThrough : null,
-                        decorationColor: const Color(0xFFCCCCCC),
+                        decorationColor: AppColors.textMuted,
                       ),
                     ),
                     if (!isTaken) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: GR.xs - 2),
                       Text(
                         supplement.dosageText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Artific',
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFFAAAAAA),
+                          color: AppColors.textMuted,
                         ),
                       ),
                     ],

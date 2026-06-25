@@ -1,18 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
-
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-const _orange = Color(0xFFFFA726);
+import '../theme/app_text_styles.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -66,28 +55,27 @@ class _ProgressScreenState extends State<ProgressScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: GR.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
+                SizedBox(height: GR.sm),
 
-                // ── Header with Toggle ───────────────────────────────
+                // Header with Toggle
                 Row(
                   children: [
                     const Spacer(),
-                    // Toggle
                     Container(
-                      height: 40,
-                      padding: const EdgeInsets.all(4),
+                      height: GR.buttonSm + 4,
+                      padding: EdgeInsets.all(GR.xs),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8E8E8),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(GR.radiusLg),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -97,18 +85,18 @@ class _ProgressScreenState extends State<ProgressScreen>
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
                               curve: Curves.easeOutCubic,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: _isCharts ? _textPrimary : Colors.transparent,
-                                borderRadius: BorderRadius.circular(16),
+                                color: _isCharts ? AppColors.textPrimary : Colors.transparent,
+                                borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(
                                 'Charts',
                                 style: TextStyle(
                                   fontFamily: 'Artific',
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: _isCharts ? Colors.white : _textSecondary,
+                                  color: _isCharts ? Colors.white : AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -118,18 +106,18 @@ class _ProgressScreenState extends State<ProgressScreen>
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
                               curve: Curves.easeOutCubic,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: !_isCharts ? _textPrimary : Colors.transparent,
-                                borderRadius: BorderRadius.circular(16),
+                                color: !_isCharts ? AppColors.textPrimary : Colors.transparent,
+                                borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(
                                 'List',
                                 style: TextStyle(
                                   fontFamily: 'Artific',
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: !_isCharts ? Colors.white : _textSecondary,
+                                  color: !_isCharts ? Colors.white : AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -140,13 +128,13 @@ class _ProgressScreenState extends State<ProgressScreen>
                     const Spacer(),
                     GestureDetector(
                       onTap: () => Haptics.light(),
-                      child: const Text(
+                      child: Text(
                         'Export',
                         style: TextStyle(
                           fontFamily: 'Artific',
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: _textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -156,86 +144,76 @@ class _ProgressScreenState extends State<ProgressScreen>
                     .fadeIn(delay: 0.ms, duration: 500.ms)
                     .slideY(begin: -0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                const SizedBox(height: 24),
+                SizedBox(height: GR.xl),
 
                 if (_isCharts) ...[
-                  // ── Charts View ────────────────────────────────────
+                  // Charts View
                   Text(
                     'See your daily steps and much more',
                     style: TextStyle(
                       fontFamily: 'Artific',
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: _textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   )
                       .animate(controller: _entranceCtrl)
                       .fadeIn(delay: 100.ms, duration: 500.ms)
                       .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: GR.lg),
 
                   // Health Connect Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: _cardBg,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _cardBorder),
-                    ),
+                  GoldenCard(
+                    padding: EdgeInsets.all(GR.lg),
                     child: Column(
                       children: [
                         Container(
-                          width: 60,
-                          height: 60,
+                          width: GR.lg * 3,
+                          height: GR.lg * 3,
                           decoration: BoxDecoration(
-                            color: _accentLight.withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.accentLight.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(GR.radiusLg),
                           ),
-                          child: const Icon(
-                            Icons.favorite_rounded,
-                            size: 28,
-                            color: _accentDark,
-                          ),
+                          child: Icon(Icons.favorite_rounded, size: GR.iconLg + 2, color: AppColors.accentDark),
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
+                        SizedBox(height: GR.md),
+                        Text(
                           'Connect with Health',
                           style: TextStyle(
                             fontFamily: 'Artific',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: _textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: GR.sm),
                         Text(
                           'Sync your daily steps, heart rate, and sleep data automatically.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'Artific',
-                            fontSize: 13,
-                            color: _textSecondary,
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
                             height: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: GR.md),
                         GestureDetector(
                           onTap: () => Haptics.medium(),
                           child: Container(
                             width: double.infinity,
-                            height: 48,
+                            height: GR.buttonSm + 4,
                             decoration: BoxDecoration(
-                              color: _accentDark,
-                              borderRadius: BorderRadius.circular(14),
+                              color: AppColors.accentDark,
+                              borderRadius: BorderRadius.circular(GR.radiusMd),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'Connect',
                                 style: TextStyle(
                                   fontFamily: 'Artific',
-                                  fontSize: 15,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
@@ -250,21 +228,15 @@ class _ProgressScreenState extends State<ProgressScreen>
                       .fadeIn(delay: 200.ms, duration: 600.ms)
                       .slideY(begin: 0.2, end: 0, delay: 200.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: GR.lg),
 
                   // Weekly adherence chart
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: _cardBg,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _cardBorder),
-                    ),
+                  GoldenCard(
+                    padding: EdgeInsets.all(GR.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Text(
                               'Vitamin D3',
@@ -272,21 +244,21 @@ class _ProgressScreenState extends State<ProgressScreen>
                                 fontFamily: 'Artific',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: _textPrimary,
+                                color: AppColors.textPrimary,
                               ),
                             ),
-                            Spacer(),
+                            const Spacer(),
                             Text(
                               'This Week',
                               style: TextStyle(
                                 fontFamily: 'Artific',
-                                fontSize: 12,
-                                color: _textMuted,
+                                fontSize: 14,
+                                color: AppColors.textMuted,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: GR.lg),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -306,27 +278,27 @@ class _ProgressScreenState extends State<ProgressScreen>
                       .fadeIn(delay: 300.ms, duration: 600.ms)
                       .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: GR.lg),
 
                   // Personalize button
                   GestureDetector(
                     onTap: () => Haptics.medium(),
                     child: Container(
                       width: double.infinity,
-                      height: 52,
+                      height: GR.buttonSm + 4,
                       decoration: BoxDecoration(
-                        color: _accentLight.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _accentLight),
+                        color: AppColors.accentLight.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(GR.radiusMd),
+                        border: Border.all(color: AppColors.accentLight),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Personalize',
                           style: TextStyle(
                             fontFamily: 'Artific',
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: _accentDark,
+                            color: AppColors.accentDark,
                           ),
                         ),
                       ),
@@ -336,11 +308,10 @@ class _ProgressScreenState extends State<ProgressScreen>
                       .fadeIn(delay: 400.ms, duration: 500.ms)
                       .slideY(begin: 0.2, end: 0, delay: 400.ms, duration: 500.ms, curve: Curves.easeOutCubic),
                 ] else ...[
-                  // ── List View ────────────────────────────────────
                   _buildListView(),
                 ],
 
-                const SizedBox(height: 32),
+                SizedBox(height: GR.lg),
               ],
             ),
           ),
@@ -367,47 +338,38 @@ class _ProgressScreenState extends State<ProgressScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8, top: 16),
+              padding: EdgeInsets.only(left: GR.xs, bottom: GR.sm, top: i == 0 ? 0 : GR.lg),
               child: Text(
                 e['date'] as String,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Artific',
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: _textMuted,
+                  color: AppColors.textMuted,
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: _cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _cardBorder),
-              ),
+            GoldenCard(
+              padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 3),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.medication_rounded,
-                    size: 18,
-                    color: _textMuted,
-                  ),
-                  const SizedBox(width: 12),
+                  Icon(Icons.medication_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                  SizedBox(width: GR.md),
                   Expanded(
                     child: Text(
                       e['med'] as String,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Artific',
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: _textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
                   Icon(
                     (e['taken'] as bool) ? Icons.check_circle_rounded : Icons.help_outline_rounded,
-                    size: 20,
-                    color: (e['taken'] as bool) ? _accent : _textMuted,
+                    size: GR.iconSm + 2,
+                    color: (e['taken'] as bool) ? AppColors.accent : AppColors.textMuted,
                   ),
                 ],
               ),
@@ -422,7 +384,6 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 }
 
-// ─── Day Circle ──────────────────────────────────────────────────────────────
 class _DayCircle extends StatelessWidget {
   final String day;
   final bool taken;
@@ -444,27 +405,27 @@ class _DayCircle extends StatelessWidget {
           day,
           style: TextStyle(
             fontFamily: 'Artific',
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-            color: isToday ? _accentDark : _textMuted,
+            color: isToday ? AppColors.accentDark : AppColors.textMuted,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: GR.sm),
         Container(
-          width: 36,
-          height: 36,
+          width: GR.lg + 2,
+          height: GR.lg + 2,
           decoration: BoxDecoration(
-            color: taken ? _accentLight.withValues(alpha: 0.4) : const Color(0xFFF0F0F0),
-            borderRadius: BorderRadius.circular(18),
+            color: taken ? AppColors.accentLight.withValues(alpha: 0.4) : AppColors.surface,
+            borderRadius: BorderRadius.circular(GR.lg + 2),
             border: isToday
-                ? Border.all(color: _accentDark, width: 2)
+                ? Border.all(color: AppColors.accentDark, width: 2)
                 : taken
-                    ? Border.all(color: _accentLight)
+                    ? Border.all(color: AppColors.accentLight)
                     : null,
           ),
           child: taken
-              ? const Icon(Icons.check_rounded, size: 16, color: _accentDark)
-              : const Icon(Icons.question_mark_rounded, size: 14, color: _textMuted),
+              ? Icon(Icons.check_rounded, size: GR.iconSm, color: AppColors.accentDark)
+              : Icon(Icons.question_mark_rounded, size: GR.iconSm - 2, color: AppColors.textMuted),
         ),
       ],
     )

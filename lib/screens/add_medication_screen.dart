@@ -2,17 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 
-// ─── Light Mode Palette ──────────────────────────────────────────────────────
-const _bg = Color(0xFFFAFAFA);
-const _cardBg = Color(0xFFFFFFFF);
-const _cardBorder = Color(0xFFE8E8E8);
-const _textPrimary = Color(0xFF1A1A2E);
-const _textSecondary = Color(0xFF6B7280);
-const _textMuted = Color(0xFF9CA3AF);
-const _accent = Color(0xFF00BFA5);
-const _accentLight = Color(0xFFB8E0D2);
-const _accentDark = Color(0xFF00897B);
-
+import '../theme/app_text_styles.dart';
 class AddMedicationScreen extends StatefulWidget {
   const AddMedicationScreen({super.key});
 
@@ -80,15 +70,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 8),
+            SizedBox(height: GR.sm),
 
-            // ── Header ───────────────────────────────────────────
+            // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
                 children: [
                   GestureDetector(
@@ -97,32 +87,28 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       Navigator.pop(context);
                     },
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: GR.lg + 2,
+                      height: GR.lg + 2,
                       decoration: BoxDecoration(
-                        color: _cardBg,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _cardBorder),
+                        color: AppColors.cardBg,
+                        borderRadius: BorderRadius.circular(GR.radiusMd),
+                        border: Border.all(color: AppColors.border),
                       ),
-                      child: const Icon(
-                        Icons.arrow_back_rounded,
-                        size: 18,
-                        color: _textPrimary,
-                      ),
+                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: AppColors.textPrimary),
                     ),
                   ),
                   const Spacer(),
-                  const Text(
+                  Text(
                     'Add Medication',
                     style: TextStyle(
                       fontFamily: 'Artific',
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: _textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 40),
+                  SizedBox(width: GR.lg + 2),
                 ],
               ),
             )
@@ -130,37 +116,37 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 .fadeIn(delay: 0.ms, duration: 500.ms)
                 .slideY(begin: -0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 20),
+            SizedBox(height: GR.lg),
 
-            // ── Search Bar ───────────────────────────────────────
+            // Search Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Container(
-                height: 52,
+                height: GR.buttonMd,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F0F0),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(GR.radiusMd),
                 ),
                 child: Row(
                   children: [
-                    const SizedBox(width: 16),
-                    const Icon(Icons.search_rounded, size: 20, color: _textMuted),
-                    const SizedBox(width: 12),
+                    SizedBox(width: GR.md),
+                    Icon(Icons.search_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                    SizedBox(width: GR.md),
                     Expanded(
                       child: TextField(
                         focusNode: _searchFocus,
                         onChanged: (v) => setState(() => _query = v),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 16,
-                          color: _textPrimary,
+                          color: AppColors.textPrimary,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Search for medication',
                           hintStyle: TextStyle(
                             fontFamily: 'Artific',
                             fontSize: 16,
-                            color: _textMuted,
+                            color: AppColors.textMuted,
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
@@ -173,12 +159,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           Haptics.light();
                           setState(() => _query = '');
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Icon(Icons.close_rounded, size: 18, color: _textMuted),
+                        child: Padding(
+                          padding: EdgeInsets.all(GR.md),
+                          child: Icon(Icons.close_rounded, size: 18, color: AppColors.textMuted),
                         ),
                       ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: GR.sm),
                   ],
                 ),
               ),
@@ -187,13 +173,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 .fadeIn(delay: 0.ms, duration: 500.ms)
                 .slideY(begin: 0.2, end: 0, delay: 0.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 24),
+            SizedBox(height: GR.lg),
 
-            // ── Empty State or Results ───────────────────────────
+            // Empty State or Results
             Expanded(
-              child: _query.isEmpty
-                  ? _buildEmptyState()
-                  : _buildResults(),
+              child: _query.isEmpty ? _buildEmptyState() : _buildResults(),
             ),
           ],
         ),
@@ -207,30 +191,26 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: GR.lg * 4,
+            height: GR.lg * 4,
             decoration: BoxDecoration(
-              color: _accentLight.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(24),
+              color: AppColors.accentLight.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(GR.radiusLg),
             ),
-            child: const Icon(
-              Icons.medication_rounded,
-              size: 36,
-              color: _accentDark,
-            ),
+            child: Icon(Icons.medication_rounded, size: GR.iconLg + 8, color: AppColors.accentDark),
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 300.ms, duration: 600.ms)
               .scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), delay: 300.ms, duration: 600.ms, curve: Curves.easeOutBack),
-          const SizedBox(height: 24),
-          const Text(
+          SizedBox(height: GR.lg),
+          Text(
             'Type the name of the medication,\nvitamin, or supplement you want to add',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Artific',
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: _textSecondary,
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           )
@@ -250,15 +230,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off_rounded, size: 48, color: _textMuted),
-            const SizedBox(height: 16),
+            Icon(Icons.search_off_rounded, size: GR.iconLg + 8, color: AppColors.textMuted),
+            SizedBox(height: GR.md),
             Text(
               'No results for "$_query"',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: _textSecondary,
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -267,7 +247,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: GR.lg),
       itemCount: results.length,
       itemBuilder: (context, index) {
         final med = results[index];
@@ -280,66 +260,52 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   'Added ${med['name']} to your stack',
                   style: const TextStyle(fontFamily: 'Artific'),
                 ),
-                backgroundColor: _accentDark,
+                backgroundColor: AppColors.accentDark,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusMd)),
               ),
             );
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _cardBorder),
-            ),
+          child: GoldenCard(
+            padding: EdgeInsets.all(GR.md + 3),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: GR.lg + 2,
+                  height: GR.lg + 2,
                   decoration: BoxDecoration(
-                    color: _accentLight.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.accentLight.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(GR.radiusMd),
                   ),
-                  child: const Icon(
-                    Icons.medication_rounded,
-                    size: 20,
-                    color: _accentDark,
-                  ),
+                  child: Icon(Icons.medication_rounded, size: GR.iconSm + 2, color: AppColors.accentDark),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: GR.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         med['name']!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Artific',
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: _textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: GR.xs),
                       Text(
                         '${med['dosage']} · ${med['type']}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 12,
-                          color: _textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.add_circle_rounded,
-                  color: _accent,
-                  size: 24,
-                ),
+                Icon(Icons.add_circle_rounded, color: AppColors.accent, size: GR.iconMd),
               ],
             ),
           ),
