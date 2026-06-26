@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
+import 'health_dashboard_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -127,7 +128,12 @@ class _ProgressScreenState extends State<ProgressScreen>
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () => Haptics.light(),
+                      onTap: () {
+                        Haptics.light();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const HealthDashboardScreen()),
+                        );
+                      },
                       child: Text(
                         'Export',
                         style: TextStyle(

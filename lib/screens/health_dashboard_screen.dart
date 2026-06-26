@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/golden_ratio.dart';
-import 'main_navigation_screen.dart';
 
 // ─── Local aliases for backward compatibility ─────────────────────────────────
 const _bg = AppColors.bg;
@@ -61,14 +60,7 @@ class _HealthDashboardScreenState extends State<HealthDashboardScreen>
 
   void _onContinue() {
     Haptics.medium();
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const MainNavigationScreen(),
-        transitionsBuilder: (_, animation, __, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 800),
-      ),
-    );
+    Navigator.of(context).pop();
   }
 
   @override
@@ -105,6 +97,23 @@ class _HealthDashboardScreenState extends State<HealthDashboardScreen>
                         opacity: siblings,
                         child: Row(
                           children: [
+                            GestureDetector(
+                              onTap: () {
+                                Haptics.light();
+                                Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _cardBg,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _cardBorder),
+                                ),
+                                child: const Icon(Icons.arrow_back_rounded, size: 18, color: _textPrimary),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -716,7 +725,7 @@ class _HealthDashboardScreenState extends State<HealthDashboardScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Continue to Matra',
+                                  'Done',
                                   style: TextStyle(
                                     fontFamily: 'Artific',
                                     fontSize: 15,

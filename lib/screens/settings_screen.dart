@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
+import '../theme/app_text_styles.dart';
+import 'support_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -10,96 +12,42 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen>
-    with SingleTickerProviderStateMixin {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _remindersEnabled = true;
   bool _lowStockAlerts = true;
   bool _darkMode = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 9, minute: 0);
 
-  late final AnimationController _listController;
-
-  @override
-  void initState() {
-    super.initState();
-    _listController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _listController.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _listController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                padding: EdgeInsets.fromLTRB(GR.lg, GR.md, GR.lg, GR.sm),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Settings',
-                      style: TextStyle(
-                        fontFamily: 'Artific',
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
-                        letterSpacing: -0.8,
-                      ),
-                    ).animate().fadeIn(duration: 500.ms).slideY(
-                      begin: 0.2,
-                      end: 0,
-                      duration: 500.ms,
-                      curve: Curves.easeOutCubic,
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Customize your StackSense experience',
-                      style: TextStyle(
-                        fontFamily: 'Artific',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF999999),
-                      ),
-                    ).animate(delay: 80.ms).fadeIn(duration: 500.ms).slideY(
-                      begin: 0.15,
-                      end: 0,
-                      duration: 500.ms,
-                      curve: Curves.easeOutCubic,
-                    ),
+                      style: AppTextStyles.h2(context),
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
+                    SizedBox(height: GR.xs),
+                    Text(
+                      'Customize your experience',
+                      style: AppTextStyles.bodySmall(context),
+                    ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                   ],
                 ),
               ),
             ),
-
-            // Divider
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
-                child: Divider(height: 1, color: Color(0xFFEEEEEE)),
-              ),
-            ),
-
-            // Notifications Section
             SliverToBoxAdapter(
-              child: _buildAnimatedSection(
+              child: _buildSection(
                 title: 'Notifications',
-                index: 0,
-                listController: _listController,
+                delay: 200,
                 children: [
                   _buildToggleTile(
                     icon: Icons.notifications_outlined,
@@ -126,9 +74,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                 timePickerTheme: const TimePickerThemeData(
                                   backgroundColor: Colors.white,
                                   dialBackgroundColor: Color(0xFFF5F5F5),
-                                  hourMinuteShape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                                  ),
                                 ),
                               ),
                               child: child!,
@@ -153,13 +98,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 ],
               ),
             ),
-
-            // Appearance Section
             SliverToBoxAdapter(
-              child: _buildAnimatedSection(
+              child: _buildSection(
                 title: 'Appearance',
-                index: 1,
-                listController: _listController,
+                delay: 300,
                 children: [
                   _buildToggleTile(
                     icon: Icons.dark_mode_outlined,
@@ -174,13 +116,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 ],
               ),
             ),
-
-            // About Section
             SliverToBoxAdapter(
-              child: _buildAnimatedSection(
+              child: _buildSection(
                 title: 'About',
-                index: 2,
-                listController: _listController,
+                delay: 400,
                 children: [
                   _buildInfoTile(
                     icon: Icons.info_outline,
@@ -201,17 +140,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     },
                   ),
                   _buildActionTile(
-                    icon: Icons.help_outline,
+                    icon: Icons.support_agent_outlined,
                     title: 'Help & Support',
                     onTap: () {
                       Haptics.light();
-                      _showComingSoon(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SupportScreen()),
+                      );
                     },
                   ),
                 ],
               ),
             ),
-
             const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
           ],
         ),
@@ -219,59 +160,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
-  Widget _buildAnimatedSection({
+  Widget _buildSection({
     required String title,
     required List<Widget> children,
-    required int index,
-    required AnimationController listController,
+    required int delay,
   }) {
-    final sectionDelay = Duration(milliseconds: 300 + (index * 150));
-
-    return AnimatedBuilder(
-      animation: listController,
-      builder: (context, child) {
-        final animationValue = listController.value;
-        final delaySeconds = sectionDelay.inMilliseconds / 1000;
-        final rawProgress = (animationValue - delaySeconds) * 2.5;
-        final itemProgress = rawProgress.clamp(0.0, 1.0);
-        final easedProgress = 1 - (1 - itemProgress) * (1 - itemProgress);
-
-        return Opacity(
-          opacity: easedProgress,
-          child: Transform.translate(
-            offset: Offset(0, (1 - easedProgress) * 16),
-            child: child,
+    return Padding(
+      padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: AppTextStyles.caption(context),
+          ).animate(delay: delay.ms).fadeIn(duration: 300.ms),
+          SizedBox(height: GR.sm),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.cardBg,
+              borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              children: _addDividers(children),
+            ),
+          ).animate(delay: (delay + 50).ms).fadeIn(duration: 400.ms).slideY(
+            begin: 0.1,
+            end: 0,
+            duration: 400.ms,
+            curve: Curves.easeOutCubic,
           ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title.toUpperCase(),
-              style: const TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFAAAAAA),
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
-              ),
-              child: Column(
-                children: _addDividers(children),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -281,10 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     for (int i = 0; i < children.length; i++) {
       result.add(children[i]);
       if (i < children.length - 1) {
-        result.add(const Padding(
-          padding: EdgeInsets.only(left: 60),
-          child: Divider(height: 1, color: Color(0xFFEEEEEE)),
-        ));
+        result.add(Divider(height: 1, indent: 56, color: AppColors.border));
       }
     }
     return result;
@@ -298,42 +214,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: GR.lg + 2,
+            height: GR.lg + 2,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
             ),
-            child: Icon(icon, size: 18, color: const Color(0xFF666666)),
+            child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: GR.md - 2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontFamily: 'Artific',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
-                    letterSpacing: -0.2,
-                  ),
+                  style: AppTextStyles.body(context, weight: FontWeight.w600),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: GR.xs - 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontFamily: 'Artific',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFFAAAAAA),
-                  ),
+                  style: AppTextStyles.bodySmall(context),
                 ),
               ],
             ),
@@ -341,10 +246,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.black,
-            activeTrackColor: const Color(0xFF333333),
+            activeColor: AppColors.textPrimary,
+            activeTrackColor: AppColors.border,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFFDDDDDD),
+            inactiveTrackColor: AppColors.borderLight,
           ),
         ],
       ),
@@ -360,40 +265,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
         child: Row(
           children: [
-            const SizedBox(width: 50),
+            SizedBox(width: GR.lg + 2 + GR.md - 2),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontFamily: 'Artific',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
-                  letterSpacing: -0.2,
-                ),
+                style: AppTextStyles.body(context),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                time.format(context),
-                style: const TextStyle(
-                  fontFamily: 'Artific',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF666666),
-                ),
-              ),
+            Text(
+              time.format(context),
+              style: AppTextStyles.body(context, weight: FontWeight.w600, color: AppColors.textSecondary),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFFCCCCCC)),
+            SizedBox(width: GR.xs - 2),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -406,39 +293,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     required String value,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: GR.lg + 2,
+            height: GR.lg + 2,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
             ),
-            child: Icon(icon, size: 18, color: const Color(0xFF666666)),
+            child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: GR.md - 2),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1A1A1A),
-                letterSpacing: -0.2,
-              ),
+              style: AppTextStyles.body(context),
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontFamily: 'Artific',
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF999999),
-            ),
+            style: AppTextStyles.bodySmall(context),
           ),
         ],
       ),
@@ -454,32 +330,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
         child: Row(
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: GR.lg + 2,
+              height: GR.lg + 2,
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(GR.radiusSm + 2),
               ),
-              child: Icon(icon, size: 18, color: const Color(0xFF666666)),
+              child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: GR.md - 2),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontFamily: 'Artific',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
-                  letterSpacing: -0.2,
-                ),
+                style: AppTextStyles.body(context),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFFCCCCCC)),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -491,37 +361,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusLg)),
+        title: Text(
           'Coming Soon',
-          style: TextStyle(
-            fontFamily: 'Artific',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A1A),
-            letterSpacing: -0.3,
-          ),
+          style: AppTextStyles.h2(context),
         ),
-        content: const Text(
+        content: Text(
           'This feature will be available in a future update.',
-          style: TextStyle(
-            fontFamily: 'Artific',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFF666666),
-          ),
+          style: AppTextStyles.bodySmall(context),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Got it',
-              style: TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
+              style: AppTextStyles.body(context, weight: FontWeight.w600),
             ),
           ),
         ],

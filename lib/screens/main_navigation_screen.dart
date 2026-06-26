@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import '../utils/haptics.dart';
 import '../theme/golden_ratio.dart';
 import 'today_screen.dart';
-import 'progress_screen.dart';
-import 'support_screen.dart';
+import 'insights_screen.dart';
 import 'treatment_screen.dart';
-import 'appointment_screen.dart';
-import 'add_medication_screen.dart';
-import 'measurement_list_screen.dart';
-import 'metric_detail_screen.dart';
+import 'settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -22,13 +18,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = const [
     TodayScreen(),
-    ProgressScreen(),
-    MetricDetailScreen(),
-    SupportScreen(),
+    InsightsScreen(),
     TreatmentScreen(),
-    AppointmentScreen(),
-    AddMedicationScreen(),
-    MeasurementListScreen(),
+    SettingsScreen(),
   ];
 
   final List<_NavItemData> _items = [
@@ -38,19 +30,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       label: 'Today',
     ),
     _NavItemData(
-      icon: Icons.bar_chart_outlined,
-      activeIcon: Icons.bar_chart_rounded,
-      label: 'Progress',
-    ),
-    _NavItemData(
       icon: Icons.insights_outlined,
       activeIcon: Icons.insights_rounded,
       label: 'Insights',
-    ),
-    _NavItemData(
-      icon: Icons.medical_services_outlined,
-      activeIcon: Icons.medical_services_rounded,
-      label: 'Support',
     ),
     _NavItemData(
       icon: Icons.medication_outlined,
@@ -58,19 +40,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       label: 'Treatment',
     ),
     _NavItemData(
-      icon: Icons.calendar_today_outlined,
-      activeIcon: Icons.calendar_today_rounded,
-      label: 'Appt',
-    ),
-    _NavItemData(
-      icon: Icons.add_circle_outline,
-      activeIcon: Icons.add_circle_rounded,
-      label: 'Add Med',
-    ),
-    _NavItemData(
-      icon: Icons.format_list_bulleted_outlined,
-      activeIcon: Icons.format_list_bulleted_rounded,
-      label: 'Measures',
+      icon: Icons.settings_outlined,
+      activeIcon: Icons.settings_rounded,
+      label: 'Settings',
     ),
   ];
 
@@ -109,27 +81,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(GR.base * 2, 0, GR.base * 2, GR.sm),
+                padding: EdgeInsets.fromLTRB(GR.xl + 26, 0, GR.xl + 20, GR.md + 2),
                 child: Container(
-                  height: 52,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(GR.radiusLg),
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: AppColors.border,
+                      color: const Color(0xFFEEEEEE),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 24,
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 20,
                         offset: const Offset(0, 4),
-                        spreadRadius: -4,
+                        spreadRadius: -2,
                       ),
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(GR.radiusLg),
+                    borderRadius: BorderRadius.circular(28),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(_items.length, (index) {
@@ -142,15 +114,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 350),
                             curve: Curves.easeOutCubic,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: isSelected ? 4 : 2,
+                              vertical: 8,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSelected ? 14 : 10,
+                              vertical: 8,
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.textPrimary
                                   : Colors.transparent,
-                              borderRadius: BorderRadius.circular(GR.radiusMd),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -166,7 +142,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   child: Icon(
                                     isSelected ? item.activeIcon : item.icon,
                                     key: ValueKey(isSelected),
-                                    size: GR.iconSm,
+                                    size: 22,
                                     color: isSelected
                                         ? Colors.white
                                         : AppColors.textMuted,
@@ -178,12 +154,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   child: isSelected
                                       ? Padding(
                                           padding:
-                                              const EdgeInsets.only(left: 4),
+                                              const EdgeInsets.only(left: 6),
                                           child: Text(
                                             item.label,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontFamily: 'Artific',
-                                              fontSize: GR.textXs,
+                                              fontSize: 13,
                                               fontWeight: FontWeight.w600,
                                               color: Colors.white,
                                             ),

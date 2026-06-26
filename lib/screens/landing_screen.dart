@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../utils/haptics.dart';
-import 'health_dashboard_screen.dart';
+import 'main_navigation_screen.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -49,10 +49,10 @@ class _LandingScreenState extends State<LandingScreen>
 
   void _onGetStarted() {
     Haptics.medium();
-    Navigator.of(context).push(
+    Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) {
-          return const HealthDashboardScreen();
+          return const MainNavigationScreen();
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
