@@ -61,8 +61,9 @@ class _InsightsScreenState extends State<InsightsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -83,14 +84,14 @@ class _InsightsScreenState extends State<InsightsScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd + 1),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
                         child: Icon(
                           Icons.share_outlined,
                           size: GR.iconSm + 2,
-                          color: AppColors.textPrimary,
+                          color: tc.textPrimary,
                         ),
                       ),
                     ),

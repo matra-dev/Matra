@@ -108,8 +108,9 @@ class _TreatmentScreenState extends State<TreatmentScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -130,11 +131,11 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
-                        child: Icon(Icons.settings_outlined, size: GR.iconSm, color: AppColors.textPrimary),
+                        child: Icon(Icons.settings_outlined, size: GR.iconSm, color: tc.textPrimary),
                       ),
                     ),
                   ],

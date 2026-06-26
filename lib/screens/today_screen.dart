@@ -99,6 +99,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final supplementsAsync = ref.watch(supplementsProvider);
     ref.watch(doseLogsProvider);
     final weekDays = _getWeekDays();
@@ -106,7 +107,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final selectedDate = _selectedDate;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -206,7 +207,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                         width: 48,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.textPrimary : Colors.transparent,
+                          color: isSelected ? tc.textPrimary : Colors.transparent,
                           borderRadius: BorderRadius.circular(GR.radiusMd + 3),
                         ),
                         child: Column(
@@ -219,7 +220,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                                 fontFamily: 'Artific',
                                 fontSize: isSelected ? 24 : 20,
                                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                color: isSelected ? Colors.white : AppColors.textPrimary,
+                                color: isSelected ? Colors.white : tc.textPrimary,
                               ),
                               child: Text('${day.day}'),
                             ),
@@ -231,7 +232,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                                 fontFamily: 'Artific',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.white70 : AppColors.textMuted,
+                                color: isSelected ? Colors.white70 : tc.textMuted,
                                 letterSpacing: 0.5,
                               ),
                               child: Text(DateFormat('EEE').format(day).toUpperCase()),
@@ -252,7 +253,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: GR.lg),
-                child: Divider(height: 1, color: AppColors.border),
+                child: Divider(height: 1, color: tc.border),
               ),
             ),
 
@@ -465,6 +466,7 @@ class _SupplementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     // Morning section (index 0) shows first with no delay per item
     // Other sections have a 400ms "transition" delay before they start appearing
     final baseDelay = sectionIndex == 0 ? 0 : 400;
@@ -513,9 +515,9 @@ class _SupplementRow extends StatelessWidget {
                         fontFamily: 'Artific',
                         fontSize: 16,
                         fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
-                        color: isTaken ? AppColors.textMuted : AppColors.textPrimary,
+                        color: isTaken ? tc.textMuted : tc.textPrimary,
                         decoration: isTaken ? TextDecoration.lineThrough : null,
-                        decorationColor: AppColors.textMuted,
+                        decorationColor: tc.textMuted,
                       ),
                     ),
                     if (!isTaken) ...[
@@ -526,7 +528,7 @@ class _SupplementRow extends StatelessWidget {
                           fontFamily: 'Artific',
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.textMuted,
+                          color: tc.textMuted,
                         ),
                       ),
                     ],

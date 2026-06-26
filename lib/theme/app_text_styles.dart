@@ -55,6 +55,93 @@ class FontSizeNotifier extends StateNotifier<FontSizeLevel> {
   }
 }
 
+// ─── Dark Mode Provider ────────────────────────────────────────────────────
+
+final darkModeProvider = StateNotifierProvider<DarkModeNotifier, bool>(
+  (ref) => DarkModeNotifier(),
+);
+
+class DarkModeNotifier extends StateNotifier<bool> {
+  static const _key = 'dark_mode';
+
+  DarkModeNotifier() : super(false) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_key);
+    if (saved != null) {
+      state = saved;
+    }
+  }
+
+  Future<void> setDarkMode(bool value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, value);
+  }
+
+  Future<void> toggle() async {
+    final newValue = !state;
+    state = newValue;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, newValue);
+  }
+}
+
+// ─── Dynamic App Colors (theme-aware) ─────────────────────────────────────
+
+/// Use these instead of static AppColors for dark mode support.
+/// Access via: `ThemeColors.of(context)` in any widget.
+class ThemeColors {
+  final bool isDark;
+
+  const ThemeColors._(this.isDark);
+
+  static ThemeColors of(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ThemeColors._(isDark);
+  }
+
+  // Backgrounds
+  Color get bg => isDark ? const Color(0xFF0D0D0F) : const Color(0xFFFAFAFA);
+  Color get cardBg => isDark ? const Color(0xFF1A1A1E) : const Color(0xFFFFFFFF);
+  Color get surface => isDark ? const Color(0xFF242428) : const Color(0xFFF5F5F5);
+  Color get surfaceElevated => isDark ? const Color(0xFF2A2A2E) : const Color(0xFFFFFFFF);
+
+  // Borders
+  Color get border => isDark ? const Color(0xFF2E2E32) : const Color(0xFFE8E8E8);
+  Color get borderLight => isDark ? const Color(0xFF252528) : const Color(0xFFF0F0F0);
+  Color get divider => isDark ? const Color(0xFF2E2E32) : const Color(0xFFE8E8E8);
+
+  // Text
+  Color get textPrimary => isDark ? const Color(0xFFF0F0F5) : const Color(0xFF1A1A2E);
+  Color get textSecondary => isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+  Color get textMuted => isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+
+  // Accent - Teal (same in both, slightly adjusted for dark)
+  Color get accent => isDark ? const Color(0xFF00E5B8) : const Color(0xFF00BFA5);
+  Color get accentLight => isDark ? const Color(0xFF00BFA5).withValues(alpha: 0.25) : const Color(0xFFB8E0D2);
+  Color get accentDark => isDark ? const Color(0xFF00E5B8) : const Color(0xFF00897B);
+  Color get accentBg => isDark ? const Color(0xFF00BFA5).withValues(alpha: 0.12) : const Color(0xFFE8F5F0);
+
+  // Semantic (adjusted for dark readability)
+  Color get orange => isDark ? const Color(0xFFFFB74D) : const Color(0xFFFFA726);
+  Color get orangeLight => isDark ? const Color(0xFFFFA726).withValues(alpha: 0.2) : const Color(0xFFFFF3E0);
+  Color get blue => isDark ? const Color(0xFF82B1FF) : const Color(0xFF448AFF);
+  Color get purple => isDark ? const Color(0xFFB39DDB) : const Color(0xFF7E57C2);
+  Color get red => isDark ? const Color(0xFFFF8A80) : const Color(0xFFEF5350);
+  Color get amber => isDark ? const Color(0xFFFFD180) : const Color(0xFFFFB74D);
+
+  // Bottom nav
+  Color get navBg => isDark ? const Color(0xFF1A1A1E).withValues(alpha: 0.92) : const Color(0xFFFFFFFF).withValues(alpha: 0.92);
+  Color get navBorder => isDark ? const Color(0xFF2E2E32) : const Color(0xFFEEEEEE);
+
+  // Shadow
+  Color get shadowColor => isDark ? const Color(0xFF000000).withValues(alpha: 0.3) : const Color(0xFF000000).withValues(alpha: 0.03);
+}
+
 /// Dynamic text style that respects font size setting
 /// 
 /// Usage: 
@@ -100,7 +187,7 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _display),
     fontWeight: weight ?? FontWeight.w900,
-    color: color ?? AppColors.textPrimary,
+    color: color ?? ThemeColors.of(context).textPrimary,
     height: 1.0,
     letterSpacing: -1.5,
   );
@@ -109,7 +196,7 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _h1),
     fontWeight: weight ?? FontWeight.w800,
-    color: color ?? AppColors.textPrimary,
+    color: color ?? ThemeColors.of(context).textPrimary,
     letterSpacing: -0.8,
   );
 
@@ -117,21 +204,21 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _h2),
     fontWeight: weight ?? FontWeight.w700,
-    color: color ?? AppColors.textPrimary,
+    color: color ?? ThemeColors.of(context).textPrimary,
   );
 
   static TextStyle h3(BuildContext context, {FontWeight? weight, Color? color}) => TextStyle(
     fontFamily: 'Artific',
     fontSize: _sized(context, _h3),
     fontWeight: weight ?? FontWeight.w600,
-    color: color ?? AppColors.textPrimary,
+    color: color ?? ThemeColors.of(context).textPrimary,
   );
 
   static TextStyle body(BuildContext context, {FontWeight? weight, Color? color, double? height}) => TextStyle(
     fontFamily: 'Artific',
     fontSize: _sized(context, _body),
     fontWeight: weight ?? FontWeight.w400,
-    color: color ?? AppColors.textPrimary,
+    color: color ?? ThemeColors.of(context).textPrimary,
     height: height ?? 1.4,
   );
 
@@ -139,7 +226,7 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _bodySmall),
     fontWeight: weight ?? FontWeight.w400,
-    color: color ?? AppColors.textSecondary,
+    color: color ?? ThemeColors.of(context).textSecondary,
     height: height ?? 1.5,
   );
 
@@ -147,7 +234,7 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _caption),
     fontWeight: weight ?? FontWeight.w600,
-    color: color ?? AppColors.textMuted,
+    color: color ?? ThemeColors.of(context).textMuted,
     letterSpacing: 0.5,
   );
 
@@ -155,7 +242,7 @@ class AppTextStyles {
     fontFamily: 'Artific',
     fontSize: _sized(context, _micro),
     fontWeight: weight ?? FontWeight.w500,
-    color: color ?? AppColors.textMuted,
+    color: color ?? ThemeColors.of(context).textMuted,
   );
 
   static TextStyle button(BuildContext context, {FontWeight? weight, Color? color}) => TextStyle(
@@ -174,3 +261,6 @@ class AppTextStyles {
 }
 
 /// App Colors (keep in sync with golden_ratio.dart)
+/// 
+/// NOTE: For dark mode support, use ThemeColors.of(context) instead.
+/// These static colors remain for backward compatibility.

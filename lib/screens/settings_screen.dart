@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
-import 'support_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -15,13 +14,15 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _remindersEnabled = true;
   bool _lowStockAlerts = true;
-  bool _darkMode = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 9, minute: 0);
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final isDark = ref.watch(darkModeProvider);
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -71,9 +72,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           builder: (context, child) {
                             return Theme(
                               data: Theme.of(context).copyWith(
-                                timePickerTheme: const TimePickerThemeData(
-                                  backgroundColor: Colors.white,
-                                  dialBackgroundColor: Color(0xFFF5F5F5),
+                                timePickerTheme: TimePickerThemeData(
+                                  backgroundColor: tc.cardBg,
+                                  dialBackgroundColor: tc.surface,
+                                  dialTextColor: tc.textPrimary,
+                                  hourMinuteTextColor: tc.textPrimary,
+                                  dayPeriodTextColor: tc.textPrimary,
                                 ),
                               ),
                               child: child!,
@@ -107,10 +111,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.dark_mode_outlined,
                     title: 'Dark Mode',
                     subtitle: 'Switch to dark theme',
-                    value: _darkMode,
+                    value: isDark,
                     onChanged: (v) {
                       Haptics.light();
-                      setState(() => _darkMode = v);
+                      ref.read(darkModeProvider.notifier).setDarkMode(v);
                     },
                   ),
                 ],
@@ -139,16 +143,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       _showComingSoon(context);
                     },
                   ),
-                  _buildActionTile(
+                  // Help & Support — static, no onTap
+                  _buildInfoTile(
                     icon: Icons.support_agent_outlined,
                     title: 'Help & Support',
-                    onTap: () {
-                      Haptics.light();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SupportScreen()),
-                      );
-                    },
+                    value: '',
                   ),
                 ],
               ),
@@ -165,6 +164,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required List<Widget> children,
     required int delay,
   }) {
+    final tc = ThemeColors.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
       child: Column(
@@ -177,9 +177,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           SizedBox(height: GR.sm),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.cardBg,
+              color: tc.cardBg,
               borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: tc.border),
             ),
             child: Column(
               children: _addDividers(children),
@@ -196,11 +196,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   List<Widget> _addDividers(List<Widget> children) {
+    final tc = ThemeColors.of(context);
     final result = <Widget>[];
     for (int i = 0; i < children.length; i++) {
       result.add(children[i]);
       if (i < children.length - 1) {
-        result.add(Divider(height: 1, indent: 56, color: AppColors.border));
+        result.add(Divider(height: 1, indent: 56, color: tc.divider));
       }
     }
     return result;
@@ -213,6 +214,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final tc = ThemeColors.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
       child: Row(
@@ -221,10 +223,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             width: GR.lg + 2,
             height: GR.lg + 2,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: tc.surface,
               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
             ),
-            child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
+            child: Icon(icon, size: GR.iconSm - 2, color: tc.textSecondary),
           ),
           SizedBox(width: GR.md - 2),
           Expanded(
@@ -246,10 +248,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.textPrimary,
-            activeTrackColor: AppColors.border,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: AppColors.borderLight,
+            activeColor: tc.textPrimary,
+            activeTrackColor: tc.border,
+            inactiveThumbColor: tc.cardBg,
+            inactiveTrackColor: tc.borderLight,
           ),
         ],
       ),
@@ -261,6 +263,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required TimeOfDay time,
     required VoidCallback onTap,
   }) {
+    final tc = ThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -277,10 +280,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             Text(
               time.format(context),
-              style: AppTextStyles.body(context, weight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTextStyles.body(context, weight: FontWeight.w600, color: tc.textSecondary),
             ),
             SizedBox(width: GR.xs - 2),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+            Icon(Icons.chevron_right, size: 18, color: tc.textMuted),
           ],
         ),
       ),
@@ -292,6 +295,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required String title,
     required String value,
   }) {
+    final tc = ThemeColors.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 2),
       child: Row(
@@ -300,10 +304,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             width: GR.lg + 2,
             height: GR.lg + 2,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: tc.surface,
               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
             ),
-            child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
+            child: Icon(icon, size: GR.iconSm - 2, color: tc.textSecondary),
           ),
           SizedBox(width: GR.md - 2),
           Expanded(
@@ -312,10 +316,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: AppTextStyles.body(context),
             ),
           ),
-          Text(
-            value,
-            style: AppTextStyles.bodySmall(context),
-          ),
+          if (value.isNotEmpty)
+            Text(
+              value,
+              style: AppTextStyles.bodySmall(context),
+            ),
         ],
       ),
     );
@@ -326,6 +331,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final tc = ThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -337,10 +343,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               width: GR.lg + 2,
               height: GR.lg + 2,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: tc.surface,
                 borderRadius: BorderRadius.circular(GR.radiusSm + 2),
               ),
-              child: Icon(icon, size: GR.iconSm - 2, color: AppColors.textSecondary),
+              child: Icon(icon, size: GR.iconSm - 2, color: tc.textSecondary),
             ),
             SizedBox(width: GR.md - 2),
             Expanded(
@@ -349,7 +355,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: AppTextStyles.body(context),
               ),
             ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+            Icon(Icons.chevron_right, size: 18, color: tc.textMuted),
           ],
         ),
       ),
@@ -357,10 +363,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showComingSoon(BuildContext context) {
+    final tc = ThemeColors.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: tc.cardBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusLg)),
         title: Text(
           'Coming Soon',

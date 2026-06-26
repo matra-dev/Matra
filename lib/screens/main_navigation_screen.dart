@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
-import '../theme/golden_ratio.dart';
+import '../theme/app_text_styles.dart';
 import 'today_screen.dart';
 import 'insights_screen.dart';
 import 'treatment_screen.dart';
 import 'settings_screen.dart';
 
-class MainNavigationScreen extends StatefulWidget {
+class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
@@ -55,8 +56,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: Stack(
         children: [
           AnimatedSwitcher(
@@ -85,15 +88,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: tc.navBg,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: const Color(0xFFEEEEEE),
+                      color: tc.navBorder,
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: tc.shadowColor,
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                         spreadRadius: -2,
@@ -124,7 +127,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.textPrimary
+                                  ? tc.textPrimary
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -145,7 +148,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                     size: 22,
                                     color: isSelected
                                         ? Colors.white
-                                        : AppColors.textMuted,
+                                        : tc.textMuted,
                                   ),
                                 ),
                                 AnimatedSize(

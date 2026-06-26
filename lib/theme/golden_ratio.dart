@@ -54,7 +54,14 @@ class GR {
   static double get buttonLg => 55.0;
 }
 
-/// App Colors
+/// App Colors — DYNAMIC based on theme brightness.
+/// 
+/// IMPORTANT: These are now context-aware. For widgets that have access to
+/// BuildContext, use `ThemeColors.of(context)` from app_text_styles.dart
+/// for the most accurate dark mode colors.
+/// 
+/// These static getters remain for backward compatibility and will return
+/// light mode colors. They are being phased out in favor of ThemeColors.
 class AppColors {
   AppColors._();
 
@@ -180,19 +187,34 @@ class GoldenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultBg = isDark ? const Color(0xFF1A1A1E) : AppColors.cardBg;
+    final defaultBorder = isDark
+        ? Border.all(color: const Color(0xFF2E2E32))
+        : Border.all(color: AppColors.border);
+    final defaultShadow = isDark
+        ? [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ]
+        : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ];
+
     final card = Container(
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.cardBg,
+        color: backgroundColor ?? defaultBg,
         borderRadius: borderRadius ?? BorderRadius.circular(GR.radiusLg),
-        border: border ?? Border.all(color: AppColors.border),
-        boxShadow: boxShadow ?? [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: border ?? defaultBorder,
+        boxShadow: boxShadow ?? defaultShadow,
       ),
       child: child,
     );

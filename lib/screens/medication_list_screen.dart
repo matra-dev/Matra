@@ -128,8 +128,9 @@ class _MedicationListScreenState extends State<MedicationListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: CustomScrollView(
           physics: const ClampingScrollPhysics(),
@@ -149,11 +150,11 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
-                        child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: AppColors.textPrimary),
+                        child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
                       ),
                     ),
                     const Spacer(),
@@ -271,18 +272,19 @@ class _MedicationDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final isLow = (med['stock'] as int) < 15;
     final adherence = med['adherence'] as int;
     final adherenceColor = adherence >= 95
-        ? AppColors.accentDark
+        ? tc.accentDark
         : adherence >= 85
-            ? AppColors.orange
-            : AppColors.red;
+            ? tc.orange
+            : tc.red;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.bg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: tc.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
         child: Column(
@@ -295,7 +297,7 @@ class _MedicationDetailSheet extends StatelessWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: tc.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -442,6 +444,7 @@ class _MedicationDetailSheet extends StatelessWidget {
     required Color color,
     required Color bgColor,
   }) {
+    final tc = ThemeColors.of(context);
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(GR.md),
@@ -454,7 +457,7 @@ class _MedicationDetailSheet extends StatelessWidget {
           children: [
             Text(
               label,
-              style: AppTextStyles.caption(context, color: AppColors.textSecondary),
+              style: AppTextStyles.caption(context, color: tc.textSecondary),
             ),
             SizedBox(height: GR.xs),
             Text(
@@ -464,7 +467,7 @@ class _MedicationDetailSheet extends StatelessWidget {
             SizedBox(height: GR.xs - 2),
             Text(
               unit,
-              style: AppTextStyles.caption(context, color: AppColors.textSecondary),
+              style: AppTextStyles.caption(context, color: tc.textSecondary),
             ),
           ],
         ),
@@ -473,13 +476,14 @@ class _MedicationDetailSheet extends StatelessWidget {
   }
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
+    final tc = ThemeColors.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
       child: Row(
         children: [
           Text(
             label,
-            style: AppTextStyles.bodySmall(context, color: AppColors.textSecondary),
+            style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
           ),
           const Spacer(),
           Text(
