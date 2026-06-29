@@ -129,8 +129,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -145,11 +146,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       width: GR.lg + 2,
                       height: GR.lg + 2,
                       decoration: BoxDecoration(
-                        color: AppColors.cardBg,
+                        color: tc.cardBg,
                         borderRadius: BorderRadius.circular(GR.radiusMd),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: tc.border),
                       ),
-                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: AppColors.textPrimary),
+                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
                     ),
                   ),
                   const Spacer(),
@@ -163,7 +164,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                         height: 8,
                         margin: EdgeInsets.symmetric(horizontal: GR.xs),
                         decoration: BoxDecoration(
-                          color: isActive ? AppColors.accent : AppColors.border,
+                          color: isActive ? tc.accent : tc.border,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       );
@@ -209,8 +210,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   height: GR.buttonMd,
                   decoration: BoxDecoration(
                     color: _currentStep == 0 && _nameController.text.isEmpty
-                        ? AppColors.border
-                        : AppColors.textPrimary,
+                        ? tc.border
+                        : tc.textPrimary,
                     borderRadius: BorderRadius.circular(GR.radiusLg - 1),
                   ),
                   child: Center(
@@ -232,6 +233,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   }
 
   Widget _buildStep() {
+    final tc = ThemeColors.of(context);
     switch (_currentStep) {
       case 0:
         return _buildSearchStep();
@@ -246,6 +248,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   // ─── STEP 1: Search ────────────────────────────────────────────────────────
   Widget _buildSearchStep() {
+    final tc = ThemeColors.of(context);
     return Padding(
       key: const ValueKey(0),
       padding: EdgeInsets.symmetric(horizontal: GR.lg),
@@ -282,14 +285,14 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             Container(
               height: GR.buttonMd,
               decoration: BoxDecoration(
-                color: AppColors.cardBg,
+                color: tc.cardBg,
                 borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: tc.border),
               ),
               child: Row(
                 children: [
                   SizedBox(width: GR.md),
-                  Icon(Icons.search_rounded, size: GR.iconSm + 2, color: AppColors.textMuted),
+                  Icon(Icons.search_rounded, size: GR.iconSm + 2, color: tc.textMuted),
                   SizedBox(width: GR.sm + 2),
                   Expanded(
                     child: TextField(
@@ -299,7 +302,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       style: AppTextStyles.body(context),
                       decoration: InputDecoration(
                         hintText: 'Search for medication',
-                        hintStyle: AppTextStyles.body(context, color: AppColors.textMuted),
+                        hintStyle: AppTextStyles.body(context, color: tc.textMuted),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -316,7 +319,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       },
                       child: Padding(
                         padding: EdgeInsets.all(GR.md),
-                        child: Icon(Icons.close_rounded, size: 18, color: AppColors.textMuted),
+                        child: Icon(Icons.close_rounded, size: 18, color: tc.textMuted),
                       ),
                     ),
                   SizedBox(width: GR.sm),
@@ -364,7 +367,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           child: Icon(
                             Icons.medication_rounded,
                             size: 26,
-                            color: AppColors.accent,
+                            color: tc.accent,
                           ),
                         ),
                         SizedBox(width: GR.md),
@@ -387,7 +390,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                         Icon(
                           Icons.add_circle_outline_rounded,
                           size: GR.iconSm + 2,
-                          color: AppColors.accent,
+                          color: tc.accent,
                         ),
                       ],
                     ),
@@ -403,11 +406,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   child: Column(
                     children: [
                       SizedBox(height: GR.xxl),
-                      Icon(Icons.search_off_rounded, size: GR.iconLg + 4, color: AppColors.textMuted),
+                      Icon(Icons.search_off_rounded, size: GR.iconLg + 4, color: tc.textMuted),
                       SizedBox(height: GR.md),
                       Text(
                         'No results for "$_query"',
-                        style: AppTextStyles.body(context, color: AppColors.textSecondary),
+                        style: AppTextStyles.body(context, color: tc.textSecondary),
                       ),
                       SizedBox(height: GR.xs),
                       Text(
@@ -430,6 +433,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   // ─── STEP 2: Schedule Type ─────────────────────────────────────────────────
   Widget _buildScheduleStep() {
+    final tc = ThemeColors.of(context);
     final scheduleOptions = [
       {
         'title': 'Interval',
@@ -469,7 +473,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Text(
                     _nameController.text,
-                    style: AppTextStyles.caption(context, color: AppColors.textMuted),
+                    style: AppTextStyles.caption(context, color: tc.textMuted),
                   ),
                   SizedBox(height: GR.xs),
                   Text(
@@ -501,10 +505,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   margin: EdgeInsets.only(bottom: GR.sm + 2),
                   padding: EdgeInsets.all(GR.md + 3),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBg,
+                    color: tc.cardBg,
                     borderRadius: BorderRadius.circular(GR.radiusMd + 2),
                     border: Border.all(
-                      color: isSelected ? AppColors.accentLight : AppColors.border,
+                      color: isSelected ? tc.accentLight : tc.border,
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -537,7 +541,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                             width: 48,
                             height: 28,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.accent : AppColors.border,
+                              color: isSelected ? tc.accent : tc.border,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: AnimatedAlign(
@@ -563,7 +567,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       // Expanded sub-options
                       if (isSelected) ...[
                         SizedBox(height: GR.md),
-                        const Divider(height: 1, color: AppColors.border),
+                        Divider(height: 1, color: tc.border),
                         SizedBox(height: GR.md),
 
                         if (i == 0) ...[
@@ -576,7 +580,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                   child: Container(
                                     padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
                                     decoration: BoxDecoration(
-                                      color: _intervalHours ? AppColors.accentLight.withValues(alpha: 0.4) : AppColors.surface,
+                                      color: _intervalHours ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
                                       borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                     ),
                                     child: Center(
@@ -584,7 +588,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (_intervalHours) ...[
-                                            Icon(Icons.check, size: 14, color: AppColors.accentDark),
+                                            Icon(Icons.check, size: 14, color: tc.accentDark),
                                             SizedBox(width: GR.xs),
                                           ],
                                           Text(
@@ -592,7 +596,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                             style: AppTextStyles.caption(
                                               context,
                                               weight: _intervalHours ? FontWeight.w700 : FontWeight.w500,
-                                              color: _intervalHours ? AppColors.accentDark : AppColors.textSecondary,
+                                              color: _intervalHours ? tc.accentDark : tc.textSecondary,
                                             ),
                                           ),
                                         ],
@@ -608,7 +612,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                   child: Container(
                                     padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
                                     decoration: BoxDecoration(
-                                      color: !_intervalHours ? AppColors.accentLight.withValues(alpha: 0.4) : AppColors.surface,
+                                      color: !_intervalHours ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
                                       borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                     ),
                                     child: Center(
@@ -616,7 +620,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (!_intervalHours) ...[
-                                            Icon(Icons.check, size: 14, color: AppColors.accentDark),
+                                            Icon(Icons.check, size: 14, color: tc.accentDark),
                                             SizedBox(width: GR.xs),
                                           ],
                                           Text(
@@ -624,7 +628,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                             style: AppTextStyles.caption(
                                               context,
                                               weight: !_intervalHours ? FontWeight.w700 : FontWeight.w500,
-                                              color: !_intervalHours ? AppColors.accentDark : AppColors.textSecondary,
+                                              color: !_intervalHours ? tc.accentDark : tc.textSecondary,
                                             ),
                                           ),
                                         ],
@@ -646,12 +650,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.accentBg,
+                                  color: tc.accentBg,
                                   borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                 ),
                                 child: Text(
                                   '$_intervalValue',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                                 ),
                               ),
                               SizedBox(width: GR.xs),
@@ -664,10 +668,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           SizedBox(height: GR.sm),
                           SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.accent,
-                              inactiveTrackColor: AppColors.border,
-                              thumbColor: AppColors.accent,
-                              overlayColor: AppColors.accent.withValues(alpha: 0.1),
+                              activeTrackColor: tc.accent,
+                              inactiveTrackColor: tc.border,
+                              thumbColor: tc.accent,
+                              overlayColor: tc.accent.withValues(alpha: 0.1),
                               trackHeight: 4,
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                             ),
@@ -699,12 +703,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.accentBg,
+                                  color: tc.accentBg,
                                   borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                 ),
                                 child: Text(
                                   '$_multipleTimes',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                                 ),
                               ),
                               SizedBox(width: GR.xs),
@@ -717,10 +721,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           SizedBox(height: GR.sm),
                           SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.accent,
-                              inactiveTrackColor: AppColors.border,
-                              thumbColor: AppColors.accent,
-                              overlayColor: AppColors.accent.withValues(alpha: 0.1),
+                              activeTrackColor: tc.accent,
+                              inactiveTrackColor: tc.border,
+                              thumbColor: tc.accent,
+                              overlayColor: tc.accent.withValues(alpha: 0.1),
                               trackHeight: 4,
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                             ),
@@ -754,17 +758,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                   width: 38,
                                   height: 52,
                                   decoration: BoxDecoration(
-                                    color: isDaySelected ? AppColors.accentLight.withValues(alpha: 0.4) : AppColors.surface,
+                                    color: isDaySelected ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
                                     borderRadius: BorderRadius.circular(GR.radiusSm + 4),
                                     border: Border.all(
-                                      color: isDaySelected ? AppColors.accentLight : Colors.transparent,
+                                      color: isDaySelected ? tc.accentLight : Colors.transparent,
                                     ),
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       if (isDaySelected)
-                                        Icon(Icons.check, size: 14, color: AppColors.accentDark),
+                                        Icon(Icons.check, size: 14, color: tc.accentDark),
                                       SizedBox(height: isDaySelected ? GR.xs - 2 : 0),
                                       Text(
                                         dayLabel,
@@ -772,7 +776,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                                           fontFamily: 'Artific',
                                           fontSize: 11,
                                           fontWeight: isDaySelected ? FontWeight.w700 : FontWeight.w500,
-                                          color: isDaySelected ? AppColors.accentDark : AppColors.textSecondary,
+                                          color: isDaySelected ? tc.accentDark : tc.textSecondary,
                                         ),
                                       ),
                                     ],
@@ -795,12 +799,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.accentBg,
+                                  color: tc.accentBg,
                                   borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                 ),
                                 child: Text(
                                   '$_intakeDays',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                                 ),
                               ),
                               SizedBox(width: GR.xs),
@@ -813,10 +817,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           SizedBox(height: GR.sm),
                           SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.accent,
-                              inactiveTrackColor: AppColors.border,
-                              thumbColor: AppColors.accent,
-                              overlayColor: AppColors.accent.withValues(alpha: 0.1),
+                              activeTrackColor: tc.accent,
+                              inactiveTrackColor: tc.border,
+                              thumbColor: tc.accent,
+                              overlayColor: tc.accent.withValues(alpha: 0.1),
                               trackHeight: 4,
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                             ),
@@ -845,12 +849,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.orangeLight.withValues(alpha: 0.4),
+                                  color: tc.orangeLight.withValues(alpha: 0.4),
                                   borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                                 ),
                                 child: Text(
                                   '$_pauseDays',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.orange),
+                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.orange),
                                 ),
                               ),
                               SizedBox(width: GR.xs),
@@ -863,10 +867,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           SizedBox(height: GR.sm),
                           SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.orange,
-                              inactiveTrackColor: AppColors.border,
-                              thumbColor: AppColors.orange,
-                              overlayColor: AppColors.orange.withValues(alpha: 0.1),
+                              activeTrackColor: tc.orange,
+                              inactiveTrackColor: tc.border,
+                              thumbColor: tc.orange,
+                              overlayColor: tc.orange.withValues(alpha: 0.1),
                               trackHeight: 4,
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                             ),
@@ -904,6 +908,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   // ─── STEP 3: Details (Stock + Time + Dose) ───────────────────────────────
   Widget _buildDetailsStep() {
+    final tc = ThemeColors.of(context);
     return Padding(
       key: const ValueKey(2),
       padding: EdgeInsets.symmetric(horizontal: GR.lg),
@@ -919,7 +924,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Text(
                     _nameController.text,
-                    style: AppTextStyles.caption(context, color: AppColors.textMuted),
+                    style: AppTextStyles.caption(context, color: tc.textMuted),
                   ),
                   SizedBox(height: GR.xs),
                   Text(
@@ -949,7 +954,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.access_time_rounded, size: GR.iconSm - 2, color: AppColors.textMuted),
+                      Icon(Icons.access_time_rounded, size: GR.iconSm - 2, color: tc.textMuted),
                       SizedBox(width: GR.xs + 2),
                       Text(
                         'REMINDER TIME',
@@ -959,9 +964,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   ),
                   SizedBox(height: GR.md),
                   _buildTimeRow('Starting at', _startTime, (v) => setState(() => _startTime = v)),
-                  const Divider(height: 1, color: AppColors.border),
+                  Divider(height: 1, color: tc.border),
                   _buildTimeRow('Ending at', _endTime, (v) => setState(() => _endTime = v)),
-                  const Divider(height: 1, color: AppColors.border),
+                  Divider(height: 1, color: tc.border),
                   Row(
                     children: [
                       Text(
@@ -972,12 +977,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                         decoration: BoxDecoration(
-                          color: AppColors.accentBg,
+                          color: tc.accentBg,
                           borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                         ),
                         child: Text(
                           '$_dose capsule(s)',
-                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                         ),
                       ),
                     ],
@@ -999,7 +1004,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: AppColors.textMuted),
+                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: tc.textMuted),
                       SizedBox(width: GR.xs + 2),
                       Text(
                         'CURRENT INVENTORY',
@@ -1018,12 +1023,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                         decoration: BoxDecoration(
-                          color: AppColors.accentBg,
+                          color: tc.accentBg,
                           borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                         ),
                         child: Text(
                           '$_stockCount capsule(s)',
-                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                         ),
                       ),
                     ],
@@ -1033,10 +1038,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   SizedBox(height: GR.lg),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: AppColors.accent,
-                      inactiveTrackColor: AppColors.border,
-                      thumbColor: AppColors.accent,
-                      overlayColor: AppColors.accent.withValues(alpha: 0.1),
+                      activeTrackColor: tc.accent,
+                      inactiveTrackColor: tc.border,
+                      thumbColor: tc.accent,
+                      overlayColor: tc.accent.withValues(alpha: 0.1),
                       trackHeight: 4,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                     ),
@@ -1093,7 +1098,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           width: 48,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: _remindRefill ? AppColors.accent : AppColors.border,
+                            color: _remindRefill ? tc.accent : tc.border,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: AnimatedAlign(
@@ -1117,7 +1122,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                     ),
                     if (_remindRefill) ...[
                       SizedBox(height: GR.md),
-                      const Divider(height: 1, color: AppColors.border),
+                      Divider(height: 1, color: tc.border),
                       SizedBox(height: GR.md),
                       Row(
                         children: [
@@ -1129,12 +1134,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                             decoration: BoxDecoration(
-                              color: AppColors.orangeLight.withValues(alpha: 0.4),
+                              color: tc.orangeLight.withValues(alpha: 0.4),
                               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                             ),
                             child: Text(
                               '$_threshold capsule(s)',
-                              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.orange),
+                              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.orange),
                             ),
                           ),
                         ],
@@ -1142,10 +1147,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       SizedBox(height: GR.sm),
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: AppColors.orange,
-                          inactiveTrackColor: AppColors.border,
-                          thumbColor: AppColors.orange,
-                          overlayColor: AppColors.orange.withValues(alpha: 0.1),
+                          activeTrackColor: tc.orange,
+                          inactiveTrackColor: tc.border,
+                          thumbColor: tc.orange,
+                          overlayColor: tc.orange.withValues(alpha: 0.1),
                           trackHeight: 4,
                           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                         ),
@@ -1201,7 +1206,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       width: 48,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: _criticalAlerts ? AppColors.accent : AppColors.border,
+                        color: _criticalAlerts ? tc.accent : tc.border,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: AnimatedAlign(
@@ -1257,6 +1262,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   }
 
   Widget _buildTimeRow(String label, String value, ValueChanged<String> onChanged) {
+    final tc = ThemeColors.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
       child: Row(
@@ -1269,12 +1275,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
           Container(
             padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: tc.surface,
               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
             ),
             child: Text(
               value,
-              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.textPrimary),
+              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.textPrimary),
             ),
           ),
         ],
@@ -1284,6 +1290,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   // ─── Pill Dot Matrix Visual ──────────────────────────────────────────────
   Widget _buildPillDotMatrix() {
+    final tc = ThemeColors.of(context);
     const rows = 5;
     const cols = 7;
 
@@ -1302,7 +1309,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 final isActive = index < activeDots;
                 final intensity = isActive ? (index / activeDots).clamp(0.3, 1.0) : 0.0;
                 final color = isActive
-                    ? Color.lerp(AppColors.accentLight, AppColors.accentDark, intensity)!
+                    ? Color.lerp(tc.accentLight, tc.accentDark, intensity)!
                     : const Color(0xFFE5E7EB);
 
                 return Container(
@@ -1332,6 +1339,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   // ─── Stock Dot Matrix Visual ─────────────────────────────────────────────
   Widget _buildStockDotMatrix() {
+    final tc = ThemeColors.of(context);
     const dotCount = 30;
 
     return AnimatedBuilder(
@@ -1349,7 +1357,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             final isActive = i < activeCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
+                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
                 : const Color(0xFFE5E7EB);
 
             return Container(

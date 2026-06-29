@@ -53,8 +53,9 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -77,14 +78,14 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd + 1),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
                         child: Icon(
                           Icons.arrow_back_rounded,
                           size: GR.iconSm + 2,
-                          color: AppColors.textPrimary,
+                          color: tc.textPrimary,
                         ),
                       ),
                     ),
@@ -95,14 +96,14 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd + 1),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
                         child: Icon(
                           Icons.share_outlined,
                           size: GR.iconSm + 2,
-                          color: AppColors.textPrimary,
+                          color: tc.textPrimary,
                         ),
                       ),
                     ),
@@ -159,7 +160,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                         padding: EdgeInsets.only(bottom: GR.md + 2),
                         child: Text(
                           'IU',
-                          style: AppTextStyles.h3(context, color: AppColors.textMuted),
+                          style: AppTextStyles.h3(context, color: tc.textMuted),
                         ),
                       ),
                     ],
@@ -176,13 +177,13 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
-                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      color: tc.accentLight.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                      border: Border.all(color: AppColors.accentLight),
+                      border: Border.all(color: tc.accentLight),
                     ),
                     child: Text(
                       'On Track',
-                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                     ),
                   ),
                 )
@@ -219,7 +220,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           Icon(
                             Icons.info_outline_rounded,
                             size: GR.iconSm - 2,
-                            color: AppColors.textMuted,
+                            color: tc.textMuted,
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
@@ -258,7 +259,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           Icon(
                             Icons.trending_up_rounded,
                             size: GR.iconSm - 2,
-                            color: AppColors.textMuted,
+                            color: tc.textMuted,
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
@@ -279,14 +280,14 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                             width: GR.xs + 2,
                             height: GR.xs + 2,
                             decoration: const BoxDecoration(
-                              color: AppColors.accent,
+                              color: tc.accent,
                               shape: BoxShape.circle,
                             ),
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
                             '+12%',
-                            style: AppTextStyles.h2(context, color: AppColors.accentDark),
+                            style: AppTextStyles.h2(context, color: tc.accentDark),
                           ),
                           SizedBox(width: GR.xs - 2),
                           Padding(
@@ -332,7 +333,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           Icon(
                             Icons.calendar_today_rounded,
                             size: GR.iconSm - 2,
-                            color: AppColors.textMuted,
+                            color: tc.textMuted,
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
@@ -343,12 +344,12 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
                             decoration: BoxDecoration(
-                              color: AppColors.accentLight.withValues(alpha: 0.3),
+                              color: tc.accentLight.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                             ),
                             child: Text(
                               '6/7 days',
-                              style: AppTextStyles.micro(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                              style: AppTextStyles.micro(context, weight: FontWeight.w700, color: tc.accentDark),
                             ),
                           ),
                         ],
@@ -399,6 +400,8 @@ class _DotMatrixScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final tc = ThemeColors.of(context);
     const dotCount = 40;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
@@ -411,7 +414,7 @@ class _DotMatrixScale extends StatelessWidget {
             final isActive = i < activeCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
+                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
                 : const Color(0xFFE5E7EB);
 
             return Container(
@@ -461,6 +464,7 @@ class _TrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final minVal = data.reduce((a, b) => a < b ? a : b);
     final maxVal = data.reduce((a, b) => a > b ? a : b);
 
@@ -501,6 +505,8 @@ class _YLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final tc = ThemeColors.of(context);
     return Text(
       text,
       style: AppTextStyles.micro(context),
@@ -547,7 +553,7 @@ class _TrendDotsPainter extends CustomPainter {
         final intensity = isActive ? (row / activeDots).clamp(0.3, 1.0) : 0.0;
 
         final color = isActive
-            ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
+            ? Color.lerp(tc.amber, tc.accentDark, intensity)!
             : const Color(0xFFE5E7EB);
 
         final alpha = isActive ? 1.0 : 0.3;
@@ -586,18 +592,20 @@ class _DayPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final tc = ThemeColors.of(context);
     return Container(
       width: 38,
       height: 52,
       decoration: BoxDecoration(
-        color: taken ? AppColors.accentLight.withValues(alpha: 0.3) : AppColors.cardBg,
+        color: taken ? tc.accentLight.withValues(alpha: 0.3) : tc.cardBg,
         borderRadius: BorderRadius.circular(GR.radiusMd + 1),
         border: Border.all(
           color: isToday
-              ? AppColors.accent
+              ? tc.accent
               : taken
-                  ? AppColors.accentLight
-                  : AppColors.border,
+                  ? tc.accentLight
+                  : tc.border,
           width: isToday ? 2 : 1,
         ),
       ),
@@ -610,14 +618,14 @@ class _DayPill extends StatelessWidget {
               fontFamily: 'Artific',
               fontSize: 14,
               fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
-              color: isToday ? AppColors.accentDark : AppColors.textSecondary,
+              color: isToday ? tc.accentDark : tc.textSecondary,
             ),
           ),
           SizedBox(height: GR.xs),
           Icon(
             taken ? Icons.check_circle_rounded : Icons.circle_outlined,
             size: GR.iconSm - 2,
-            color: taken ? AppColors.accent : AppColors.textMuted,
+            color: taken ? tc.accent : tc.textMuted,
           ),
         ],
       ),

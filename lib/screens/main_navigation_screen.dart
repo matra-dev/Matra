@@ -127,7 +127,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? tc.textPrimary
+                                  ? tc.surface
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -147,7 +147,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                                     key: ValueKey(isSelected),
                                     size: 22,
                                     color: isSelected
-                                        ? Colors.white
+                                        ? tc.textPrimary
                                         : tc.textMuted,
                                   ),
                                 ),
@@ -160,11 +160,11 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                                               const EdgeInsets.only(left: 6),
                                           child: Text(
                                             item.label,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontFamily: 'Artific',
                                               fontSize: 13,
                                               fontWeight: FontWeight.w600,
-                                              color: Colors.white,
+                                              color: tc.textPrimary,
                                             ),
                                           ),
                                         )

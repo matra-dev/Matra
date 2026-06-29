@@ -191,7 +191,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                         padding: EdgeInsets.only(bottom: GR.md + 2),
                         child: Text(
                           '%',
-                          style: AppTextStyles.h3(context, color: AppColors.textMuted),
+                          style: AppTextStyles.h3(context, color: tc.textMuted),
                         ),
                       ),
                     ],
@@ -208,13 +208,13 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
-                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      color: tc.accentLight.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                      border: Border.all(color: AppColors.accentLight),
+                      border: Border.all(color: tc.accentLight),
                     ),
                     child: Text(
                       'Excellent',
-                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                     ),
                   ),
                 )
@@ -247,7 +247,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       child: _QuickActionButton(
                         icon: Icons.add_rounded,
                         label: 'Add Med',
-                        color: AppColors.accentDark,
+                        color: tc.accentDark,
                         delay: 100,
                         controller: _entranceCtrl,
                         onTap: _navigateToAddMedication,
@@ -258,7 +258,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       child: _QuickActionButton(
                         icon: Icons.calendar_today_rounded,
                         label: 'Appt',
-                        color: AppColors.blue,
+                        color: tc.blue,
                         delay: 150,
                         controller: _entranceCtrl,
                         onTap: _navigateToAppointment,
@@ -269,7 +269,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       child: _QuickActionButton(
                         icon: Icons.monitor_weight_rounded,
                         label: 'Measure',
-                        color: AppColors.purple,
+                        color: tc.purple,
                         delay: 200,
                         controller: _entranceCtrl,
                         onTap: _navigateToMeasurements,
@@ -292,7 +292,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       onTap: _navigateToMedicationList,
                       child: Text(
                         'See All',
-                        style: AppTextStyles.caption(context, color: AppColors.accent),
+                        style: AppTextStyles.caption(context, color: tc.accent),
                       ),
                     ),
                   ],
@@ -348,7 +348,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
                             decoration: BoxDecoration(
-                              color: isLow ? AppColors.orangeLight.withValues(alpha: 0.5) : AppColors.accentBg,
+                              color: isLow ? tc.orangeLight.withValues(alpha: 0.5) : tc.accentBg,
                               borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                             ),
                             child: Text(
@@ -356,7 +356,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                               style: AppTextStyles.caption(
                                 context,
                                 weight: FontWeight.w700,
-                                color: isLow ? AppColors.orange : AppColors.accentDark,
+                                color: isLow ? tc.orange : tc.accentDark,
                               ),
                             ),
                           ),
@@ -395,6 +395,7 @@ class _DotMatrixScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     const dotCount = 40;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
@@ -407,8 +408,8 @@ class _DotMatrixScale extends StatelessWidget {
             final isActive = i < activeCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
-                : const Color(0xFFE5E7EB);
+                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
+                : tc.border;
 
             return Container(
               width: 5.5,

@@ -55,8 +55,9 @@ class _ProgressScreenState extends State<ProgressScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -75,7 +76,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                       height: GR.buttonSm + 4,
                       padding: EdgeInsets.all(GR.xs),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: tc.surface,
                         borderRadius: BorderRadius.circular(GR.radiusLg),
                       ),
                       child: Row(
@@ -88,7 +89,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               curve: Curves.easeOutCubic,
                               padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: _isCharts ? AppColors.textPrimary : Colors.transparent,
+                                color: _isCharts ? tc.textPrimary : Colors.transparent,
                                 borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(
@@ -97,7 +98,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                                   fontFamily: 'Artific',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: _isCharts ? Colors.white : AppColors.textSecondary,
+                                  color: _isCharts ? Colors.white : tc.textSecondary,
                                 ),
                               ),
                             ),
@@ -109,7 +110,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               curve: Curves.easeOutCubic,
                               padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: !_isCharts ? AppColors.textPrimary : Colors.transparent,
+                                color: !_isCharts ? tc.textPrimary : Colors.transparent,
                                 borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(
@@ -118,7 +119,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                                   fontFamily: 'Artific',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: !_isCharts ? Colors.white : AppColors.textSecondary,
+                                  color: !_isCharts ? Colors.white : tc.textSecondary,
                                 ),
                               ),
                             ),
@@ -140,7 +141,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                           fontFamily: 'Artific',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: tc.textPrimary,
                         ),
                       ),
                     ),
@@ -160,7 +161,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                       fontFamily: 'Artific',
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                      color: tc.textPrimary,
                     ),
                   )
                       .animate(controller: _entranceCtrl)
@@ -178,10 +179,10 @@ class _ProgressScreenState extends State<ProgressScreen>
                           width: GR.lg * 3,
                           height: GR.lg * 3,
                           decoration: BoxDecoration(
-                            color: AppColors.accentLight.withValues(alpha: 0.4),
+                            color: tc.accentLight.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(GR.radiusLg),
                           ),
-                          child: Icon(Icons.favorite_rounded, size: GR.iconLg + 2, color: AppColors.accentDark),
+                          child: Icon(Icons.favorite_rounded, size: GR.iconLg + 2, color: tc.accentDark),
                         ),
                         SizedBox(height: GR.md),
                         Text(
@@ -190,7 +191,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                             fontFamily: 'Artific',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: tc.textPrimary,
                           ),
                         ),
                         SizedBox(height: GR.sm),
@@ -200,7 +201,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                           style: TextStyle(
                             fontFamily: 'Artific',
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: tc.textSecondary,
                             height: 1.5,
                           ),
                         ),
@@ -211,7 +212,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                             width: double.infinity,
                             height: GR.buttonSm + 4,
                             decoration: BoxDecoration(
-                              color: AppColors.accentDark,
+                              color: tc.accentDark,
                               borderRadius: BorderRadius.circular(GR.radiusMd),
                             ),
                             child: Center(
@@ -250,7 +251,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                                 fontFamily: 'Artific',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                                color: tc.textPrimary,
                               ),
                             ),
                             const Spacer(),
@@ -259,7 +260,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               style: TextStyle(
                                 fontFamily: 'Artific',
                                 fontSize: 14,
-                                color: AppColors.textMuted,
+                                color: tc.textMuted,
                               ),
                             ),
                           ],
@@ -293,9 +294,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                       width: double.infinity,
                       height: GR.buttonSm + 4,
                       decoration: BoxDecoration(
-                        color: AppColors.accentLight.withValues(alpha: 0.4),
+                        color: tc.accentLight.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(GR.radiusMd),
-                        border: Border.all(color: AppColors.accentLight),
+                        border: Border.all(color: tc.accentLight),
                       ),
                       child: Center(
                         child: Text(
@@ -304,7 +305,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                             fontFamily: 'Artific',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.accentDark,
+                            color: tc.accentDark,
                           ),
                         ),
                       ),
@@ -327,6 +328,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 
   Widget _buildListView() {
+    final tc = ThemeColors.of(context);
     final entries = [
       {'date': 'Wed, 06/24/2026', 'med': 'Vitamin D3 2000 IU', 'taken': true},
       {'date': 'Tue, 06/23/2026', 'med': 'Vitamin D3 2000 IU', 'taken': true},
@@ -351,7 +353,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   fontFamily: 'Artific',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textMuted,
+                  color: tc.textMuted,
                 ),
               ),
             ),
@@ -359,7 +361,7 @@ class _ProgressScreenState extends State<ProgressScreen>
               padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 3),
               child: Row(
                 children: [
-                  Icon(Icons.medication_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                  Icon(Icons.medication_rounded, size: GR.iconSm, color: tc.textMuted),
                   SizedBox(width: GR.md),
                   Expanded(
                     child: Text(
@@ -368,14 +370,14 @@ class _ProgressScreenState extends State<ProgressScreen>
                         fontFamily: 'Artific',
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                        color: tc.textPrimary,
                       ),
                     ),
                   ),
                   Icon(
                     (e['taken'] as bool) ? Icons.check_circle_rounded : Icons.help_outline_rounded,
                     size: GR.iconSm + 2,
-                    color: (e['taken'] as bool) ? AppColors.accent : AppColors.textMuted,
+                    color: (e['taken'] as bool) ? tc.accent : tc.textMuted,
                   ),
                 ],
               ),
@@ -405,6 +407,7 @@ class _DayCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Column(
       children: [
         Text(
@@ -413,7 +416,7 @@ class _DayCircle extends StatelessWidget {
             fontFamily: 'Artific',
             fontSize: 12,
             fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-            color: isToday ? AppColors.accentDark : AppColors.textMuted,
+            color: isToday ? tc.accentDark : tc.textMuted,
           ),
         ),
         SizedBox(height: GR.sm),
@@ -421,17 +424,17 @@ class _DayCircle extends StatelessWidget {
           width: GR.lg + 2,
           height: GR.lg + 2,
           decoration: BoxDecoration(
-            color: taken ? AppColors.accentLight.withValues(alpha: 0.4) : AppColors.surface,
+            color: taken ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
             borderRadius: BorderRadius.circular(GR.lg + 2),
             border: isToday
-                ? Border.all(color: AppColors.accentDark, width: 2)
+                ? Border.all(color: tc.accentDark, width: 2)
                 : taken
-                    ? Border.all(color: AppColors.accentLight)
+                    ? Border.all(color: tc.accentLight)
                     : null,
           ),
           child: taken
-              ? Icon(Icons.check_rounded, size: GR.iconSm, color: AppColors.accentDark)
-              : Icon(Icons.question_mark_rounded, size: GR.iconSm - 2, color: AppColors.textMuted),
+              ? Icon(Icons.check_rounded, size: GR.iconSm, color: tc.accentDark)
+              : Icon(Icons.question_mark_rounded, size: GR.iconSm - 2, color: tc.textMuted),
         ),
       ],
     )

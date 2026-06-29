@@ -148,7 +148,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                         padding: EdgeInsets.only(bottom: GR.md + 2),
                         child: Text(
                           'IU',
-                          style: AppTextStyles.h3(context, color: AppColors.textMuted),
+                          style: AppTextStyles.h3(context, color: tc.textMuted),
                         ),
                       ),
                     ],
@@ -165,13 +165,13 @@ class _InsightsScreenState extends State<InsightsScreen>
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
-                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      color: tc.accentLight.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                      border: Border.all(color: AppColors.accentLight),
+                      border: Border.all(color: tc.accentLight),
                     ),
                     child: Text(
                       'On Track',
-                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: AppColors.accentDark),
+                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                     ),
                   ),
                 )
@@ -208,7 +208,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                           Icon(
                             Icons.trending_up_rounded,
                             size: GR.iconSm - 2,
-                            color: AppColors.textMuted,
+                            color: tc.textMuted,
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
@@ -229,14 +229,14 @@ class _InsightsScreenState extends State<InsightsScreen>
                             width: GR.xs + 2,
                             height: GR.xs + 2,
                             decoration: BoxDecoration(
-                              color: AppColors.accent,
+                              color: tc.accent,
                               shape: BoxShape.circle,
                             ),
                           ),
                           SizedBox(width: GR.xs + 2),
                           Text(
                             '+12%',
-                            style: AppTextStyles.h2(context, color: AppColors.accentDark),
+                            style: AppTextStyles.h2(context, color: tc.accentDark),
                           ),
                           SizedBox(width: GR.xs - 2),
                           Padding(
@@ -284,7 +284,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                             Icon(
                               Icons.calendar_today_rounded,
                               size: GR.iconSm - 2,
-                              color: AppColors.textMuted,
+                              color: tc.textMuted,
                             ),
                             SizedBox(width: GR.xs + 2),
                             Text(
@@ -296,13 +296,13 @@ class _InsightsScreenState extends State<InsightsScreen>
                               children: [
                                 Text(
                                   'View All',
-                                  style: AppTextStyles.caption(context, color: AppColors.accent),
+                                  style: AppTextStyles.caption(context, color: tc.accent),
                                 ),
                                 SizedBox(width: GR.xs - 2),
                                 Icon(
                                   Icons.arrow_forward_ios_rounded,
                                   size: 12,
-                                  color: AppColors.accent,
+                                  color: tc.accent,
                                 ),
                               ],
                             ),
@@ -326,13 +326,13 @@ class _InsightsScreenState extends State<InsightsScreen>
                           width: double.infinity,
                           padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
                           decoration: BoxDecoration(
-                            color: AppColors.accentLight.withValues(alpha: 0.3),
+                            color: tc.accentLight.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(GR.radiusMd),
                           ),
                           child: Center(
                             child: Text(
                               '6/7 days · On Track',
-                              style: AppTextStyles.bodySmall(context, weight: FontWeight.w600, color: AppColors.accentDark),
+                              style: AppTextStyles.bodySmall(context, weight: FontWeight.w600, color: tc.accentDark),
                             ),
                           ),
                         ),
@@ -370,6 +370,7 @@ class _DotMatrixScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     const dotCount = 40;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
@@ -382,8 +383,8 @@ class _DotMatrixScale extends StatelessWidget {
             final isActive = i < activeCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
-                : const Color(0xFFE5E7EB);
+                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
+                : tc.border;
 
             return Container(
               width: 5.5,
@@ -458,6 +459,9 @@ class _TrendChart extends StatelessWidget {
               minVal: minVal,
               maxVal: maxVal,
               progress: progress,
+              inactiveColor: ThemeColors.of(context).border,
+              amberColor: ThemeColors.of(context).amber,
+              accentDarkColor: ThemeColors.of(context).accentDark,
             ),
           ),
         ),
@@ -484,12 +488,18 @@ class _TrendDotsPainter extends CustomPainter {
   final double minVal;
   final double maxVal;
   final double progress;
+  final Color inactiveColor;
+  final Color amberColor;
+  final Color accentDarkColor;
 
   _TrendDotsPainter({
     required this.data,
     required this.minVal,
     required this.maxVal,
     required this.progress,
+    required this.inactiveColor,
+    required this.amberColor,
+    required this.accentDarkColor,
   });
 
   @override
@@ -518,8 +528,8 @@ class _TrendDotsPainter extends CustomPainter {
         final intensity = isActive ? (row / activeDots).clamp(0.3, 1.0) : 0.0;
 
         final color = isActive
-            ? Color.lerp(AppColors.amber, AppColors.accentDark, intensity)!
-            : const Color(0xFFE5E7EB);
+            ? Color.lerp(amberColor, accentDarkColor, intensity)!
+            : inactiveColor;
 
         final alpha = isActive ? 1.0 : 0.3;
         final paint = Paint()
@@ -557,18 +567,19 @@ class _DayPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Container(
       width: 38,
       height: 52,
       decoration: BoxDecoration(
-        color: taken ? AppColors.accentLight.withValues(alpha: 0.3) : AppColors.cardBg,
+        color: taken ? tc.accentLight.withValues(alpha: 0.3) : tc.cardBg,
         borderRadius: BorderRadius.circular(GR.radiusMd + 1),
         border: Border.all(
           color: isToday
-              ? AppColors.accent
+              ? tc.accent
               : taken
-                  ? AppColors.accentLight
-                  : AppColors.border,
+                  ? tc.accentLight
+                  : tc.border,
           width: isToday ? 2 : 1,
         ),
       ),
@@ -581,14 +592,14 @@ class _DayPill extends StatelessWidget {
               fontFamily: 'Artific',
               fontSize: 14,
               fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
-              color: isToday ? AppColors.accentDark : AppColors.textSecondary,
+              color: isToday ? tc.accentDark : tc.textSecondary,
             ),
           ),
           SizedBox(height: GR.xs),
           Icon(
             taken ? Icons.check_circle_rounded : Icons.circle_outlined,
             size: GR.iconSm - 2,
-            color: taken ? AppColors.accent : AppColors.textMuted,
+            color: taken ? tc.accent : tc.textMuted,
           ),
         ],
       ),

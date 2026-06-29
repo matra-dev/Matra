@@ -58,6 +58,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   Future<void> _pickDate() async {
+    final tc = ThemeColors.of(context);
     Haptics.light();
     final picked = await showDatePicker(
       context: context,
@@ -82,6 +83,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   Future<void> _pickTime() async {
+    final tc = ThemeColors.of(context);
     Haptics.light();
     final picked = await showTimePicker(
       context: context,
@@ -104,6 +106,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   void _showDoctorPicker() {
+    final tc = ThemeColors.of(context);
     Haptics.medium();
     showModalBottomSheet(
       context: context,
@@ -122,7 +125,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: tc.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -134,7 +137,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     fontFamily: 'Artific',
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: tc.textPrimary,
                   ),
                 ),
               ),
@@ -144,28 +147,28 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     width: GR.lg + 2,
                     height: GR.lg + 2,
                     decoration: BoxDecoration(
-                      color: AppColors.accentLight.withValues(alpha: 0.4),
+                      color: tc.accentLight.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(GR.radiusMd),
                     ),
-                    child: const Icon(Icons.person_rounded, color: AppColors.accentDark, size: 20),
+                    child: Icon(Icons.person_rounded, color: tc.accentDark, size: 20),
                   ),
                   title: Text(
                     doc['name']!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Artific',
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: tc.textPrimary,
                     ),
                   ),
                   subtitle: Text(
                     doc['specialty']!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Artific',
-                      color: AppColors.textSecondary,
+                      color: tc.textSecondary,
                     ),
                   ),
                   trailing: _selectedDoctor == doc['name']
-                      ? const Icon(Icons.check_circle_rounded, color: AppColors.accent)
+                      ? Icon(Icons.check_circle_rounded, color: tc.accent)
                       : null,
                   onTap: () {
                     Haptics.success();
@@ -183,6 +186,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   void _saveAppointment() {
+    final tc = ThemeColors.of(context);
     Haptics.success();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -190,7 +194,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
           'Appointment saved successfully!',
           style: TextStyle(fontFamily: 'Artific'),
         ),
-        backgroundColor: AppColors.accentDark,
+        backgroundColor: tc.accentDark,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusMd)),
       ),
@@ -199,10 +203,11 @@ class _AppointmentScreenState extends State<AppointmentScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final isFormValid = _selectedDoctor != null;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -227,7 +232,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                           fontFamily: 'Artific',
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
+                          color: tc.textSecondary,
                         ),
                       ),
                     ),
@@ -238,7 +243,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                         fontFamily: 'Artific',
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: tc.textPrimary,
                       ),
                     ),
                     const Spacer(),
@@ -263,7 +268,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                         delay: 100,
                         controller: _entranceCtrl,
                       ),
-                      Divider(height: 1, indent: GR.lg, color: AppColors.border),
+                      Divider(height: 1, indent: GR.lg, color: tc.border),
                       _FieldRow(
                         label: 'Time',
                         value: _formatTime(_selectedTime),
@@ -286,7 +291,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                   child: GoldenCard(
                     padding: EdgeInsets.all(GR.lg),
                     border: Border.all(
-                      color: _selectedDoctor == null ? AppColors.border : AppColors.accentLight,
+                      color: _selectedDoctor == null ? tc.border : tc.accentLight,
                     ),
                     child: Row(
                       children: [
@@ -298,7 +303,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                                     fontFamily: 'Artific',
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: AppColors.accentDark,
+                                    color: tc.accentDark,
                                   ),
                                 )
                               : Column(
@@ -310,7 +315,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                                         fontFamily: 'Artific',
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: AppColors.textPrimary,
+                                        color: tc.textPrimary,
                                       ),
                                     ),
                                     SizedBox(height: GR.xs),
@@ -319,13 +324,13 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                                       style: TextStyle(
                                         fontFamily: 'Artific',
                                         fontSize: 14,
-                                        color: AppColors.textSecondary,
+                                        color: tc.textSecondary,
                                       ),
                                     ),
                                   ],
                                 ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                        Icon(Icons.chevron_right_rounded, color: tc.textMuted),
                       ],
                     ),
                   ),
@@ -343,7 +348,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     fontFamily: 'Artific',
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: tc.textPrimary,
                   ),
                 )
                     .animate(controller: _entranceCtrl)
@@ -358,7 +363,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     fontFamily: 'Artific',
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
+                    color: tc.textSecondary,
                     height: 1.6,
                   ),
                 )
@@ -376,7 +381,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                     width: double.infinity,
                     height: GR.buttonMd,
                     decoration: BoxDecoration(
-                      color: isFormValid ? AppColors.accentDark : AppColors.borderLight,
+                      color: isFormValid ? tc.accentDark : tc.borderLight,
                       borderRadius: BorderRadius.circular(GR.radiusMd),
                     ),
                     child: Center(
@@ -386,7 +391,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
                           fontFamily: 'Artific',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isFormValid ? Colors.white : AppColors.textMuted,
+                          color: isFormValid ? Colors.white : tc.textMuted,
                         ),
                       ),
                     ),
@@ -423,6 +428,7 @@ class _FieldRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -436,7 +442,7 @@ class _FieldRow extends StatelessWidget {
                 fontFamily: 'Artific',
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: tc.textPrimary,
               ),
             ),
             const Spacer(),
@@ -446,7 +452,7 @@ class _FieldRow extends StatelessWidget {
                 fontFamily: 'Artific',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: tc.textSecondary,
               ),
             ),
           ],

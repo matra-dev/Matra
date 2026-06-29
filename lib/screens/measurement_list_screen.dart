@@ -60,8 +60,9 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -81,11 +82,11 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       width: GR.lg + 2,
                       height: GR.lg + 2,
                       decoration: BoxDecoration(
-                        color: AppColors.cardBg,
+                        color: tc.cardBg,
                         borderRadius: BorderRadius.circular(GR.radiusMd),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: tc.border),
                       ),
-                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: AppColors.textPrimary),
+                      child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
                     ),
                   ),
                   const Spacer(),
@@ -95,7 +96,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       fontFamily: 'Artific',
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: tc.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -115,13 +116,13 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
               child: Container(
                 height: GR.buttonSm + 4,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: tc.surface,
                   borderRadius: BorderRadius.circular(GR.radiusMd),
                 ),
                 child: Row(
                   children: [
                     SizedBox(width: GR.md),
-                    Icon(Icons.search_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                    Icon(Icons.search_rounded, size: GR.iconSm, color: tc.textMuted),
                     SizedBox(width: GR.md),
                     Expanded(
                       child: TextField(
@@ -130,14 +131,14 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                         style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 16,
-                          color: AppColors.textPrimary,
+                          color: tc.textPrimary,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Search',
                           hintStyle: TextStyle(
                             fontFamily: 'Artific',
                             fontSize: 16,
-                            color: AppColors.textMuted,
+                            color: tc.textMuted,
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
@@ -166,7 +167,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       fontFamily: 'Artific',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textMuted,
+                      color: tc.textMuted,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -194,9 +195,9 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       margin: EdgeInsets.only(bottom: 1),
                       padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.md + 3),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBg,
+                        color: tc.cardBg,
                         border: Border(
-                          bottom: BorderSide(color: AppColors.border),
+                          bottom: BorderSide(color: tc.border),
                         ),
                       ),
                       child: Row(
@@ -208,11 +209,11 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                                 fontFamily: 'Artific',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.textPrimary,
+                                color: tc.textPrimary,
                               ),
                             ),
                           ),
-                          Icon(Icons.chevron_right_rounded, size: GR.iconSm, color: AppColors.textMuted),
+                          Icon(Icons.chevron_right_rounded, size: GR.iconSm, color: tc.textMuted),
                         ],
                       ),
                     ),

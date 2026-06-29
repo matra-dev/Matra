@@ -57,7 +57,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: tc.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -80,10 +80,10 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                     margin: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.xs),
                     padding: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.md + 3),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.accentLight.withValues(alpha: 0.3) : Colors.transparent,
+                      color: isSelected ? tc.accentLight.withValues(alpha: 0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(GR.radiusMd),
                       border: Border.all(
-                        color: isSelected ? AppColors.accent : Colors.transparent,
+                        color: isSelected ? tc.accent : Colors.transparent,
                       ),
                     ),
                     child: Row(
@@ -97,7 +97,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                                 style: AppTextStyles.body(
                                   context,
                                   weight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  color: isSelected ? AppColors.accentDark : AppColors.textPrimary,
+                                  color: isSelected ? tc.accentDark : tc.textPrimary,
                                 ),
                               ),
                               SizedBox(height: GR.xs),
@@ -109,7 +109,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                           ),
                         ),
                         if (isSelected)
-                          Icon(Icons.check_circle_rounded, color: AppColors.accent, size: GR.iconSm),
+                          Icon(Icons.check_circle_rounded, color: tc.accent, size: GR.iconSm),
                       ],
                     ),
                   ),
@@ -138,8 +138,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -164,11 +165,11 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                         width: GR.lg + 2,
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: tc.cardBg,
                           borderRadius: BorderRadius.circular(GR.radiusMd),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: tc.border),
                         ),
-                        child: Icon(Icons.add_rounded, size: GR.iconSm, color: AppColors.textPrimary),
+                        child: Icon(Icons.add_rounded, size: GR.iconSm, color: tc.textPrimary),
                       ),
                     ),
                   ],
@@ -184,8 +185,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                   title: 'Text Size',
                   description: 'Adjust the text size to make reading easier for you.',
                   icon: Icons.format_size_rounded,
-                  iconBg: AppColors.blue.withValues(alpha: 0.1),
-                  iconColor: AppColors.blue,
+                  iconBg: tc.blue.withValues(alpha: 0.1),
+                  iconColor: tc.blue,
                   delay: 50,
                   controller: _entranceCtrl,
                   onTap: _showFontSizePicker,
@@ -194,7 +195,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                       final level = ref.watch(fontSizeProvider);
                       return Text(
                         level.label,
-                        style: AppTextStyles.caption(context, color: AppColors.accentDark),
+                        style: AppTextStyles.caption(context, color: tc.accentDark),
                       );
                     },
                   ),
@@ -207,8 +208,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                   title: 'Get Beta Access',
                   description: 'Get early access to new features before they\'re released. Try updates first, share your feedback, and help shape the future of the app.',
                   icon: Icons.rocket_launch_rounded,
-                  iconBg: AppColors.orange.withValues(alpha: 0.1),
-                  iconColor: AppColors.orange,
+                  iconBg: tc.orange.withValues(alpha: 0.1),
+                  iconColor: tc.orange,
                   delay: 100,
                   controller: _entranceCtrl,
                   onTap: () => Haptics.medium(),
@@ -217,7 +218,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                 SizedBox(height: GR.md),
 
                 // Divider
-                Divider(height: 1, color: AppColors.border)
+                Divider(height: 1, color: tc.border)
                     .animate(controller: _entranceCtrl)
                     .fadeIn(delay: 200.ms, duration: 400.ms),
 
@@ -228,8 +229,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
                   title: 'Matra Team',
                   description: 'Need help or experienced an issue? We are here to support you. Reach out to our team for assistance.',
                   icon: Icons.support_agent_rounded,
-                  iconBg: AppColors.accentLight.withValues(alpha: 0.4),
-                  iconColor: AppColors.accentDark,
+                  iconBg: tc.accentLight.withValues(alpha: 0.4),
+                  iconColor: tc.accentDark,
                   delay: 300,
                   controller: _entranceCtrl,
                   onTap: () => Haptics.medium(),
@@ -270,6 +271,7 @@ class _SupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: GoldenCard(

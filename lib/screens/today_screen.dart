@@ -9,6 +9,7 @@ import '../utils/haptics.dart';
 import '../widgets/split_capsule_icon.dart';
 import '../widgets/low_stock_badge.dart';
 import '../widgets/empty_state.dart';
+import 'day_detail_screen.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -90,11 +91,36 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   }
 
   void _onDaySelected(int offset) {
-    if (offset == _selectedDayOffset) return;
+    if (offset == _selectedDayOffset) {
+      // Same day tapped — open detail with hero zoom
+      Haptics.medium();
+      _openDayDetail(offset);
+      return;
+    }
     Haptics.selection();
     setState(() => _selectedDayOffset = offset);
     _listController.reset();
     _listController.forward();
+  }
+
+  void _openDayDetail(int offset) {
+    Haptics.medium();
+    final selectedDate = DateTime.now().add(Duration(days: offset));
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 600),
+        reverseTransitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: DayDetailScreen(
+              selectedDate: selectedDate,
+              dayOffset: offset,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -201,43 +227,46 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
 
                     return GestureDetector(
                       onTap: () => _onDaySelected(i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOutCubic,
-                        width: 48,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: isSelected ? tc.textPrimary : Colors.transparent,
-                          borderRadius: BorderRadius.circular(GR.radiusMd + 3),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeOutCubic,
-                              style: TextStyle(
-                                fontFamily: 'Artific',
-                                fontSize: isSelected ? 24 : 20,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                color: isSelected ? Colors.white : tc.textPrimary,
+                      child: Hero(
+                        tag: 'day_card_$i',
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeOutCubic,
+                          width: 48,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: isSelected ? tc.surface : Colors.transparent,
+                            borderRadius: BorderRadius.circular(GR.radiusMd + 3),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOutCubic,
+                                style: TextStyle(
+                                  fontFamily: 'Artific',
+                                  fontSize: isSelected ? 24 : 20,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                  color: isSelected ? tc.accent : tc.textPrimary,
+                                ),
+                                child: Text('${day.day}'),
                               ),
-                              child: Text('${day.day}'),
-                            ),
-                            SizedBox(height: GR.xs),
-                            AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeOutCubic,
-                              style: TextStyle(
-                                fontFamily: 'Artific',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.white70 : tc.textMuted,
-                                letterSpacing: 0.5,
+                              SizedBox(height: GR.xs),
+                              AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOutCubic,
+                                style: TextStyle(
+                                  fontFamily: 'Artific',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected ? tc.accent.withValues(alpha: 0.7) : tc.textMuted,
+                                  letterSpacing: 0.5,
+                                ),
+                                child: Text(DateFormat('EEE').format(day).toUpperCase()),
                               ),
-                              child: Text(DateFormat('EEE').format(day).toUpperCase()),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     )
