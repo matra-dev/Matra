@@ -46,7 +46,7 @@ Matra sits in the middle: health-conscious enough to track properly, but designe
 - Appointment and measurement screens (basic)
 - Dark mode + font-size scaling
 - Haptics on basically every interaction
-
+- Test
 ### What's still placeholder
 
 - Backend sync is not wired up
