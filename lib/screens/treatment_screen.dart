@@ -3,8 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import 'add_medication_screen.dart';
-import 'appointment_screen.dart';
-import 'measurement_list_screen.dart';
 import 'medication_list_screen.dart';
 
 class TreatmentScreen extends StatefulWidget {
@@ -82,27 +80,21 @@ class _TreatmentScreenState extends State<TreatmentScreen>
     );
   }
 
-  void _navigateToAppointment() {
-    Haptics.medium();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const AppointmentScreen()),
-    );
-  }
-
-  void _navigateToMeasurements() {
-    Haptics.medium();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const MeasurementListScreen()),
-    );
-  }
-
   void _navigateToMedicationList() {
     Haptics.medium();
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const MedicationListScreen()),
+    );
+  }
+
+  void _showMoodBottomSheet() {
+    Haptics.medium();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const _MoodBottomSheet(),
     );
   }
 
@@ -256,23 +248,12 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                     SizedBox(width: GR.md),
                     Expanded(
                       child: _QuickActionButton(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Appt',
-                        color: tc.blue,
+                        icon: Icons.sentiment_satisfied_rounded,
+                        label: 'Mood',
+                        color: tc.purple,
                         delay: 150,
                         controller: _entranceCtrl,
-                        onTap: _navigateToAppointment,
-                      ),
-                    ),
-                    SizedBox(width: GR.md),
-                    Expanded(
-                      child: _QuickActionButton(
-                        icon: Icons.monitor_weight_rounded,
-                        label: 'Measure',
-                        color: tc.purple,
-                        delay: 200,
-                        controller: _entranceCtrl,
-                        onTap: _navigateToMeasurements,
+                        onTap: _showMoodBottomSheet,
                       ),
                     ),
                   ],
@@ -374,6 +355,106 @@ class _TreatmentScreenState extends State<TreatmentScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Mood Bottom Sheet ───────────────────────────────────────────────────────
+class _MoodBottomSheet extends StatefulWidget {
+  const _MoodBottomSheet();
+
+  @override
+  State<_MoodBottomSheet> createState() => _MoodBottomSheetState();
+}
+
+class _MoodBottomSheetState extends State<_MoodBottomSheet> {
+  final List<Map<String, dynamic>> _moods = [
+    {'emoji': '😄', 'label': 'Great'},
+    {'emoji': '🙂', 'label': 'Good'},
+    {'emoji': '😐', 'label': 'Okay'},
+    {'emoji': '😕', 'label': 'Bad'},
+    {'emoji': '😢', 'label': 'Terrible'},
+  ];
+
+  void _logMood(String label) {
+    Haptics.medium();
+    // Log mood with timestamp (could be stored in provider in future)
+    final timestamp = DateTime.now();
+    debugPrint('Mood logged: $label at $timestamp');
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: tc.cardBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, GR.lg + 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: tc.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          SizedBox(height: GR.lg),
+
+          Text(
+            'How are you feeling?',
+            style: AppTextStyles.h2(context),
+          ),
+          SizedBox(height: GR.xs + 2),
+          Text(
+            'Track your mood to see patterns over time',
+            style: AppTextStyles.bodySmall(context),
+          ),
+          SizedBox(height: GR.xl + 2),
+
+          // Mood icons row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: _moods.map((mood) {
+              return GestureDetector(
+                onTap: () => _logMood(mood['label'] as String),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: tc.purple.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+                        border: Border.all(color: tc.purple.withValues(alpha: 0.15)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          mood['emoji'] as String,
+                          style: const TextStyle(fontSize: 28),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: GR.sm),
+                    Text(
+                      mood['label'] as String,
+                      style: AppTextStyles.caption(context, color: tc.textSecondary),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+
+          SizedBox(height: GR.lg),
+        ],
       ),
     );
   }

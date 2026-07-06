@@ -129,7 +129,6 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     final supplementsAsync = ref.watch(supplementsProvider);
     ref.watch(doseLogsProvider);
     final weekDays = _getWeekDays();
-    final now = DateTime.now();
     final selectedDate = _selectedDate;
 
     return Scaffold(
@@ -503,75 +502,56 @@ class _SupplementRow extends StatelessWidget {
       milliseconds: baseDelay + (sectionIndex * 200) + (index * 100) + 100,
     );
 
-    return AnimatedBuilder(
-      animation: listController,
-      builder: (context, child) {
-        final animationValue = listController.value;
-        final delaySeconds = itemDelay.inMilliseconds / 1000;
-        // Smooth ease-out curve for natural feel
-        final rawProgress = (animationValue - delaySeconds) * 2.5;
-        final itemProgress = rawProgress.clamp(0.0, 1.0);
-        final easedProgress = 1 - (1 - itemProgress) * (1 - itemProgress); // easeOutQuad
-
-        return Opacity(
-          opacity: easedProgress,
-          child: Transform.translate(
-            offset: Offset(0, (1 - easedProgress) * 16),
-            child: child,
-          ),
-        );
-      },
-      child: GestureDetector(
-        onTap: onToggle,
-        behavior: HitTestBehavior.opaque,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: GR.sm - 2),
-          child: Row(
-            children: [
-              SplitCapsuleIcon(
-                checked: isTaken,
-                onTap: onToggle,
-                size: 48,
-              ),
-              SizedBox(width: GR.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: GR.sm - 2),
+        child: Row(
+          children: [
+            SplitCapsuleIcon(
+              checked: isTaken,
+              onTap: onToggle,
+              size: 48,
+            ),
+            SizedBox(width: GR.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    supplement.name,
+                    style: TextStyle(
+                      fontFamily: 'Artific',
+                      fontSize: 16,
+                      fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
+                      color: isTaken ? tc.textMuted : tc.textPrimary,
+                    ),
+                  ),
+                  if (!isTaken) ...[
+                    SizedBox(height: GR.xs - 2),
                     Text(
-                      supplement.name,
+                      supplement.dosageText,
                       style: TextStyle(
                         fontFamily: 'Artific',
-                        fontSize: 16,
-                        fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
-                        color: isTaken ? tc.textMuted : tc.textPrimary,
-                        decoration: isTaken ? TextDecoration.lineThrough : null,
-                        decorationColor: tc.textMuted,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: tc.textMuted,
                       ),
                     ),
-                    if (!isTaken) ...[
-                      SizedBox(height: GR.xs - 2),
-                      Text(
-                        supplement.dosageText,
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: tc.textMuted,
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              LowStockBadge(
-                stockCount: supplement.stockCount,
-                frequency: supplement.frequency,
-              ),
-            ],
-          ),
+            ),
+            LowStockBadge(
+              stockCount: supplement.stockCount,
+              frequency: supplement.frequency,
+            ),
+          ],
         ),
       ),
-    );
+    ).animate(controller: listController)
+        .fadeIn(delay: itemDelay)
+        .slideY(begin: 0.3, end: 0, delay: itemDelay, curve: Curves.easeOutCubic);
   }
 }

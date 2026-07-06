@@ -43,7 +43,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (context) {
+        final tc = ThemeColors.of(context);
+        return Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg)),
@@ -119,7 +121,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen>
             ],
           ),
         ),
-      ),
+        );
+      },
     );
   }
 
@@ -271,7 +274,6 @@ class _SupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tc = ThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: GoldenCard(

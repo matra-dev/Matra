@@ -279,7 +279,7 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
                           Container(
                             width: GR.xs + 2,
                             height: GR.xs + 2,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: tc.accent,
                               shape: BoxShape.circle,
                             ),
@@ -401,7 +401,6 @@ class _DotMatrixScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
-    final tc = ThemeColors.of(context);
     const dotCount = 40;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
@@ -464,7 +463,6 @@ class _TrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tc = ThemeColors.of(context);
     final minVal = data.reduce((a, b) => a < b ? a : b);
     final maxVal = data.reduce((a, b) => a > b ? a : b);
 
@@ -505,8 +503,6 @@ class _YLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tc = ThemeColors.of(context);
-    final tc = ThemeColors.of(context);
     return Text(
       text,
       style: AppTextStyles.micro(context),
@@ -553,7 +549,7 @@ class _TrendDotsPainter extends CustomPainter {
         final intensity = isActive ? (row / activeDots).clamp(0.3, 1.0) : 0.0;
 
         final color = isActive
-            ? Color.lerp(tc.amber, tc.accentDark, intensity)!
+            ? Color.lerp(const Color(0xFFF59E0B), const Color(0xFF0F766E), intensity)!
             : const Color(0xFFE5E7EB);
 
         final alpha = isActive ? 1.0 : 0.3;
@@ -592,7 +588,6 @@ class _DayPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tc = ThemeColors.of(context);
     final tc = ThemeColors.of(context);
     return Container(
       width: 38,

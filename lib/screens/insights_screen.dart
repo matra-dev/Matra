@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
-import 'progress_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
@@ -14,8 +13,13 @@ class InsightsScreen extends StatefulWidget {
 class _InsightsScreenState extends State<InsightsScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
-  late final AnimationController _dotsCtrl;
   late final AnimationController _trendCtrl;
+  late final AnimationController _calendarCtrl;
+  late final AnimationController _detailCtrl;
+  int _activeTab = 0;
+  DateTime _calendarMonth = DateTime.now();
+  DateTime? _selectedCalendarDay;
+  bool _calendarExpanded = true;
 
   @override
   void initState() {
@@ -24,13 +28,17 @@ class _InsightsScreenState extends State<InsightsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
-    _dotsCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    );
     _trendCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2600),
+    );
+    _calendarCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _detailCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
     );
     _startAnimations();
   }
@@ -38,8 +46,6 @@ class _InsightsScreenState extends State<InsightsScreen>
   void _startAnimations() async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (mounted) _entranceCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) _dotsCtrl.forward();
     await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) _trendCtrl.forward();
   }
@@ -47,16 +53,22 @@ class _InsightsScreenState extends State<InsightsScreen>
   @override
   void dispose() {
     _entranceCtrl.dispose();
-    _dotsCtrl.dispose();
     _trendCtrl.dispose();
+    _calendarCtrl.dispose();
+    _detailCtrl.dispose();
     super.dispose();
   }
 
-  void _navigateToProgress() {
-    Haptics.medium();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProgressScreen()),
-    );
+  void _onTabChanged(int index) {
+    if (index == _activeTab) return;
+    Haptics.selection();
+    setState(() => _activeTab = index);
+    if (index == 2) {
+      _calendarCtrl.reset();
+      _calendarCtrl.forward();
+      _detailCtrl.reset();
+      _detailCtrl.forward();
+    }
   }
 
   @override
@@ -65,493 +77,1583 @@ class _InsightsScreenState extends State<InsightsScreen>
     return Scaffold(
       backgroundColor: tc.bg,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: GR.sm),
-
-                // ── Header ───────────────────────────────────────────
-                Row(
-                  children: [
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Haptics.light(),
-                      child: Container(
-                        width: GR.lg + 2,
-                        height: GR.lg + 2,
-                        decoration: BoxDecoration(
-                          color: tc.cardBg,
-                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
-                          border: Border.all(color: tc.border),
-                        ),
-                        child: Icon(
-                          Icons.share_outlined,
-                          size: GR.iconSm + 2,
-                          color: tc.textPrimary,
-                        ),
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.fromLTRB(GR.lg, GR.sm, GR.lg, 0),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Haptics.light(),
+                    child: Container(
+                      width: GR.lg + 2,
+                      height: GR.lg + 2,
+                      decoration: BoxDecoration(
+                        color: tc.cardBg,
+                        borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                        border: Border.all(color: tc.border),
+                      ),
+                      child: Icon(
+                        Icons.share_outlined,
+                        size: GR.iconSm + 2,
+                        color: tc.textPrimary,
                       ),
                     ),
-                  ],
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 0.ms, duration: 600.ms)
-                    .slideY(begin: -0.3, end: 0, delay: 0.ms, duration: 600.ms, curve: Curves.easeOutCubic),
-
-                SizedBox(height: GR.xl),
-
-                // ── Title ────────────────────────────────────────────
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Vitamin D',
-                        style: AppTextStyles.h1(context),
-                      ),
-                      SizedBox(height: GR.xs + 2),
-                      Text(
-                        'December 16, 2025 · Daily Intake',
-                        style: AppTextStyles.bodySmall(context),
-                      ),
-                    ],
                   ),
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 150.ms, duration: 700.ms)
-                    .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+                ],
+              ),
+            ),
 
-                SizedBox(height: GR.xl + 2),
+            SizedBox(height: GR.md),
 
-                // ── Big Value ──────────────────────────────────────────
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      AnimatedBuilder(
-                        animation: _entranceCtrl,
-                        builder: (_, __) {
-                          final v = Curves.easeOutCubic.transform(
-                            ((_entranceCtrl.value - 0.3).clamp(0.0, 0.4)) / 0.4,
-                          );
-                          return Text(
-                            (2000 * v).toStringAsFixed(0),
-                            style: AppTextStyles.display(context),
-                          );
-                        },
-                      ),
-                      SizedBox(width: GR.xs + 2),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: GR.md + 2),
-                        child: Text(
-                          'IU',
-                          style: AppTextStyles.h3(context, color: tc.textMuted),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 300.ms, duration: 800.ms)
-                    .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0), delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic),
+            // ── Custom pill tabs ─────────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
+              child: Row(
+                children: [
+                  _buildTabButton('Overview', 0),
+                  SizedBox(width: GR.sm),
+                  _buildTabButton('Trends', 1),
+                  SizedBox(width: GR.sm),
+                  _buildTabButton('History', 2),
+                ],
+              ),
+            ),
 
-                SizedBox(height: GR.lg),
+            SizedBox(height: GR.md),
 
-                // ── Status Pill ──────────────────────────────────────
-                Center(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
-                    decoration: BoxDecoration(
-                      color: tc.accentLight.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                      border: Border.all(color: tc.accentLight),
-                    ),
-                    child: Text(
-                      'On Track',
-                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                    ),
-                  ),
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 500.ms, duration: 500.ms)
-                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0), delay: 500.ms, duration: 500.ms, curve: Curves.easeOutBack),
-
-                SizedBox(height: GR.xl + 2),
-
-                // ── Dot Matrix Scale ───────────────────────────────────
-                AnimatedBuilder(
-                  animation: _dotsCtrl,
-                  builder: (context, child) {
-                    final progress = Curves.easeOutCubic.transform(_dotsCtrl.value);
-                    return _DotMatrixScale(
-                      value: 2000,
-                      min: 0,
-                      max: 4000,
-                      progress: progress,
-                    );
-                  },
+            // ── Tab Content ──────────────────────────────────────
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_activeTab),
+                  child: _activeTab == 0
+                      ? _buildOverviewTab()
+                      : _activeTab == 1
+                          ? _buildTrendsTab()
+                          : _buildHistoryTab(),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                SizedBox(height: GR.xl + 2),
+  Widget _buildTabButton(String label, int index) {
+    final tc = ThemeColors.of(context);
+    final isActive = _activeTab == index;
 
-                // ── Trend Card ─────────────────────────────────────────
-                GoldenCard(
-                  padding: EdgeInsets.all(GR.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.trending_up_rounded,
-                            size: GR.iconSm - 2,
-                            color: tc.textMuted,
-                          ),
-                          SizedBox(width: GR.xs + 2),
-                          Text(
-                            'TREND',
-                            style: AppTextStyles.caption(context),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Dec 1 - Dec 16',
-                            style: AppTextStyles.caption(context),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: GR.lg),
-                      Row(
-                        children: [
-                          Container(
-                            width: GR.xs + 2,
-                            height: GR.xs + 2,
-                            decoration: BoxDecoration(
-                              color: tc.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: GR.xs + 2),
-                          Text(
-                            '+12%',
-                            style: AppTextStyles.h2(context, color: tc.accentDark),
-                          ),
-                          SizedBox(width: GR.xs - 2),
-                          Padding(
-                            padding: EdgeInsets.only(top: GR.xs - 2),
-                            child: Text(
-                              'this month',
-                              style: AppTextStyles.bodySmall(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: GR.lg + 2),
-                      SizedBox(
-                        height: 140,
-                        child: AnimatedBuilder(
-                          animation: _trendCtrl,
-                          builder: (context, child) {
-                            final progress = Curves.easeOutCubic.transform(_trendCtrl.value);
-                            return _TrendChart(
-                              progress: progress,
-                              data: const [1200, 1400, 1600, 1500, 1800, 2000, 1900, 2100, 2000, 2200, 2000, 2000, 2100, 1900, 2000, 2000],
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 700.ms, duration: 700.ms)
-                    .slideY(begin: 0.2, end: 0, delay: 700.ms, duration: 700.ms, curve: Curves.easeOutCubic),
-
-                SizedBox(height: GR.md + 3),
-
-                // ── Weekly Adherence (tappable) ────────────────────────
-                GestureDetector(
-                  onTap: _navigateToProgress,
-                  child: GoldenCard(
-                    padding: EdgeInsets.all(GR.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today_rounded,
-                              size: GR.iconSm - 2,
-                              color: tc.textMuted,
-                            ),
-                            SizedBox(width: GR.xs + 2),
-                            Text(
-                              'WEEKLY ADHERENCE',
-                              style: AppTextStyles.caption(context),
-                            ),
-                            const Spacer(),
-                            Row(
-                              children: [
-                                Text(
-                                  'View All',
-                                  style: AppTextStyles.caption(context, color: tc.accent),
-                                ),
-                                SizedBox(width: GR.xs - 2),
-                                Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  size: 12,
-                                  color: tc.accent,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: GR.md),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _DayPill(day: 'M', taken: true, delay: 0),
-                            _DayPill(day: 'T', taken: true, delay: 1),
-                            _DayPill(day: 'W', taken: true, delay: 2),
-                            _DayPill(day: 'T', taken: true, delay: 3, isToday: true),
-                            _DayPill(day: 'F', taken: true, delay: 4),
-                            _DayPill(day: 'S', taken: false, delay: 5),
-                            _DayPill(day: 'S', taken: true, delay: 6),
-                          ],
-                        ),
-                        SizedBox(height: GR.md),
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-                          decoration: BoxDecoration(
-                            color: tc.accentLight.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(GR.radiusMd),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '6/7 days · On Track',
-                              style: AppTextStyles.bodySmall(context, weight: FontWeight.w600, color: tc.accentDark),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                    .animate(controller: _entranceCtrl)
-                    .fadeIn(delay: 900.ms, duration: 700.ms)
-                    .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
-
-                SizedBox(height: GR.xxl + GR.xl),
-              ],
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onTabChanged(index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
+          decoration: BoxDecoration(
+            color: isActive ? tc.textPrimary : tc.surface,
+            borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+            border: Border.all(
+              color: isActive ? tc.textPrimary : tc.border,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Artific',
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+                color: isActive ? Colors.white : tc.textSecondary,
+              ),
             ),
           ),
         ),
       ),
     );
   }
-}
 
-// ─── Dot Matrix Scale ────────────────────────────────────────────────────────
-class _DotMatrixScale extends StatelessWidget {
-  final double value;
-  final double min;
-  final double max;
-  final double progress;
-
-  const _DotMatrixScale({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.progress,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  // ─── Tab 1: Overview ─────────────────────────────────────────────────────
+  Widget _buildOverviewTab() {
     final tc = ThemeColors.of(context);
-    const dotCount = 40;
-    final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
-    final activeCount = (dotCount * normalizedValue * progress).round();
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: GR.sm),
+
+          // ── Title ────────────────────────────────────────────
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  'Vitamin D',
+                  style: AppTextStyles.h1(context),
+                ),
+                SizedBox(height: GR.xs + 2),
+                Text(
+                  'December 16, 2025 · Daily Intake',
+                  style: AppTextStyles.bodySmall(context),
+                ),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 150.ms, duration: 700.ms)
+              .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xl + 2),
+
+          // ── Big Value ──────────────────────────────────────────
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AnimatedBuilder(
+                  animation: _entranceCtrl,
+                  builder: (_, __) {
+                    final v = Curves.easeOutCubic.transform(
+                      ((_entranceCtrl.value - 0.3).clamp(0.0, 0.4)) / 0.4,
+                    );
+                    return Text(
+                      (2000 * v).toStringAsFixed(0),
+                      style: AppTextStyles.display(context),
+                    );
+                  },
+                ),
+                SizedBox(width: GR.xs + 2),
+                Padding(
+                  padding: EdgeInsets.only(bottom: GR.md + 2),
+                  child: Text(
+                    'IU',
+                    style: AppTextStyles.h3(context, color: tc.textMuted),
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 300.ms, duration: 800.ms)
+              .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0), delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.lg),
+
+          // ── Status Pill ──────────────────────────────────────
+          Center(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
+              decoration: BoxDecoration(
+                color: tc.accentLight.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+                border: Border.all(color: tc.accentLight),
+              ),
+              child: Text(
+                'On Track',
+                style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
+              ),
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 500.ms, duration: 500.ms)
+              .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0), delay: 500.ms, duration: 500.ms, curve: Curves.easeOutBack),
+
+          SizedBox(height: GR.xl + 2),
+
+          // ── Weekly Adherence ─────────────────────────────────
+          GoldenCard(
+            padding: EdgeInsets.all(GR.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: GR.iconSm - 2,
+                      color: tc.textMuted,
+                    ),
+                    SizedBox(width: GR.xs + 2),
+                    Text(
+                      'WEEKLY ADHERENCE',
+                      style: AppTextStyles.caption(context),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Text(
+                          'View All',
+                          style: AppTextStyles.caption(context, color: tc.accent),
+                        ),
+                        SizedBox(width: GR.xs - 2),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 12,
+                          color: tc.accent,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: GR.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _DayPill(day: 'M', taken: true, delay: 0),
+                    _DayPill(day: 'T', taken: true, delay: 1),
+                    _DayPill(day: 'W', taken: true, delay: 2),
+                    _DayPill(day: 'T', taken: true, delay: 3, isToday: true),
+                    _DayPill(day: 'F', taken: true, delay: 4),
+                    _DayPill(day: 'S', taken: false, delay: 5),
+                    _DayPill(day: 'S', taken: true, delay: 6),
+                  ],
+                ),
+                SizedBox(height: GR.md),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
+                  decoration: BoxDecoration(
+                    color: tc.accentLight.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(GR.radiusMd),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '6/7 days · On Track',
+                      style: AppTextStyles.bodySmall(context, weight: FontWeight.w600, color: tc.accentDark),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 900.ms, duration: 700.ms)
+              .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xxl + GR.xl),
+        ],
+      ),
+    );
+  }
+
+  // ─── Tab 2: Trends ───────────────────────────────────────────────────────────
+  Widget _buildTrendsTab() {
+    final tc = ThemeColors.of(context);
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: GR.lg),
+
+          // ── Adherence Trend Bar Chart ────────────────────────
+          GoldenCard(
+            padding: EdgeInsets.all(GR.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.trending_up_rounded,
+                      size: GR.iconSm - 2,
+                      color: tc.textMuted,
+                    ),
+                    SizedBox(width: GR.xs + 2),
+                    Text(
+                      'ADHERENCE TREND',
+                      style: AppTextStyles.caption(context),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Dec 1 - Dec 16',
+                      style: AppTextStyles.caption(context),
+                    ),
+                  ],
+                ),
+                SizedBox(height: GR.lg),
+                Row(
+                  children: [
+                    Container(
+                      width: GR.xs + 2,
+                      height: GR.xs + 2,
+                      decoration: BoxDecoration(
+                        color: tc.accent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: GR.xs + 2),
+                    Text(
+                      '+12%',
+                      style: AppTextStyles.h2(context, color: tc.accentDark),
+                    ),
+                    SizedBox(width: GR.xs - 2),
+                    Padding(
+                      padding: EdgeInsets.only(top: GR.xs - 2),
+                      child: Text(
+                        'this month',
+                        style: AppTextStyles.bodySmall(context),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: GR.lg + 2),
+                SizedBox(
+                  height: 160,
+                  child: AnimatedBuilder(
+                    animation: _trendCtrl,
+                    builder: (context, child) {
+                      final progress = Curves.easeOutCubic.transform(_trendCtrl.value);
+                      return _buildGradientAreaChart(context, progress);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 700.ms, duration: 700.ms)
+              .slideY(begin: 0.2, end: 0, delay: 700.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xl + 2),
+
+          // ── Weekly Summary Bars ────────────────────────────────
+          GoldenCard(
+            padding: EdgeInsets.all(GR.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Weekly Breakdown',
+                  style: AppTextStyles.h3(context),
+                ),
+                SizedBox(height: GR.lg),
+                _buildWeeklyBars(context),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 900.ms, duration: 700.ms)
+              .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xxl + GR.xl),
+        ],
+      ),
+    );
+  }
+
+  // ─── Tab 3: History ──────────────────────────────────────────────────────────
+  Widget _buildHistoryTab() {
+    final tc = ThemeColors.of(context);
+    final now = DateTime.now();
+
+    // Rich per-dose data: date -> list of {name, dosage, time, taken, icon, color}
+    final doseLogData = <DateTime, List<Map<String, dynamic>>>{
+      DateTime(now.year, now.month, now.day): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:15 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:15 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:15 PM', 'taken': false, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+      ],
+      DateTime(now.year, now.month, now.day - 1): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:05 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:05 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:30 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:00 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
+      ],
+      DateTime(now.year, now.month, now.day - 2): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:20 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:20 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+      ],
+      DateTime(now.year, now.month, now.day - 3): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '09:00 AM', 'taken': false, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '09:00 AM', 'taken': false, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+      ],
+      DateTime(now.year, now.month, now.day - 4): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:10 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:10 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:15 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:30 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
+        {'name': 'Probiotics', 'dosage': '50B CFU', 'time': '08:10 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+      ],
+      DateTime(now.year, now.month, now.day - 5): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:00 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:00 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:00 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
+      ],
+      DateTime(now.year, now.month, now.day - 6): [
+        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:30 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:30 AM', 'taken': false, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
+        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+      ],
+    };
+
+    // Build adherence summary from dose logs
+    Map<DateTime, Map<String, int>> adherenceData = {};
+    for (final entry in doseLogData.entries) {
+      final day = entry.key;
+      final items = entry.value;
+      final taken = items.where((i) => i['taken'] as bool).length;
+      adherenceData[day] = {'taken': taken, 'total': items.length};
+    }
+
+    // Add more days with just adherence summary (no detailed logs)
+    for (int i = 7; i <= 30; i++) {
+      final day = DateTime(now.year, now.month, now.day - i);
+      if (!adherenceData.containsKey(day)) {
+        final patterns = [
+          {'taken': 3, 'total': 3},
+          {'taken': 4, 'total': 4},
+          {'taken': 2, 'total': 4},
+          {'taken': 5, 'total': 5},
+          {'taken': 3, 'total': 5},
+          {'taken': 1, 'total': 4},
+          {'taken': 4, 'total': 4},
+        ];
+        adherenceData[day] = patterns[i % patterns.length];
+      }
+    }
+
+    // Calculate overall stats
+    int totalTaken = 0;
+    int totalDoses = 0;
+    for (final entry in adherenceData.values) {
+      totalTaken += entry['taken']!;
+      totalDoses += entry['total']!;
+    }
+    final adherence = totalDoses > 0 ? ((totalTaken / totalDoses) * 100).round() : 0;
+    final streakDays = _calculateStreak(adherenceData);
+
+    // Determine which day to show detail for
+    final detailDay = _selectedCalendarDay ?? now;
+    final hasDetailData = doseLogData.containsKey(detailDay);
+    final detailItems = doseLogData[detailDay] ?? [];
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: GR.lg),
+
+          // ── Month Navigation + Collapse Toggle ───────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Haptics.light();
+                  setState(() {
+                    _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month - 1);
+                  });
+                  _calendarCtrl.reset();
+                  _calendarCtrl.forward();
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: tc.surface,
+                    borderRadius: BorderRadius.circular(GR.radiusMd),
+                  ),
+                  child: Icon(Icons.chevron_left_rounded, size: 22, color: tc.textPrimary),
+                ),
+              ),
+              SizedBox(width: GR.md),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.3),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Text(
+                  _monthYearText(_calendarMonth),
+                  key: ValueKey(_monthYearText(_calendarMonth)),
+                  style: AppTextStyles.h2(context),
+                ),
+              ),
+              SizedBox(width: GR.md),
+              GestureDetector(
+                onTap: () {
+                  Haptics.light();
+                  setState(() {
+                    _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month + 1);
+                  });
+                  _calendarCtrl.reset();
+                  _calendarCtrl.forward();
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: tc.surface,
+                    borderRadius: BorderRadius.circular(GR.radiusMd),
+                  ),
+                  child: Icon(Icons.chevron_right_rounded, size: 22, color: tc.textPrimary),
+                ),
+              ),
+            ],
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 50.ms, duration: 400.ms)
+              .slideY(begin: 0.2, end: 0, delay: 50.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.lg),
+
+          // ── Collapsible Calendar ─────────────────────────────
+          GoldenCard(
+            padding: EdgeInsets.all(GR.md + 2),
+            child: Column(
+              children: [
+                // Calendar header with collapse toggle
+                Row(
+                  children: [
+                    Text(
+                      'Calendar',
+                      style: AppTextStyles.body(context, weight: FontWeight.w700),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Haptics.selection();
+                        setState(() => _calendarExpanded = !_calendarExpanded);
+                      },
+                      child: AnimatedRotation(
+                        turns: _calendarExpanded ? 0.5 : 0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        child: Icon(
+                          Icons.keyboard_arrow_up_rounded,
+                          size: 22,
+                          color: tc.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Animated calendar body
+                AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 350),
+                  firstCurve: Curves.easeOutCubic,
+                  secondCurve: Curves.easeInCubic,
+                  sizeCurve: Curves.easeOutCubic,
+                  crossFadeState: _calendarExpanded
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  firstChild: Column(
+                    children: [
+                      SizedBox(height: GR.sm + 2),
+                      // Day of week headers
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
+                          return SizedBox(
+                            width: 40,
+                            child: Center(
+                              child: Text(
+                                day,
+                                style: AppTextStyles.caption(
+                                  context,
+                                  weight: FontWeight.w700,
+                                  color: tc.textMuted,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      SizedBox(height: GR.sm + 2),
+                      _buildCalendarGrid(context, adherenceData),
+                    ],
+                  ),
+                  secondChild: const SizedBox.shrink(),
+                ),
+                // Mini summary bar when collapsed
+                if (!_calendarExpanded)
+                  Padding(
+                    padding: EdgeInsets.only(top: GR.sm + 2),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: tc.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: GR.xs + 2),
+                        Text(
+                          'Tap to expand calendar',
+                          style: AppTextStyles.caption(context, color: tc.textSecondary),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$adherence% adherence',
+                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 150.ms, duration: 500.ms)
+              .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.lg),
+
+          // ── Stats Row ────────────────────────────────────────
+          Row(
+            children: [
+              _buildHistoryStatCard(
+                context,
+                label: 'Adherence',
+                value: '$adherence%',
+                color: tc.accentDark,
+                bgColor: tc.accentBg,
+                icon: Icons.check_circle_rounded,
+              ),
+              SizedBox(width: GR.sm),
+              _buildHistoryStatCard(
+                context,
+                label: 'Streak',
+                value: '$streakDays',
+                color: tc.orange,
+                bgColor: tc.orangeLight.withValues(alpha: 0.4),
+                icon: Icons.local_fire_department_rounded,
+              ),
+              SizedBox(width: GR.sm),
+              _buildHistoryStatCard(
+                context,
+                label: 'Taken',
+                value: '$totalTaken',
+                color: tc.textPrimary,
+                bgColor: tc.surface,
+                icon: Icons.medication_rounded,
+              ),
+            ],
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 300.ms, duration: 500.ms)
+              .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.lg + 2),
+
+          // ── Legend ───────────────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendDot(tc.accent, 'All taken', tc),
+              SizedBox(width: GR.md),
+              _buildLegendDot(tc.orange, 'Partial', tc),
+              SizedBox(width: GR.md),
+              _buildLegendDot(tc.red, 'Missed', tc),
+              SizedBox(width: GR.md),
+              _buildLegendDot(tc.border, 'No data', tc),
+            ],
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 400.ms, duration: 400.ms),
+
+          SizedBox(height: GR.lg + 2),
+
+          // ── Selected Day Detail Header ───────────────────────
+          Padding(
+            padding: EdgeInsets.only(left: GR.xs, bottom: GR.sm),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _selectedCalendarDay != null ? _dayName(_selectedCalendarDay!) : 'Today',
+                      style: AppTextStyles.h3(context),
+                    ),
+                    SizedBox(height: GR.xs - 2),
+                    Text(
+                      _selectedCalendarDay != null
+                          ? '${_selectedCalendarDay!.day} ${_monthShort(_selectedCalendarDay!.month)} ${_selectedCalendarDay!.year}'
+                          : '${now.day} ${_monthShort(now.month)} ${now.year}',
+                      style: AppTextStyles.caption(context),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                if (hasDetailData) ...[
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+                    decoration: BoxDecoration(
+                      color: tc.accentBg,
+                      borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                    ),
+                    child: Text(
+                      '${detailItems.where((i) => i['taken'] as bool).length}/${detailItems.length}',
+                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
+                    ),
+                  ),
+                ] else ...[
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+                    decoration: BoxDecoration(
+                      color: tc.surface,
+                      borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                    ),
+                    child: Text(
+                      'No detailed logs',
+                      style: AppTextStyles.caption(context, color: tc.textSecondary),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 500.ms, duration: 400.ms)
+              .slideY(begin: 0.15, end: 0, delay: 500.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+
+          // ── Detailed Dose List ───────────────────────────────
+          if (hasDetailData) ...[
+            GoldenCard(
+              padding: EdgeInsets.all(GR.md + 2),
+              child: Column(
+                children: detailItems.asMap().entries.map((itemEntry) {
+                  final i = itemEntry.key;
+                  final item = itemEntry.value;
+                  final isTaken = item['taken'] as bool;
+                  final isLast = i == detailItems.length - 1;
+
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          // Colored icon container
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: (item['color'] as Color).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(GR.radiusMd),
+                            ),
+                            child: Icon(
+                              item['icon'] as IconData,
+                              size: GR.iconSm + 2,
+                              color: item['color'] as Color,
+                            ),
+                          ),
+                          SizedBox(width: GR.md),
+                          // Name + dosage + time
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['name'] as String,
+                                  style: AppTextStyles.body(context, weight: FontWeight.w600),
+                                ),
+                                SizedBox(height: GR.xs - 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      item['dosage'] as String,
+                                      style: AppTextStyles.bodySmall(context),
+                                    ),
+                                    SizedBox(width: GR.sm),
+                                    Container(
+                                      width: 3,
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        color: tc.textMuted,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    SizedBox(width: GR.sm),
+                                    Icon(
+                                      Icons.access_time_rounded,
+                                      size: 11,
+                                      color: tc.textMuted,
+                                    ),
+                                    SizedBox(width: GR.xs),
+                                    Text(
+                                      item['time'] as String,
+                                      style: AppTextStyles.caption(context),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Status with label
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                            decoration: BoxDecoration(
+                              color: isTaken ? tc.accent.withValues(alpha: 0.12) : tc.surface,
+                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isTaken ? Icons.check_rounded : Icons.close_rounded,
+                                  size: 14,
+                                  color: isTaken ? tc.accent : tc.textMuted,
+                                ),
+                                SizedBox(width: GR.xs - 1),
+                                Text(
+                                  isTaken ? 'Taken' : 'Missed',
+                                  style: AppTextStyles.caption(
+                                    context,
+                                    weight: FontWeight.w600,
+                                    color: isTaken ? tc.accent : tc.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isLast) ...[
+                        SizedBox(height: GR.sm + 2),
+                        Divider(height: 1, color: tc.border),
+                        SizedBox(height: GR.sm + 2),
+                      ],
+                    ],
+                  );
+                }).toList(),
+              ),
+            )
+                .animate(controller: _detailCtrl)
+                .fadeIn(delay: 100.ms, duration: 500.ms)
+                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+          ] else ...[
+            // No detailed data for this day
+            GoldenCard(
+              padding: EdgeInsets.all(GR.lg),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.calendar_month_rounded,
+                      size: 40,
+                      color: tc.textMuted,
+                    ),
+                    SizedBox(height: GR.sm),
+                    Text(
+                      'No detailed logs for this day',
+                      style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
+                    ),
+                    SizedBox(height: GR.xs),
+                    Text(
+                      'Select a day with data from the calendar',
+                      style: AppTextStyles.caption(context, color: tc.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            )
+                .animate(controller: _detailCtrl)
+                .fadeIn(delay: 100.ms, duration: 400.ms),
+          ],
+
+          SizedBox(height: GR.lg + 2),
+
+          // ── Recent Days with Detailed Logs ───────────────────
+          Padding(
+            padding: EdgeInsets.only(left: GR.xs, bottom: GR.sm),
+            child: Text(
+              'Recent Days',
+              style: AppTextStyles.h3(context),
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 600.ms, duration: 400.ms)
+              .slideY(begin: 0.15, end: 0, delay: 600.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+
+          ..._buildRecentDaysList(context, doseLogData, adherenceData),
+
+          SizedBox(height: GR.xxl + GR.xl),
+        ],
+      ),
+    );
+  }
+
+  String _monthYearText(DateTime date) {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return '${months[date.month - 1]} ${date.year}';
+  }
+
+  int _calculateStreak(Map<DateTime, Map<String, int>> data) {
+    final now = DateTime.now();
+    int streak = 0;
+    for (int i = 0; i < 365; i++) {
+      final day = DateTime(now.year, now.month, now.day - i);
+      final entry = data[day];
+      if (entry != null && entry['taken'] == entry['total']) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  Widget _buildLegendDot(Color color, String label, ThemeColors tc) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        SizedBox(width: GR.xs + 2),
+        Text(
+          label,
+          style: AppTextStyles.caption(context, color: tc.textSecondary),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarGrid(BuildContext context, Map<DateTime, Map<String, int>> data) {
+    final tc = ThemeColors.of(context);
+    final year = _calendarMonth.year;
+    final month = _calendarMonth.month;
+    final firstDay = DateTime(year, month, 1);
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final startWeekday = firstDay.weekday % 7;
+
+    final cells = <Widget>[];
+    int dayCounter = 1;
+    final totalCells = ((startWeekday + daysInMonth) / 7).ceil() * 7;
+
+    for (int i = 0; i < totalCells; i++) {
+      if (i < startWeekday || dayCounter > daysInMonth) {
+        cells.add(const SizedBox(width: 40, height: 52));
+      } else {
+        final day = DateTime(year, month, dayCounter);
+        final isToday = day.year == DateTime.now().year &&
+            day.month == DateTime.now().month &&
+            day.day == DateTime.now().day;
+        final isSelected = _selectedCalendarDay != null &&
+            day.year == _selectedCalendarDay!.year &&
+            day.month == _selectedCalendarDay!.month &&
+            day.day == _selectedCalendarDay!.day;
+        final entry = data[day];
+        final hasData = entry != null;
+        final allTaken = hasData && entry['taken'] == entry['total'];
+        final partial = hasData && entry['taken']! > 0 && entry['taken']! < entry['total']!;
+        final missed = hasData && entry['taken'] == 0;
+
+        Color dotColor = tc.border;
+        if (allTaken) {
+          dotColor = tc.accent;
+        } else if (partial) {
+          dotColor = tc.orange;
+        } else if (missed) {
+          dotColor = tc.red;
+        }
+
+        cells.add(
+          GestureDetector(
+            onTap: () {
+              Haptics.selection();
+              setState(() => _selectedCalendarDay = day);
+              _detailCtrl.reset();
+              _detailCtrl.forward();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: 40,
+              height: 52,
+              decoration: BoxDecoration(
+                color: isSelected ? tc.accent.withValues(alpha: 0.12) : Colors.transparent,
+                borderRadius: BorderRadius.circular(GR.radiusMd),
+                border: isToday
+                    ? Border.all(color: tc.accent, width: 1.5)
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$dayCounter',
+                    style: TextStyle(
+                      fontFamily: 'Artific',
+                      fontSize: 15,
+                      fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isToday
+                          ? tc.accent
+                          : isSelected
+                              ? tc.accentDark
+                              : day.weekday == 6 || day.weekday == 7
+                                  ? tc.textMuted
+                                  : tc.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: GR.xs + 2),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate(controller: _calendarCtrl)
+              .fadeIn(
+                delay: Duration(milliseconds: (i % 7 + (i ~/ 7) * 3) * 35),
+                duration: const Duration(milliseconds: 300),
+              )
+              .scale(
+                begin: const Offset(0.5, 0.5),
+                end: const Offset(1.0, 1.0),
+                delay: Duration(milliseconds: (i % 7 + (i ~/ 7) * 3) * 35),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutBack,
+              ),
+        );
+        dayCounter++;
+      }
+    }
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(dotCount, (i) {
-            final isActive = i < activeCount;
-            final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
-            final color = isActive
-                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
-                : tc.border;
-
-            return Container(
-              width: 5.5,
-              height: 5.5,
-              margin: EdgeInsets.symmetric(horizontal: GR.xs - 2),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.0, 0.0),
-                  end: const Offset(1.0, 1.0),
-                  delay: Duration(milliseconds: i * 15),
-                  duration: 300.ms,
-                  curve: Curves.easeOutBack,
-                );
-          }),
-        ),
-        SizedBox(height: GR.sm + 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              min.toStringAsFixed(0),
-              style: AppTextStyles.caption(context),
+        for (int row = 0; row < cells.length ~/ 7; row++)
+          Padding(
+            padding: EdgeInsets.only(bottom: GR.xs + 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: cells.sublist(row * 7, (row + 1) * 7),
             ),
-            Text(
-              max.toStringAsFixed(0),
-              style: AppTextStyles.caption(context),
-            ),
-          ],
-        ),
+          ),
       ],
     );
   }
-}
 
-// ─── Trend Chart (Dot Matrix Line) ───────────────────────────────────────────
-class _TrendChart extends StatelessWidget {
-  final double progress;
-  final List<double> data;
+  List<Widget> _buildRecentDaysList(
+    BuildContext context,
+    Map<DateTime, List<Map<String, dynamic>>> doseLogData,
+    Map<DateTime, Map<String, int>> adherenceData,
+  ) {
+    final tc = ThemeColors.of(context);
+    final now = DateTime.now();
+    final sortedDays = doseLogData.keys.toList()..sort((a, b) => b.compareTo(a));
 
-  const _TrendChart({required this.progress, required this.data});
+    return sortedDays.asMap().entries.map((entry) {
+      final i = entry.key;
+      final day = entry.value;
+      final items = doseLogData[day]!;
+      final taken = items.where((item) => item['taken'] as bool).length;
+      final total = items.length;
+      final allTaken = taken == total;
+      final partial = taken > 0 && taken < total;
 
-  @override
-  Widget build(BuildContext context) {
-    final minVal = data.reduce((a, b) => a < b ? a : b);
-    final maxVal = data.reduce((a, b) => a > b ? a : b);
+      Color dotColor = tc.border;
+      if (allTaken) {
+        dotColor = tc.accent;
+      } else if (partial) {
+        dotColor = tc.orange;
+      } else {
+        dotColor = tc.red;
+      }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // Y-axis labels
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _YLabel(maxVal.toStringAsFixed(0)),
-            _YLabel(((minVal + maxVal) / 2).toStringAsFixed(0)),
-            _YLabel(minVal.toStringAsFixed(0)),
-          ],
-        ),
-        SizedBox(width: GR.sm + 2),
-        // Chart area
-        Expanded(
-          child: CustomPaint(
-            size: const Size(double.infinity, 140),
-            painter: _TrendDotsPainter(
-              data: data,
-              minVal: minVal,
-              maxVal: maxVal,
-              progress: progress,
-              inactiveColor: ThemeColors.of(context).border,
-              amberColor: ThemeColors.of(context).amber,
-              accentDarkColor: ThemeColors.of(context).accentDark,
+      String dayLabel;
+      final diff = now.difference(day).inDays;
+      if (diff == 0) {
+        dayLabel = 'Today';
+      } else if (diff == 1) {
+        dayLabel = 'Yesterday';
+      } else {
+        dayLabel = _dayName(day);
+      }
+
+      return Padding(
+        padding: EdgeInsets.only(bottom: GR.sm + 2),
+        child: GestureDetector(
+          onTap: () {
+            Haptics.selection();
+            setState(() {
+              _selectedCalendarDay = day;
+              _calendarMonth = DateTime(day.year, day.month);
+              _calendarExpanded = true;
+            });
+            _detailCtrl.reset();
+            _detailCtrl.forward();
+          },
+          child: GoldenCard(
+            padding: EdgeInsets.all(GR.md + 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: tc.surface,
+                        borderRadius: BorderRadius.circular(GR.radiusMd),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${day.day}',
+                            style: AppTextStyles.body(context, weight: FontWeight.w700),
+                          ),
+                          Text(
+                            _monthShort(day.month),
+                            style: AppTextStyles.caption(context, color: tc.textMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: GR.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dayLabel,
+                            style: AppTextStyles.body(context, weight: FontWeight.w600),
+                          ),
+                          SizedBox(height: GR.xs - 2),
+                          Text(
+                            '$taken/$total doses taken',
+                            style: AppTextStyles.caption(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: dotColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: GR.sm + 2),
+                // Mini dose chips
+                Wrap(
+                  spacing: GR.xs + 2,
+                  runSpacing: GR.xs + 2,
+                  children: items.map((item) {
+                    final isTaken = item['taken'] as bool;
+                    return Container(
+                      padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                      decoration: BoxDecoration(
+                        color: isTaken ? (item['color'] as Color).withValues(alpha: 0.1) : tc.surface,
+                        borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                        border: Border.all(
+                          color: isTaken ? (item['color'] as Color).withValues(alpha: 0.3) : tc.border,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            item['icon'] as IconData,
+                            size: 12,
+                            color: isTaken ? item['color'] as Color : tc.textMuted,
+                          ),
+                          SizedBox(width: GR.xs),
+                          Text(
+                            item['name'] as String,
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: FontWeight.w600,
+                              color: isTaken ? item['color'] as Color : tc.textMuted,
+                            ),
+                          ),
+                          SizedBox(width: GR.xs - 1),
+                          Text(
+                            item['time'] as String,
+                            style: AppTextStyles.caption(context, color: tc.textMuted),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
         ),
-      ],
+      )
+          .animate(controller: _entranceCtrl)
+          .fadeIn(delay: Duration(milliseconds: 700 + i * 100), duration: const Duration(milliseconds: 400))
+          .slideY(begin: 0.15, end: 0, delay: Duration(milliseconds: 700 + i * 100), duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
+    }).toList();
+  }
+
+  String _dayName(DateTime day) {
+    const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return names[day.weekday - 1];
+  }
+
+  String _monthShort(int month) {
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return names[month - 1];
+  }
+
+  Widget _buildHistoryStatCard(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color color,
+    required Color bgColor,
+    required IconData icon,
+  }) {
+    final tc = ThemeColors.of(context);
+    return Expanded(
+      child: GoldenCard(
+        padding: EdgeInsets.all(GR.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 14, color: color),
+                SizedBox(width: GR.xs),
+                Text(
+                  label,
+                  style: AppTextStyles.caption(context, color: tc.textSecondary),
+                ),
+              ],
+            ),
+            SizedBox(height: GR.xs + 2),
+            Text(
+              value,
+              style: AppTextStyles.h2(context, color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklyBars(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final days = [
+      {'day': 'Mon', 'val': 85},
+      {'day': 'Tue', 'val': 92},
+      {'day': 'Wed', 'val': 78},
+      {'day': 'Thu', 'val': 100},
+      {'day': 'Fri', 'val': 95},
+      {'day': 'Sat', 'val': 60},
+      {'day': 'Sun', 'val': 88},
+    ];
+
+    return Column(
+      children: days.map((d) {
+        final val = d['val'] as int;
+        final isHigh = val >= 90;
+        return Padding(
+          padding: EdgeInsets.only(bottom: GR.sm + 2),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: Text(
+                  d['day'] as String,
+                  style: AppTextStyles.bodySmall(context),
+                ),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: tc.border,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.easeOutCubic,
+                      height: 8,
+                      width: (val / 100.0) * MediaQuery.of(context).size.width * 0.55,
+                      decoration: BoxDecoration(
+                        color: isHigh ? tc.accent : tc.orange,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: GR.sm),
+              Text(
+                '$val%',
+                style: AppTextStyles.caption(context, weight: FontWeight.w700, color: isHigh ? tc.accentDark : tc.orange),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ─── Gradient Area Chart ───────────────────────────────────────────────────
+  Widget _buildGradientAreaChart(BuildContext context, double progress) {
+    final tc = ThemeColors.of(context);
+    final data = const [65, 72, 68, 85, 90, 88, 92, 95, 89, 94, 96, 91, 93, 97, 98, 96];
+    final labels = const ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'];
+
+    return CustomPaint(
+      size: const Size(double.infinity, 160),
+      painter: _GradientAreaPainter(
+        data: data,
+        labels: labels,
+        progress: progress,
+        lineColor: tc.accent,
+        fillGradientStart: tc.accent.withValues(alpha: 0.35),
+        fillGradientEnd: tc.accent.withValues(alpha: 0.02),
+        gridColor: tc.border,
+        textColor: tc.textMuted,
+      ),
     );
   }
 }
 
-class _YLabel extends StatelessWidget {
-  final String text;
-  const _YLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTextStyles.micro(context),
-    );
-  }
-}
-
-class _TrendDotsPainter extends CustomPainter {
-  final List<double> data;
-  final double minVal;
-  final double maxVal;
+// ─── Gradient Area Chart Painter ─────────────────────────────────────────────
+class _GradientAreaPainter extends CustomPainter {
+  final List<int> data;
+  final List<String> labels;
   final double progress;
-  final Color inactiveColor;
-  final Color amberColor;
-  final Color accentDarkColor;
+  final Color lineColor;
+  final Color fillGradientStart;
+  final Color fillGradientEnd;
+  final Color gridColor;
+  final Color textColor;
 
-  _TrendDotsPainter({
+  _GradientAreaPainter({
     required this.data,
-    required this.minVal,
-    required this.maxVal,
+    required this.labels,
     required this.progress,
-    required this.inactiveColor,
-    required this.amberColor,
-    required this.accentDarkColor,
+    required this.lineColor,
+    required this.fillGradientStart,
+    required this.fillGradientEnd,
+    required this.gridColor,
+    required this.textColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress <= 0) return;
 
+    const padding = EdgeInsets.only(left: 28, right: 8, top: 16, bottom: 24);
+    final chartW = size.width - padding.left - padding.right;
+    final chartH = size.height - padding.top - padding.bottom;
+
+    const maxVal = 100.0;
+    const minVal = 50.0;
     final range = maxVal - minVal;
-    final colCount = data.length;
-    final colWidth = size.width / colCount;
-    const dotSize = 4.5;
-    const dotsPerCol = 8;
-    const dotSpacing = 5.5;
 
-    final visibleCols = (colCount * progress).ceil().clamp(1, colCount);
+    final visibleCount = (data.length * progress).ceil().clamp(1, data.length);
 
-    for (int col = 0; col < visibleCols; col++) {
-      final val = data[col];
-      final normalizedVal = ((val - minVal) / range).clamp(0.0, 1.0);
-      final activeDots = (dotsPerCol * normalizedVal).round();
+    // Draw horizontal grid lines
+    final gridPaint = Paint()
+      ..color = gridColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.5;
 
-      final cx = col * colWidth + colWidth / 2;
+    for (int i = 0; i <= 4; i++) {
+      final y = padding.top + (chartH * i / 4);
+      canvas.drawLine(
+        Offset(padding.left, y),
+        Offset(padding.left + chartW, y),
+        gridPaint,
+      );
+    }
 
-      for (int row = 0; row < dotsPerCol; row++) {
-        final isActive = row < activeDots;
-        final cy = size.height - (row * dotSpacing + dotSpacing / 2);
-        final intensity = isActive ? (row / activeDots).clamp(0.3, 1.0) : 0.0;
+    // Build points
+    final points = <Offset>[];
+    for (int i = 0; i < visibleCount; i++) {
+      final x = padding.left + (i / (data.length - 1)) * chartW;
+      final normalizedVal = ((data[i] - minVal) / range).clamp(0.0, 1.0);
+      final y = padding.top + chartH - (normalizedVal * chartH);
+      points.add(Offset(x, y));
+    }
 
-        final color = isActive
-            ? Color.lerp(amberColor, accentDarkColor, intensity)!
-            : inactiveColor;
+    if (points.length < 2) return;
 
-        final alpha = isActive ? 1.0 : 0.3;
-        final paint = Paint()
-          ..color = color.withValues(alpha: alpha)
-          ..style = PaintingStyle.fill;
+    // Smooth curve using Catmull-Rom spline
+    final smoothPoints = _smoothCurve(points);
 
-        canvas.drawCircle(
-          Offset(cx, cy),
-          dotSize / 2,
-          paint,
-        );
-      }
+    // Draw gradient fill area
+    final fillPath = Path();
+    fillPath.moveTo(points.first.dx, padding.top + chartH);
+    fillPath.lineTo(points.first.dx, points.first.dy);
+
+    for (int i = 1; i < smoothPoints.length; i++) {
+      fillPath.lineTo(smoothPoints[i].dx, smoothPoints[i].dy);
+    }
+
+    fillPath.lineTo(smoothPoints.last.dx, padding.top + chartH);
+    fillPath.close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [fillGradientStart, fillGradientEnd],
+      ).createShader(Rect.fromLTWH(padding.left, padding.top, chartW, chartH))
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Draw line on top
+    final linePath = Path();
+    linePath.moveTo(smoothPoints.first.dx, smoothPoints.first.dy);
+    for (int i = 1; i < smoothPoints.length; i++) {
+      linePath.lineTo(smoothPoints[i].dx, smoothPoints[i].dy);
+    }
+
+    final linePaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(linePath, linePaint);
+
+    // Draw dots at data points
+    final dotPaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.fill;
+
+    final dotOutlinePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < points.length; i++) {
+      final isLast = i == points.length - 1;
+      final radius = isLast ? 5.0 : 3.5;
+
+      // White outline
+      canvas.drawCircle(points[i], radius + 1.5, dotOutlinePaint);
+      // Colored dot
+      canvas.drawCircle(points[i], radius, dotPaint);
+    }
+
+    // Draw Y-axis labels
+    final labelStyle = TextStyle(
+      fontFamily: 'Artific',
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      color: textColor,
+    );
+
+    for (int i = 0; i <= 4; i++) {
+      final val = (maxVal - (range * i / 4)).toStringAsFixed(0);
+      final y = padding.top + (chartH * i / 4);
+      final span = TextSpan(text: val, style: labelStyle);
+      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, Offset(padding.left - tp.width - 6, y - tp.height / 2));
+    }
+
+    // Draw X-axis labels (every 4th)
+    for (int i = 0; i < points.length; i += 4) {
+      final span = TextSpan(text: labels[i], style: labelStyle);
+      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(
+        canvas,
+        Offset(points[i].dx - tp.width / 2, padding.top + chartH + 6),
+      );
     }
   }
 
+  List<Offset> _smoothCurve(List<Offset> points) {
+    if (points.length < 3) return points;
+
+    final result = <Offset>[];
+    result.add(points.first);
+
+    for (int i = 0; i < points.length - 1; i++) {
+      final p0 = i > 0 ? points[i - 1] : points[i];
+      final p1 = points[i];
+      final p2 = points[i + 1];
+      final p3 = i < points.length - 2 ? points[i + 2] : p2;
+
+      for (int j = 1; j <= 8; j++) {
+        final t = j / 8;
+        final x = _catmullRom(p0.dx, p1.dx, p2.dx, p3.dx, t);
+        final y = _catmullRom(p0.dy, p1.dy, p2.dy, p3.dy, t);
+        result.add(Offset(x, y));
+      }
+    }
+
+    result.add(points.last);
+    return result;
+  }
+
+  double _catmullRom(double p0, double p1, double p2, double p3, double t) {
+    final t2 = t * t;
+    final t3 = t2 * t;
+
+    return 0.5 * (
+      (2 * p1) +
+      (-p0 + p2) * t +
+      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+      (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+    );
+  }
+
   @override
-  bool shouldRepaint(covariant _TrendDotsPainter old) {
-    return old.progress != progress;
+  bool shouldRepaint(covariant _GradientAreaPainter old) {
+    return old.progress != progress || old.data.length != data.length;
   }
 }
 
-// ─── Day Pill ────────────────────────────────────────────────────────────────
+// ─── Day Pill (used in Overview tab) ─────────────────────────────────────────
 class _DayPill extends StatelessWidget {
   final String day;
   final bool taken;
@@ -605,12 +1707,12 @@ class _DayPill extends StatelessWidget {
       ),
     )
         .animate()
-        .fadeIn(delay: Duration(milliseconds: 1200 + delay * 60), duration: 400.ms)
+        .fadeIn(delay: Duration(milliseconds: 1200 + delay * 60), duration: const Duration(milliseconds: 400))
         .scale(
           begin: const Offset(0.7, 0.7),
           end: const Offset(1.0, 1.0),
           delay: Duration(milliseconds: 1200 + delay * 60),
-          duration: 400.ms,
+          duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutBack,
         );
   }

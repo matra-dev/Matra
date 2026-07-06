@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'golden_ratio.dart';
 export 'golden_ratio.dart' show AppColors, GR, GoldenCard, GoldenBox, GoldenPadding;
 
 /// Font Size Scale for Accessibility

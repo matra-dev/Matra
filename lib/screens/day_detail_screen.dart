@@ -558,7 +558,6 @@ class _DayDetailScreenState extends State<DayDetailScreen>
     Color color,
   ) {
     final tc = ThemeColors.of(context);
-    final missed = total - taken;
 
     return GoldenCard(
       padding: EdgeInsets.all(GR.md + 2),

@@ -94,12 +94,14 @@ class DummyData {
         supplementId: 'supp_1',
         date: todayStr,
         timestamp: today.millisecondsSinceEpoch - 3600000,
+        takenAt: today.subtract(const Duration(hours: 1)),
       ),
       DoseLog(
         id: 'log_2',
         supplementId: 'supp_4',
         date: todayStr,
         timestamp: today.millisecondsSinceEpoch - 7200000,
+        takenAt: today.subtract(const Duration(hours: 2)),
       ),
 
       // Yesterday's doses
@@ -108,18 +110,21 @@ class DummyData {
         supplementId: 'supp_1',
         date: yesterdayStr,
         timestamp: today.subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+        takenAt: today.subtract(const Duration(days: 1)),
       ),
       DoseLog(
         id: 'log_4',
         supplementId: 'supp_2',
         date: yesterdayStr,
         timestamp: today.subtract(const Duration(days: 1)).millisecondsSinceEpoch + 1000,
+        takenAt: today.subtract(const Duration(days: 1)).add(const Duration(seconds: 1)),
       ),
       DoseLog(
         id: 'log_5',
         supplementId: 'supp_3',
         date: yesterdayStr,
         timestamp: today.subtract(const Duration(days: 1)).millisecondsSinceEpoch + 2000,
+        takenAt: today.subtract(const Duration(days: 1)).add(const Duration(seconds: 2)),
       ),
 
       // 2 days ago
@@ -128,12 +133,14 @@ class DummyData {
         supplementId: 'supp_1',
         date: twoDaysAgoStr,
         timestamp: today.subtract(const Duration(days: 2)).millisecondsSinceEpoch,
+        takenAt: today.subtract(const Duration(days: 2)),
       ),
       DoseLog(
         id: 'log_7',
         supplementId: 'supp_2',
         date: twoDaysAgoStr,
         timestamp: today.subtract(const Duration(days: 2)).millisecondsSinceEpoch + 1000,
+        takenAt: today.subtract(const Duration(days: 2)).add(const Duration(seconds: 1)),
       ),
     ];
   }

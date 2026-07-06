@@ -5,7 +5,7 @@ class Haptics {
   Haptics._();
 
   static Future<void> _vibrate(int duration, {int? amplitude}) async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       await Vibration.vibrate(duration: duration, amplitude: amplitude ?? 64);
     } else {
       await HapticFeedback.mediumImpact();

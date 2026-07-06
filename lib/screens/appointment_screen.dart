@@ -58,7 +58,6 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   Future<void> _pickDate() async {
-    final tc = ThemeColors.of(context);
     Haptics.light();
     final picked = await showDatePicker(
       context: context,
@@ -83,7 +82,6 @@ class _AppointmentScreenState extends State<AppointmentScreen>
   }
 
   Future<void> _pickTime() async {
-    final tc = ThemeColors.of(context);
     Haptics.light();
     final picked = await showTimePicker(
       context: context,

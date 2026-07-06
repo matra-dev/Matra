@@ -127,11 +127,13 @@ class DoseLogsNotifier extends StateNotifier<AsyncValue<List<DoseLog>>> {
   Future<void> logDose(String supplementId) async {
     final current = state.value ?? [];
     final today = app_date.DateUtils.getTodayDateString();
+    final now = DateTime.now();
     final log = DoseLog(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: now.millisecondsSinceEpoch.toString(),
       supplementId: supplementId,
       date: today,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: now.millisecondsSinceEpoch,
+      takenAt: now,
     );
     final updated = [...current, log];
     await _local.saveDoseLogs(updated);

@@ -32,29 +32,17 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     {'name': 'Melatonin', 'dosage': '3 mg'},
   ];
 
-  // Step 2: Schedule type
-  int _scheduleType = 0; // 0=Interval, 1=Multiple, 2=SpecificDays, 3=Cyclic
-  bool _intervalHours = true; // true=Every X hours, false=Every X days
-  int _intervalValue = 6;
-  int _multipleTimes = 3;
-  final List<bool> _selectedDays = [false, true, false, true, false, true, false]; // Sun-Sat
-  int _intakeDays = 21;
-  int _pauseDays = 7;
+  // Step 2: Schedule
+  final List<String> _selectedTimes = ['08:00', '13:00', '20:00'];
 
-  // Slider haptic tracking
-  int _prevIntervalValue = 6;
-  int _prevMultipleTimes = 3;
-  int _prevIntakeDays = 21;
-  int _prevPauseDays = 7;
-  int _prevStockCount = 30;
-  int _prevThreshold = 10;
+  // Step 3: Details
   int _stockCount = 30;
   int _threshold = 10;
   bool _remindRefill = true;
-  String _startTime = '08:00';
-  String _endTime = '20:00';
   int _dose = 1;
+  String _selectedUnit = 'capsules';
   bool _criticalAlerts = true;
+  bool _showDoseEditor = false;
 
   @override
   void initState() {
@@ -75,6 +63,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     if (mounted) _entranceCtrl.forward();
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) _dotsCtrl.forward();
+  }
+
+  bool _isNextEnabled() {
+    if (_currentStep == 0) {
+      // Step 1: need a medication name, and if dose editor is shown, it's ready
+      return _nameController.text.isNotEmpty;
+    }
+    // Steps 2 and 3 are always enabled
+    return true;
   }
 
   void _nextStep() {
@@ -106,9 +103,121 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     Navigator.pop(context);
   }
 
+  void _addTime() async {
+    final now = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: ThemeColors.of(context).cardBg,
+              hourMinuteTextColor: ThemeColors.of(context).textPrimary,
+              dialHandColor: ThemeColors.of(context).accent,
+              dialBackgroundColor: ThemeColors.of(context).surface,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      final formatted = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      if (!_selectedTimes.contains(formatted)) {
+        setState(() {
+          _selectedTimes.add(formatted);
+          _selectedTimes.sort();
+        });
+      }
+    }
+  }
+
+  void _removeTime(String time) {
+    setState(() => _selectedTimes.remove(time));
+  }
+
+  void _changeStock(int delta) {
+    final newVal = _stockCount + delta;
+    if (newVal < 0 || newVal > 200) return;
+    Haptics.selection();
+    setState(() => _stockCount = newVal);
+  }
+
+  void _changeThreshold(int delta) {
+    final newVal = _threshold + delta;
+    if (newVal < 1 || newVal > 50) return;
+    Haptics.selection();
+    setState(() => _threshold = newVal);
+  }
+
+  void _changeDose(int delta) {
+    final newVal = _dose + delta;
+    if (newVal < 1 || newVal > 20) return;
+    Haptics.selection();
+    setState(() => _dose = newVal);
+  }
+
+  void _showCustomUnitDialog() {
+    Haptics.medium();
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        final tc = ThemeColors.of(context);
+        return AlertDialog(
+          backgroundColor: tc.cardBg,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusLg)),
+          title: Text(
+            'Custom Unit',
+            style: AppTextStyles.h3(context),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            style: AppTextStyles.body(context),
+            decoration: InputDecoration(
+              hintText: 'e.g., sprays, patches',
+              hintStyle: AppTextStyles.bodySmall(context, color: tc.textMuted),
+              filled: true,
+              fillColor: tc.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(GR.radiusMd),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 4),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: AppTextStyles.body(context, color: tc.textSecondary),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  Haptics.success();
+                  setState(() => _selectedUnit = controller.text.trim());
+                }
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Save',
+                style: AppTextStyles.body(context, weight: FontWeight.w700, color: tc.accentDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _selectMedication(Map<String, dynamic> med) {
     _nameController.text = med['name'] as String;
-    _nextStep();
+    setState(() => _showDoseEditor = true);
   }
 
   @override
@@ -203,15 +312,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             Padding(
               padding: EdgeInsets.fromLTRB(GR.lg, 0, GR.lg, GR.lg + 4),
               child: GestureDetector(
-                onTap: _currentStep == 0 && _nameController.text.isEmpty ? null : _nextStep,
+                onTap: _isNextEnabled() ? _nextStep : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   width: double.infinity,
                   height: GR.buttonMd,
                   decoration: BoxDecoration(
-                    color: _currentStep == 0 && _nameController.text.isEmpty
-                        ? tc.border
-                        : tc.textPrimary,
+                    color: _isNextEnabled()
+                        ? tc.textPrimary
+                        : tc.border,
                     borderRadius: BorderRadius.circular(GR.radiusLg - 1),
                   ),
                   child: Center(
@@ -233,7 +342,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   }
 
   Widget _buildStep() {
-    final tc = ThemeColors.of(context);
     switch (_currentStep) {
       case 0:
         return _buildSearchStep();
@@ -270,7 +378,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                   SizedBox(height: GR.xs + 2),
                   Text(
                     'Search or type the name',
-                    style: AppTextStyles.bodySmall(context),
+                    style: AppTextStyles.body(context),
                   ),
                 ],
               ),
@@ -333,7 +441,91 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
             SizedBox(height: GR.lg),
 
             // Results or empty state
-            if (_query.isEmpty) ...[
+            if (_showDoseEditor) ...[
+              SizedBox(height: GR.lg),
+              Container(
+                padding: EdgeInsets.all(GR.lg),
+                decoration: BoxDecoration(
+                  color: tc.cardBg,
+                  borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                  border: Border.all(color: tc.accentLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _nameController.text,
+                      style: AppTextStyles.body(context, weight: FontWeight.w700),
+                    ),
+                    SizedBox(height: GR.md),
+                    Row(
+                      children: [
+                        Text(
+                          'Dose',
+                          style: AppTextStyles.body(context, weight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        _buildStepper(
+                          value: _dose,
+                          onDecrement: () => _changeDose(-1),
+                          onIncrement: () => _changeDose(1),
+                          label: '$_dose',
+                          accentColor: tc.accent,
+                          bgColor: tc.accentBg,
+                          textColor: tc.accentDark,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: GR.md),
+                    Text(
+                      'Unit',
+                      style: AppTextStyles.body(context, weight: FontWeight.w500),
+                    ),
+                    SizedBox(height: GR.sm),
+                    Wrap(
+                      spacing: GR.sm,
+                      runSpacing: GR.sm,
+                      children: [...['capsules', 'IU', 'mcg', 'mg', 'drops', 'scoops', 'tablets', 'softgels'], 'others'].map((unit) {
+                        final isSelected = _selectedUnit == unit;
+                        return GestureDetector(
+                          onTap: () {
+                            Haptics.selection();
+                            if (unit == 'others') {
+                              _showCustomUnitDialog();
+                            } else {
+                              setState(() => _selectedUnit = unit);
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+                            decoration: BoxDecoration(
+                              color: isSelected ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
+                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                              border: Border.all(
+                                color: isSelected ? tc.accentLight : tc.border,
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Text(
+                              unit == 'others' ? 'others' : unit,
+                              style: AppTextStyles.body(
+                                context,
+                                weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? tc.accentDark : tc.textSecondary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              )
+                  .animate(controller: _entranceCtrl)
+                  .fadeIn(delay: 200.ms, duration: 400.ms)
+                  .slideY(begin: 0.2, end: 0, delay: 200.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+              // Next button is ONLY at the bottom of the screen, not here
+            ] else if (_query.isEmpty) ...[
               Center(
                 child: Column(
                   children: [
@@ -343,7 +535,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                     Text(
                       'Type the name of your\nmedication or supplement',
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.bodySmall(context, height: 1.5),
+                      style: AppTextStyles.body(context, height: 1.5),
                     ),
                   ],
                 ),
@@ -382,7 +574,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               SizedBox(height: GR.xs - 2),
                               Text(
                                 med['dosage'] as String,
-                                style: AppTextStyles.bodySmall(context),
+                                style: AppTextStyles.body(context),
                               ),
                             ],
                           ),
@@ -415,7 +607,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                       SizedBox(height: GR.xs),
                       Text(
                         'Tap Next to add it anyway',
-                        style: AppTextStyles.caption(context),
+                        style: AppTextStyles.body(context, weight: FontWeight.w500, color: tc.accent),
                       ),
                     ],
                   ),
@@ -431,32 +623,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     );
   }
 
-  // ─── STEP 2: Schedule Type ─────────────────────────────────────────────────
+  // ─── STEP 2: Schedule (Simple Time Picker) ─────────────────────────────────
   Widget _buildScheduleStep() {
     final tc = ThemeColors.of(context);
-    final scheduleOptions = [
-      {
-        'title': 'Interval',
-        'subtitle': 'e.g. once every second day, once every 6 hours, once every three months',
-        'icon': Icons.timer_outlined,
-      },
-      {
-        'title': 'Multiple times daily',
-        'subtitle': 'e.g. 3 or more times a day',
-        'icon': Icons.repeat_rounded,
-      },
-      {
-        'title': 'Specific days of the week',
-        'subtitle': 'e.g. Mon., Wed. & Fri.',
-        'icon': Icons.calendar_today_rounded,
-      },
-      {
-        'title': 'Cyclic mode',
-        'subtitle': 'e.g. 21 intake days, 7 pause days',
-        'icon': Icons.cyclone_rounded,
-      },
-    ];
-
     return Padding(
       key: const ValueKey(1),
       padding: EdgeInsets.symmetric(horizontal: GR.lg),
@@ -473,11 +642,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Text(
                     _nameController.text,
-                    style: AppTextStyles.caption(context, color: tc.textMuted),
+                    style: AppTextStyles.body(context, color: tc.textMuted),
                   ),
                   SizedBox(height: GR.xs),
                   Text(
-                    'Which schedule works for you?',
+                    'When would you like to be reminded?',
                     style: AppTextStyles.h2(context),
                     textAlign: TextAlign.center,
                   ),
@@ -490,414 +659,62 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
             SizedBox(height: GR.xl + 2),
 
-            // Schedule options with toggles
-            ...scheduleOptions.asMap().entries.map((entry) {
-              final i = entry.key;
-              final opt = entry.value;
-              final isSelected = _scheduleType == i;
-
-              return GestureDetector(
-                onTap: () {
-                  Haptics.selection();
-                  setState(() => _scheduleType = i);
-                },
-                child: Container(
-                  margin: EdgeInsets.only(bottom: GR.sm + 2),
-                  padding: EdgeInsets.all(GR.md + 3),
-                  decoration: BoxDecoration(
-                    color: tc.cardBg,
-                    borderRadius: BorderRadius.circular(GR.radiusMd + 2),
-                    border: Border.all(
-                      color: isSelected ? tc.accentLight : tc.border,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+            // Time chips
+            Wrap(
+              spacing: GR.sm,
+              runSpacing: GR.sm,
+              children: [
+                ..._selectedTimes.map((time) {
+                  return GestureDetector(
+                    onTap: () => _removeTime(time),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+                      decoration: BoxDecoration(
+                        color: tc.accentLight.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                        border: Border.all(color: tc.accentLight),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  opt['title'] as String,
-                                  style: AppTextStyles.body(
-                                    context,
-                                    weight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: GR.xs - 2),
-                                Text(
-                                  opt['subtitle'] as String,
-                                  style: AppTextStyles.bodySmall(context),
-                                ),
-                              ],
-                            ),
+                          Text(
+                            time,
+                            style: AppTextStyles.body(context, weight: FontWeight.w700, color: tc.accentDark),
                           ),
-                          // Toggle switch
-                          Container(
-                            width: 48,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: isSelected ? tc.accent : tc.border,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: AnimatedAlign(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOutCubic,
-                              alignment: isSelected ? Alignment.centerRight : Alignment.centerLeft,
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          SizedBox(width: GR.xs),
+                          Icon(Icons.close_rounded, size: 16, color: tc.accentDark),
                         ],
                       ),
-
-                      // Expanded sub-options
-                      if (isSelected) ...[
-                        SizedBox(height: GR.md),
-                        Divider(height: 1, color: tc.border),
-                        SizedBox(height: GR.md),
-
-                        if (i == 0) ...[
-                          // Interval sub-options
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => setState(() => _intervalHours = true),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-                                    decoration: BoxDecoration(
-                                      color: _intervalHours ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
-                                      borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                    ),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (_intervalHours) ...[
-                                            Icon(Icons.check, size: 14, color: tc.accentDark),
-                                            SizedBox(width: GR.xs),
-                                          ],
-                                          Text(
-                                            'Every X hours',
-                                            style: AppTextStyles.caption(
-                                              context,
-                                              weight: _intervalHours ? FontWeight.w700 : FontWeight.w500,
-                                              color: _intervalHours ? tc.accentDark : tc.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: GR.sm),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => setState(() => _intervalHours = false),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-                                    decoration: BoxDecoration(
-                                      color: !_intervalHours ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
-                                      borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                    ),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (!_intervalHours) ...[
-                                            Icon(Icons.check, size: 14, color: tc.accentDark),
-                                            SizedBox(width: GR.xs),
-                                          ],
-                                          Text(
-                                            'Every X days',
-                                            style: AppTextStyles.caption(
-                                              context,
-                                              weight: !_intervalHours ? FontWeight.w700 : FontWeight.w500,
-                                              color: !_intervalHours ? tc.accentDark : tc.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.md),
-                          Row(
-                            children: [
-                              Text(
-                                'Remind every',
-                                style: AppTextStyles.body(context, weight: FontWeight.w500),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                                decoration: BoxDecoration(
-                                  color: tc.accentBg,
-                                  borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                ),
-                                child: Text(
-                                  '$_intervalValue',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                                ),
-                              ),
-                              SizedBox(width: GR.xs),
-                              Text(
-                                _intervalHours ? 'hours' : 'days',
-                                style: AppTextStyles.bodySmall(context),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.sm),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: tc.accent,
-                              inactiveTrackColor: tc.border,
-                              thumbColor: tc.accent,
-                              overlayColor: tc.accent.withValues(alpha: 0.1),
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                            ),
-                            child: Slider(
-                              value: _intervalValue.toDouble(),
-                              min: 1,
-                              max: _intervalHours ? 24 : 30,
-                              onChanged: (v) {
-                                final rounded = v.round();
-                                if (rounded != _prevIntervalValue) {
-                                  Haptics.selection();
-                                  _prevIntervalValue = rounded;
-                                }
-                                setState(() => _intervalValue = rounded);
-                              },
-                            ),
-                          ),
-                        ],
-
-                        if (i == 1) ...[
-                          // Multiple times sub-option
-                          Row(
-                            children: [
-                              Text(
-                                'Intakes',
-                                style: AppTextStyles.body(context, weight: FontWeight.w500),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                                decoration: BoxDecoration(
-                                  color: tc.accentBg,
-                                  borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                ),
-                                child: Text(
-                                  '$_multipleTimes',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                                ),
-                              ),
-                              SizedBox(width: GR.xs),
-                              Text(
-                                'times daily',
-                                style: AppTextStyles.bodySmall(context),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.sm),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: tc.accent,
-                              inactiveTrackColor: tc.border,
-                              thumbColor: tc.accent,
-                              overlayColor: tc.accent.withValues(alpha: 0.1),
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                            ),
-                            child: Slider(
-                              value: _multipleTimes.toDouble(),
-                              min: 2,
-                              max: 6,
-                              onChanged: (v) {
-                                final rounded = v.round();
-                                if (rounded != _prevMultipleTimes) {
-                                  Haptics.selection();
-                                  _prevMultipleTimes = rounded;
-                                }
-                                setState(() => _multipleTimes = rounded);
-                              },
-                            ),
-                          ),
-                        ],
-
-                        if (i == 2) ...[
-                          // Specific days - day picker
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].asMap().entries.map((dayEntry) {
-                              final dayIdx = dayEntry.key;
-                              final dayLabel = dayEntry.value;
-                              final isDaySelected = _selectedDays[dayIdx];
-                              return GestureDetector(
-                                onTap: () => setState(() => _selectedDays[dayIdx] = !isDaySelected),
-                                child: Container(
-                                  width: 38,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color: isDaySelected ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
-                                    borderRadius: BorderRadius.circular(GR.radiusSm + 4),
-                                    border: Border.all(
-                                      color: isDaySelected ? tc.accentLight : Colors.transparent,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (isDaySelected)
-                                        Icon(Icons.check, size: 14, color: tc.accentDark),
-                                      SizedBox(height: isDaySelected ? GR.xs - 2 : 0),
-                                      Text(
-                                        dayLabel,
-                                        style: TextStyle(
-                                          fontFamily: 'Artific',
-                                          fontSize: 11,
-                                          fontWeight: isDaySelected ? FontWeight.w700 : FontWeight.w500,
-                                          color: isDaySelected ? tc.accentDark : tc.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-
-                        if (i == 3) ...[
-                          // Cyclic mode sub-options
-                          Row(
-                            children: [
-                              Text(
-                                'Intake days',
-                                style: AppTextStyles.body(context, weight: FontWeight.w500),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                                decoration: BoxDecoration(
-                                  color: tc.accentBg,
-                                  borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                ),
-                                child: Text(
-                                  '$_intakeDays',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                                ),
-                              ),
-                              SizedBox(width: GR.xs),
-                              Text(
-                                'days',
-                                style: AppTextStyles.bodySmall(context),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.sm),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: tc.accent,
-                              inactiveTrackColor: tc.border,
-                              thumbColor: tc.accent,
-                              overlayColor: tc.accent.withValues(alpha: 0.1),
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                            ),
-                            child: Slider(
-                              value: _intakeDays.toDouble(),
-                              min: 1,
-                              max: 30,
-                              onChanged: (v) {
-                                final rounded = v.round();
-                                if (rounded != _prevIntakeDays) {
-                                  Haptics.selection();
-                                  _prevIntakeDays = rounded;
-                                }
-                                setState(() => _intakeDays = rounded);
-                              },
-                            ),
-                          ),
-                          SizedBox(height: GR.sm),
-                          Row(
-                            children: [
-                              Text(
-                                'Pause days',
-                                style: AppTextStyles.body(context, weight: FontWeight.w500),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                                decoration: BoxDecoration(
-                                  color: tc.orangeLight.withValues(alpha: 0.4),
-                                  borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                                ),
-                                child: Text(
-                                  '$_pauseDays',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.orange),
-                                ),
-                              ),
-                              SizedBox(width: GR.xs),
-                              Text(
-                                'days',
-                                style: AppTextStyles.bodySmall(context),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.sm),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: tc.orange,
-                              inactiveTrackColor: tc.border,
-                              thumbColor: tc.orange,
-                              overlayColor: tc.orange.withValues(alpha: 0.1),
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                            ),
-                            child: Slider(
-                              value: _pauseDays.toDouble(),
-                              min: 1,
-                              max: 14,
-                              onChanged: (v) {
-                                final rounded = v.round();
-                                if (rounded != _prevPauseDays) {
-                                  Haptics.selection();
-                                  _prevPauseDays = rounded;
-                                }
-                                setState(() => _pauseDays = rounded);
-                              },
-                            ),
-                          ),
-                        ],
+                    ),
+                  );
+                }),
+                GestureDetector(
+                  onTap: _addTime,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+                    decoration: BoxDecoration(
+                      color: tc.surface,
+                      borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                      border: Border.all(color: tc.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add_rounded, size: 18, color: tc.textSecondary),
+                        SizedBox(width: GR.xs),
+                        Text(
+                          'Add Time',
+                          style: AppTextStyles.body(context, weight: FontWeight.w500, color: tc.textSecondary),
+                        ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              )
-                  .animate(controller: _entranceCtrl)
-                  .fadeIn(delay: Duration(milliseconds: 100 + i * 80), duration: 400.ms)
-                  .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 100 + i * 80), duration: 400.ms, curve: Curves.easeOutCubic);
-            }),
+              ],
+            )
+                .animate(controller: _entranceCtrl)
+                .fadeIn(delay: 100.ms, duration: 500.ms)
+                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
             SizedBox(height: GR.xxl),
           ],
@@ -906,7 +723,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     );
   }
 
-  // ─── STEP 3: Details (Stock + Time + Dose) ───────────────────────────────
+  // ─── STEP 3: Details (Stock + Dose) ──────────────────────────────────────
   Widget _buildDetailsStep() {
     final tc = ThemeColors.of(context);
     return Padding(
@@ -924,18 +741,18 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Text(
                     _nameController.text,
-                    style: AppTextStyles.caption(context, color: tc.textMuted),
+                    style: AppTextStyles.body(context, color: tc.textMuted),
                   ),
                   SizedBox(height: GR.xs),
                   Text(
-                    'When would you like to be reminded?',
+                    'Inventory & Settings',
                     style: AppTextStyles.h2(context),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: GR.xs + 2),
                   Text(
                     _getScheduleSummary(),
-                    style: AppTextStyles.bodySmall(context),
+                    style: AppTextStyles.body(context),
                   ),
                 ],
               ),
@@ -946,7 +763,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
             SizedBox(height: GR.xl + 2),
 
-            // Time + Dose card
+            // Dose card
             GoldenCard(
               padding: EdgeInsets.all(GR.lg),
               child: Column(
@@ -954,61 +771,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.access_time_rounded, size: GR.iconSm - 2, color: tc.textMuted),
+                      Icon(Icons.medication_rounded, size: GR.iconSm - 2, color: tc.textMuted),
                       SizedBox(width: GR.xs + 2),
                       Text(
-                        'REMINDER TIME',
-                        style: AppTextStyles.caption(context),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: GR.md),
-                  _buildTimeRow('Starting at', _startTime, (v) => setState(() => _startTime = v)),
-                  Divider(height: 1, color: tc.border),
-                  _buildTimeRow('Ending at', _endTime, (v) => setState(() => _endTime = v)),
-                  Divider(height: 1, color: tc.border),
-                  Row(
-                    children: [
-                      Text(
-                        'Dose',
-                        style: AppTextStyles.body(context, weight: FontWeight.w500),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                        decoration: BoxDecoration(
-                          color: tc.accentBg,
-                          borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                        ),
-                        child: Text(
-                          '$_dose capsule(s)',
-                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            )
-                .animate(controller: _entranceCtrl)
-                .fadeIn(delay: 100.ms, duration: 500.ms)
-                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
-
-            SizedBox(height: GR.lg),
-
-            // Stock card with dot matrix
-            GoldenCard(
-              padding: EdgeInsets.all(GR.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: tc.textMuted),
-                      SizedBox(width: GR.xs + 2),
-                      Text(
-                        'CURRENT INVENTORY',
-                        style: AppTextStyles.caption(context),
+                        'DOSE',
+                        style: AppTextStyles.body(context),
                       ),
                     ],
                   ),
@@ -1020,44 +787,98 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                         style: AppTextStyles.body(context, weight: FontWeight.w500),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                        decoration: BoxDecoration(
-                          color: tc.accentBg,
-                          borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                        ),
-                        child: Text(
-                          '$_stockCount capsule(s)',
-                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-                        ),
+                      _buildStepper(
+                        value: _dose,
+                        onDecrement: () => _changeDose(-1),
+                        onIncrement: () => _changeDose(1),
+                        label: '$_dose',
+                        accentColor: tc.accent,
+                        bgColor: tc.accentBg,
+                        textColor: tc.accentDark,
                       ),
                     ],
                   ),
-                  SizedBox(height: GR.lg),
-                  _buildStockDotMatrix(),
-                  SizedBox(height: GR.lg),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: tc.accent,
-                      inactiveTrackColor: tc.border,
-                      thumbColor: tc.accent,
-                      overlayColor: tc.accent.withValues(alpha: 0.1),
-                      trackHeight: 4,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                    ),
-                    child: Slider(
-                      value: _stockCount.toDouble(),
-                      min: 0,
-                      max: 100,
-                      onChanged: (v) {
-                        final rounded = v.round();
-                        if (rounded != _prevStockCount) {
+                  SizedBox(height: GR.md),
+                  Text(
+                    'Unit',
+                    style: AppTextStyles.body(context, weight: FontWeight.w500),
+                  ),
+                  SizedBox(height: GR.sm),
+                  Wrap(
+                    spacing: GR.sm,
+                    runSpacing: GR.sm,
+                    children: ['capsules', 'IU', 'mcg', 'mg', 'drops', 'scoops', 'tablets', 'softgels'].map((unit) {
+                      final isSelected = _selectedUnit == unit;
+                      return GestureDetector(
+                        onTap: () {
                           Haptics.selection();
-                          _prevStockCount = rounded;
-                        }
-                        setState(() => _stockCount = rounded);
-                      },
-                    ),
+                          setState(() => _selectedUnit = unit);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+                          decoration: BoxDecoration(
+                            color: isSelected ? tc.accentLight.withValues(alpha: 0.4) : tc.surface,
+                            borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                            border: Border.all(
+                              color: isSelected ? tc.accentLight : tc.border,
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Text(
+                            unit,
+                            style: AppTextStyles.body(
+                              context,
+                              weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected ? tc.accentDark : tc.textSecondary,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            )
+                .animate(controller: _entranceCtrl)
+                .fadeIn(delay: 100.ms, duration: 500.ms)
+                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+
+            SizedBox(height: GR.lg),
+
+            // Stock card with compact stepper
+            GoldenCard(
+              padding: EdgeInsets.all(GR.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: tc.textMuted),
+                      SizedBox(width: GR.xs + 2),
+                      Text(
+                        'CURRENT INVENTORY',
+                        style: AppTextStyles.body(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: GR.md),
+                  Row(
+                    children: [
+                      Text(
+                        'Amount',
+                        style: AppTextStyles.body(context, weight: FontWeight.w500),
+                      ),
+                      const Spacer(),
+                      _buildStepper(
+                        value: _stockCount,
+                        onDecrement: () => _changeStock(-1),
+                        onIncrement: () => _changeStock(1),
+                        label: '$_stockCount $_selectedUnit',
+                        accentColor: tc.accent,
+                        bgColor: tc.accentBg,
+                        textColor: tc.accentDark,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1089,7 +910,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                               SizedBox(height: GR.xs - 2),
                               Text(
                                 'When stock runs low',
-                                style: AppTextStyles.bodySmall(context),
+                                style: AppTextStyles.body(context),
                               ),
                             ],
                           ),
@@ -1131,42 +952,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                             style: AppTextStyles.body(context, weight: FontWeight.w500),
                           ),
                           const Spacer(),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                            decoration: BoxDecoration(
-                              color: tc.orangeLight.withValues(alpha: 0.4),
-                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                            ),
-                            child: Text(
-                              '$_threshold capsule(s)',
-                              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.orange),
-                            ),
+                          _buildStepper(
+                            value: _threshold,
+                            onDecrement: () => _changeThreshold(-1),
+                            onIncrement: () => _changeThreshold(1),
+                            label: '$_threshold $_selectedUnit',
+                            accentColor: tc.orange,
+                            bgColor: tc.orangeLight.withValues(alpha: 0.4),
+                            textColor: tc.orange,
                           ),
                         ],
-                      ),
-                      SizedBox(height: GR.sm),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: tc.orange,
-                          inactiveTrackColor: tc.border,
-                          thumbColor: tc.orange,
-                          overlayColor: tc.orange.withValues(alpha: 0.1),
-                          trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                        ),
-                        child: Slider(
-                          value: _threshold.toDouble(),
-                          min: 1,
-                          max: 20,
-                          onChanged: (v) {
-                            final rounded = v.round();
-                            if (rounded != _prevThreshold) {
-                              Haptics.selection();
-                              _prevThreshold = rounded;
-                            }
-                            setState(() => _threshold = rounded);
-                          },
-                        ),
                       ),
                     ],
                   ],
@@ -1197,7 +992,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           SizedBox(height: GR.xs - 2),
                           Text(
                             'Even in Silent or DND mode',
-                            style: AppTextStyles.bodySmall(context),
+                            style: AppTextStyles.body(context),
                           ),
                         ],
                       ),
@@ -1242,49 +1037,55 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   }
 
   String _getScheduleSummary() {
-    switch (_scheduleType) {
-      case 0:
-        return 'Intake every $_intervalValue ${_intervalHours ? 'hours' : 'days'}';
-      case 1:
-        return 'Intake $_multipleTimes times daily';
-      case 2:
-        final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        final selected = <String>[];
-        for (int i = 0; i < 7; i++) {
-          if (_selectedDays[i]) selected.add(days[i]);
-        }
-        return 'Intake on ${selected.join(', ')}';
-      case 3:
-        return '$_intakeDays intake days, $_pauseDays pause days';
-      default:
-        return '';
-    }
+    if (_selectedTimes.isEmpty) return 'No reminder times set';
+    return 'Reminders at ${_selectedTimes.join(', ')}';
   }
 
-  Widget _buildTimeRow(String label, String value, ValueChanged<String> onChanged) {
+  Widget _buildStepper({
+    required int value,
+    required VoidCallback onDecrement,
+    required VoidCallback onIncrement,
+    required String label,
+    required Color accentColor,
+    required Color bgColor,
+    required Color textColor,
+  }) {
     final tc = ThemeColors.of(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.body(context, weight: FontWeight.w500),
-          ),
-          const Spacer(),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onDecrement,
+          child: Container(
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: tc.surface,
-              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+              borderRadius: BorderRadius.circular(GR.radiusSm),
+              border: Border.all(color: tc.border),
             ),
-            child: Text(
-              value,
-              style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.textPrimary),
-            ),
+            child: Icon(Icons.remove_rounded, size: 18, color: tc.textSecondary),
           ),
-        ],
-      ),
+        ),
+        SizedBox(width: GR.md),
+        Text(
+          label,
+          style: AppTextStyles.body(context, weight: FontWeight.w700, color: textColor),
+        ),
+        SizedBox(width: GR.md),
+        GestureDetector(
+          onTap: onIncrement,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: BorderRadius.circular(GR.radiusSm),
+            ),
+            child: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1331,51 +1132,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                     );
               }),
             );
-          }),
-        );
-      },
-    );
-  }
-
-  // ─── Stock Dot Matrix Visual ─────────────────────────────────────────────
-  Widget _buildStockDotMatrix() {
-    final tc = ThemeColors.of(context);
-    const dotCount = 30;
-
-    return AnimatedBuilder(
-      animation: _dotsCtrl,
-      builder: (context, child) {
-        final progress = Curves.easeOutCubic.transform(_dotsCtrl.value);
-        final stockProgress = (_stockCount / 100).clamp(0.0, 1.0);
-        final activeCount = (dotCount * stockProgress * progress).round();
-
-        return Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(dotCount, (i) {
-            final isActive = i < activeCount;
-            final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
-            final color = isActive
-                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
-                : const Color(0xFFE5E7EB);
-
-            return Container(
-              width: 5.5,
-              height: 5.5,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.0, 0.0),
-                  end: const Offset(1.0, 1.0),
-                  delay: Duration(milliseconds: i * 15),
-                  duration: 250.ms,
-                  curve: Curves.easeOutBack,
-                );
           }),
         );
       },
