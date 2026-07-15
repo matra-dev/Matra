@@ -803,18 +803,41 @@ class _StockDetail extends StatelessWidget {
 }
 
 Widget _dm(int cols, int rows, int activeCount, int baseDelay) {
-  return Column(children: List.generate(rows, (r) {
-    return Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: List.generate(cols, (c) {
-      final idx = r * cols + c; final active = idx < activeCount; final delayMs = baseDelay + idx * 15;
-      return Expanded(
-        child: Container(
-          height: 14,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(color: active ? _accent : const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(4)),
-        ).animate().fadeIn(delay: Duration(milliseconds: delayMs), duration: 200.ms).scale(begin: const Offset(0.3, 0.3), end: const Offset(1.0, 1.0), delay: Duration(milliseconds: delayMs), duration: 200.ms, curve: Curves.easeOutBack),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: List.generate(rows, (r) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(cols, (c) {
+            final idx = r * cols + c;
+            final active = idx < activeCount;
+            final delayMs = baseDelay + idx * 12;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: c == 0 || c == cols - 1 ? 0 : 1.5),
+                child: Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: active ? _accent : const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ).animate()
+                    .fadeIn(delay: Duration(milliseconds: delayMs), duration: 180.ms)
+                    .scale(
+                        begin: const Offset(0.2, 0.2),
+                        end: const Offset(1.0, 1.0),
+                        delay: Duration(milliseconds: delayMs),
+                        duration: 180.ms,
+                        curve: Curves.easeOutBack),
+              ),
+            );
+          }),
+        ),
       );
-    })));
-  }));
+    }),
+  );
 }
 
 Widget _ld(Color color, String label) {
