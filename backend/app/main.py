@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 
 from app.models.supplement import Supplement
 from app.models.dose_log import DoseLog
-from app.routers import supplements, dose_logs
+from app.models.user import User
+from app.models.measurement import Measurement
+from app.models.appointment import Appointment
+from app.routers import supplements, dose_logs, auth, insights, measurements, appointments, admin
 
 load_dotenv()
 
@@ -19,7 +22,10 @@ DB_NAME = os.getenv("DB_NAME", "stacksense")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     client = AsyncIOMotorClient(MONGODB_URL)
-    await init_beanie(database=client[DB_NAME], document_models=[Supplement, DoseLog])
+    await init_beanie(
+        database=client[DB_NAME],
+        document_models=[Supplement, DoseLog, User, Measurement, Appointment]
+    )
     yield
     client.close()
 
@@ -39,8 +45,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(supplements.router)
 app.include_router(dose_logs.router)
+app.include_router(insights.router)
+app.include_router(measurements.router)
+app.include_router(appointments.router)
+app.include_router(admin.router)
 
 
 @app.get("/")

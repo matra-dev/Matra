@@ -6,6 +6,7 @@ from beanie import Document
 
 class DoseLogBase(BaseModel):
     supplement_id: str = Field(...)
+    user_id: str = Field(...)
     date: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     timestamp: int = Field(default_factory=lambda: int(datetime.now().timestamp() * 1000))
 

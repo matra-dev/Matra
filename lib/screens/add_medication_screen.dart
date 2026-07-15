@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
+import '../services/medication_search_service.dart';
+import '../providers/app_provider.dart';
+import '../models/supplement_model.dart';
 
-class AddMedicationScreen extends StatefulWidget {
+class AddMedicationScreen extends ConsumerStatefulWidget {
   const AddMedicationScreen({super.key});
 
   @override
-  State<AddMedicationScreen> createState() => _AddMedicationScreenState();
+  ConsumerState<AddMedicationScreen> createState() => _AddMedicationScreenState();
 }
 
-class _AddMedicationScreenState extends State<AddMedicationScreen>
+class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final AnimationController _dotsCtrl;
@@ -18,19 +22,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   final _searchFocus = FocusNode();
   String _query = '';
   int _currentStep = 0;
+  bool _isSearching = false;
+  List<Map<String, dynamic>> _apiResults = [];
 
-  // Step 1: Search
-  final List<Map<String, dynamic>> _medications = [
-    {'name': 'Vitamin D3', 'dosage': '2000 IU'},
-    {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg'},
-    {'name': 'Magnesium', 'dosage': '400 mg'},
-    {'name': 'Vitamin B12', 'dosage': '1000 mcg'},
-    {'name': 'Zinc', 'dosage': '25 mg'},
-    {'name': 'Probiotics', 'dosage': '50B CFU'},
-    {'name': 'Iron', 'dosage': '18 mg'},
-    {'name': 'Calcium', 'dosage': '600 mg'},
-    {'name': 'Melatonin', 'dosage': '3 mg'},
-  ];
+  // Step 1: Search - use local medication database
+  final List<Map<String, dynamic>> _medications = MedicationSearchService.localMedications;
 
   // Step 2: Schedule
   final List<String> _selectedTimes = ['08:00', '13:00', '20:00'];
@@ -44,9 +40,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
   bool _criticalAlerts = true;
   bool _showDoseEditor = false;
 
+  final _medicationSearchService = MedicationSearchService();
+
   @override
   void initState() {
     super.initState();
+    _medicationSearchService.initialize();
     _entranceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
@@ -98,9 +97,82 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
     }
   }
 
-  void _saveMedication() {
+  void _saveMedication() async {
     Haptics.success();
-    Navigator.pop(context);
+    
+    // Parse dosage from the selected medication
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    
+    // Find the selected medication to get default dosage
+    final selectedMed = _medications.firstWhere(
+      (m) => m['name'] == name,
+      orElse: () => {'name': name, 'dosage': '1 mg'},
+    );
+    
+    // Parse dosage amount and unit
+    final dosageStr = selectedMed['dosage']?.toString() ?? '1 mg';
+    final dosageMatch = RegExp(r'([\d./]+)\s*(mg|mcg|IU|g|ml|CFU|capsule|tablet|spray|drop| tsp| cup| bottle| serving| units)').firstMatch(dosageStr);
+    
+    double dosageAmount = 1;
+    String dosageUnit = 'mg';
+    
+    if (dosageMatch != null) {
+      final amountStr = dosageMatch.group(1) ?? '1';
+      // Handle fractions like "1/4"
+      if (amountStr.contains('/')) {
+        final parts = amountStr.split('/');
+        if (parts.length == 2) {
+          dosageAmount = double.tryParse(parts[0]) ?? 1 / (double.tryParse(parts[1]) ?? 1);
+        }
+      } else {
+        dosageAmount = double.tryParse(amountStr) ?? 1;
+      }
+      dosageUnit = dosageMatch.group(2) ?? 'mg';
+    }
+    
+    // Create the supplement
+    final supplement = Supplement(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      dosageAmount: dosageAmount,
+      dosageUnit: dosageUnit,
+      frequency: _dose,
+      stockCount: _stockCount,
+      timeSlots: _selectedTimes,
+      startDate: DateTime.now().toIso8601String().split('T')[0],
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    
+    // Add via provider (API-first with local fallback)
+    await ref.read(supplementsProvider.notifier).addSupplement(supplement);
+    
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _searchApi(String query) async {
+    if (query.isEmpty || query.length < 2) {
+      setState(() => _apiResults = []);
+      return;
+    }
+    
+    setState(() => _isSearching = true);
+    
+    try {
+      final results = await _medicationSearchService.searchMedications(query);
+      if (mounted) {
+        setState(() {
+          _apiResults = results;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSearching = false);
+      }
+    }
   }
 
   void _addTime() async {
@@ -217,6 +289,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   void _selectMedication(Map<String, dynamic> med) {
     _nameController.text = med['name'] as String;
+    
+    // Try to parse dosage from the medication
+    final dosageStr = med['dosage']?.toString() ?? '';
+    if (dosageStr.isNotEmpty) {
+      final match = RegExp(r'(\d+)\s*(mg|mcg|IU|g|ml|CFU)').firstMatch(dosageStr);
+      if (match != null) {
+        _dose = int.tryParse(match.group(1)!) ?? 1;
+      }
+    }
+    
     setState(() => _showDoseEditor = true);
   }
 
@@ -231,9 +313,24 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
 
   List<Map<String, dynamic>> get _filtered {
     if (_query.isEmpty) return [];
-    return _medications
+    
+    // Combine local and API results
+    final localResults = _medications
         .where((m) => m['name'].toString().toLowerCase().contains(_query.toLowerCase()))
         .toList();
+    
+    // Merge API results, avoiding duplicates
+    final allResults = [...localResults];
+    for (final apiResult in _apiResults) {
+      final exists = allResults.any((m) => 
+        m['name'].toString().toLowerCase() == apiResult['name'].toString().toLowerCase()
+      );
+      if (!exists) {
+        allResults.add(apiResult);
+      }
+    }
+    
+    return allResults.take(15).toList();
   }
 
   @override
@@ -406,7 +503,15 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                     child: TextField(
                       controller: _nameController,
                       focusNode: _searchFocus,
-                      onChanged: (v) => setState(() => _query = v),
+                      onChanged: (v) {
+                        setState(() => _query = v);
+                        // Debounced API search
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          if (_query == v && mounted) {
+                            _searchApi(v);
+                          }
+                        });
+                      },
                       style: AppTextStyles.body(context),
                       decoration: InputDecoration(
                         hintText: 'Search for medication',
@@ -547,6 +652,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
               ..._filtered.asMap().entries.map((entry) {
                 final i = entry.key;
                 final med = entry.value;
+                final isApiResult = med['source'] == 'OpenFDA';
                 return GestureDetector(
                   onTap: () => _selectMedication(med),
                   child: Padding(
@@ -567,14 +673,32 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                med['name'] as String,
-                                style: AppTextStyles.body(context, weight: FontWeight.w600),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      med['name'] as String,
+                                      style: AppTextStyles.body(context, weight: FontWeight.w600),
+                                    ),
+                                  ),
+                                  if (isApiResult)
+                                    Container(
+                                      padding: EdgeInsets.symmetric(horizontal: GR.xs + 2, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: tc.accent.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(GR.radiusSm),
+                                      ),
+                                      child: Text(
+                                        'FDA',
+                                        style: AppTextStyles.caption(context, color: tc.accent, weight: FontWeight.w600),
+                                      ),
+                                    ),
+                                ],
                               ),
                               SizedBox(height: GR.xs - 2),
                               Text(
-                                med['dosage'] as String,
-                                style: AppTextStyles.body(context),
+                                med['dosage'] as String? ?? '',
+                                style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
                               ),
                             ],
                           ),
@@ -593,7 +717,22 @@ class _AddMedicationScreenState extends State<AddMedicationScreen>
                     .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 200 + i * 60), duration: 400.ms, curve: Curves.easeOutCubic);
               }),
 
-              if (_filtered.isEmpty)
+              if (_isSearching)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: GR.lg),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: tc.accent,
+                      ),
+                    ),
+                  ),
+                ),
+
+              if (_filtered.isEmpty && !_isSearching)
                 Center(
                   child: Column(
                     children: [

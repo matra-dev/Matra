@@ -401,7 +401,7 @@ class _DotMatrixScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
-    const dotCount = 40;
+    const dotCount = 30;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
 
@@ -424,15 +424,7 @@ class _DotMatrixScale extends StatelessWidget {
                 color: color,
                 borderRadius: BorderRadius.circular(3),
               ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.0, 0.0),
-                  end: const Offset(1.0, 1.0),
-                  delay: Duration(milliseconds: i * 15),
-                  duration: 300.ms,
-                  curve: Curves.easeOutBack,
-                );
+            );
           }),
         ),
         SizedBox(height: GR.sm + 2),

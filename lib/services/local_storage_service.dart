@@ -52,9 +52,26 @@ class LocalStorageService {
     await _prefs?.setString('@stacksense/dose_logs', jsonEncode(data));
   }
 
+  // Auth Token
+  Future<String?> getToken() async {
+    await init();
+    return _prefs?.getString('@stacksense/token');
+  }
+
+  Future<void> setToken(String token) async {
+    await init();
+    await _prefs?.setString('@stacksense/token', token);
+  }
+
+  Future<void> clearToken() async {
+    await init();
+    await _prefs?.remove('@stacksense/token');
+  }
+
   Future<void> clearAll() async {
     await init();
     await _prefs?.remove('@stacksense/supplements');
     await _prefs?.remove('@stacksense/dose_logs');
+    await _prefs?.remove('@stacksense/token');
   }
 }

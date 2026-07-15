@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/haptics.dart';
+import '../providers/app_provider.dart';
 
 /// Day Detail Screen — Hero-zoomed calendar view with expandable pill breakdown
 /// Opens when tapping a day in the Today page week strip
-class DayDetailScreen extends StatefulWidget {
+class DayDetailScreen extends ConsumerStatefulWidget {
   final DateTime selectedDate;
   final int dayOffset;
 
@@ -17,10 +19,10 @@ class DayDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<DayDetailScreen> createState() => _DayDetailScreenState();
+  ConsumerState<DayDetailScreen> createState() => _DayDetailScreenState();
 }
 
-class _DayDetailScreenState extends State<DayDetailScreen>
+class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final AnimationController _dotsCtrl;
@@ -34,14 +36,10 @@ class _DayDetailScreenState extends State<DayDetailScreen>
 
   _DayDetailScreenState() : _selectedDay = DateTime.now();
 
-  // Rich demo data: date -> list of pills with name, dosage, time, taken status
-  late final Map<DateTime, List<Map<String, dynamic>>> _pillData;
-
   @override
   void initState() {
     super.initState();
     _selectedDay = widget.selectedDate;
-    _pillData = _generatePillData();
     _entranceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -58,58 +56,54 @@ class _DayDetailScreenState extends State<DayDetailScreen>
     _startAnimations();
   }
 
-  Map<DateTime, List<Map<String, dynamic>>> _generatePillData() {
-    final data = <DateTime, List<Map<String, dynamic>>>{};
-    final now = DateTime.now();
-    final baseDay = DateTime(now.year, now.month, now.day);
-
-    // Generate 31 days of data
-    for (int i = -15; i <= 15; i++) {
-      final day = baseDay.add(Duration(days: i));
-      final key = DateTime(day.year, day.month, day.day);
-
-      // Randomize which pills were taken
-      final morningTaken = i % 7 != 0; // skip every 7th day
-      final afternoonTaken = i % 5 != 0; // skip every 5th day
-      final eveningTaken = i % 3 != 0; // skip every 3rd day
-
-      data[key] = [
-        {
-          'slot': 'Morning',
-          'time': '08:00',
-          'icon': Icons.wb_sunny_rounded,
-          'pills': [
-            {'name': 'Vitamin D3', 'dosage': '2000 IU', 'taken': morningTaken},
-            {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'taken': morningTaken && i % 2 == 0},
-            {'name': 'Probiotics', 'dosage': '50B CFU', 'taken': morningTaken},
-          ],
-        },
-        {
-          'slot': 'Afternoon',
-          'time': '13:00',
-          'icon': Icons.wb_cloudy_rounded,
-          'pills': [
-            {'name': 'Zinc', 'dosage': '25 mg', 'taken': afternoonTaken},
-            {'name': 'Vitamin C', 'dosage': '500 mg', 'taken': afternoonTaken && i % 3 != 1},
-          ],
-        },
-        {
-          'slot': 'Evening',
-          'time': '20:00',
-          'icon': Icons.nights_stay_rounded,
-          'pills': [
-            {'name': 'Magnesium', 'dosage': '400 mg', 'taken': eveningTaken},
-            {'name': 'Melatonin', 'dosage': '3 mg', 'taken': eveningTaken && i % 4 != 0},
-          ],
-        },
-      ];
-    }
-    return data;
-  }
-
+  /// Build real pill data from supplements provider + dose logs
   List<Map<String, dynamic>> _getPillsForDay(DateTime day) {
-    final key = DateTime(day.year, day.month, day.day);
-    return _pillData[key] ?? [];
+    final supplements = ref.read(supplementsProvider).value ?? [];
+    final doseLogs = ref.read(doseLogsProvider).value ?? [];
+    final dayStr = DateTime(day.year, day.month, day.day).toIso8601String().split('T')[0];
+
+    if (supplements.isEmpty) return [];
+
+    // Group supplements by time slot
+    final slots = <String, List<Map<String, dynamic>>>{};
+    for (final supp in supplements) {
+      for (final slot in supp.timeSlots) {
+        final taken = doseLogs.any((l) => 
+          l.supplementId == supp.id && l.date == dayStr
+        );
+        slots.putIfAbsent(slot, () => []).add({
+          'name': supp.name,
+          'dosage': supp.dosageText,
+          'taken': taken,
+        });
+      }
+    }
+
+    // Convert to the format the UI expects
+    final slotOrder = ['Morning', 'Afternoon', 'Evening'];
+    final slotIcons = {
+      'Morning': Icons.wb_sunny_rounded,
+      'Afternoon': Icons.wb_cloudy_rounded,
+      'Evening': Icons.nights_stay_rounded,
+    };
+    final slotTimes = {
+      'Morning': '08:00',
+      'Afternoon': '13:00',
+      'Evening': '20:00',
+    };
+
+    final result = <Map<String, dynamic>>[];
+    for (final slotName in slotOrder) {
+      if (slots.containsKey(slotName) && slots[slotName]!.isNotEmpty) {
+        result.add({
+          'slot': slotName,
+          'time': slotTimes[slotName] ?? '12:00',
+          'icon': slotIcons[slotName] ?? Icons.access_time_rounded,
+          'pills': slots[slotName]!,
+        });
+      }
+    }
+    return result;
   }
 
   int _getAdherenceForDay(DateTime day) {

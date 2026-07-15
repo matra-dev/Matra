@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
 import '../services/local_storage_service.dart';
-import '../services/dummy_data.dart';
+import '../services/api_service.dart';
 import '../utils/app_date_utils.dart' as app_date;
 
 // Local Storage Provider
@@ -10,35 +10,74 @@ final localStorageProvider = Provider<LocalStorageService>((ref) {
   return LocalStorageService();
 });
 
-// Flag to seed dummy data once
-bool _seeded = false;
+// API Service Provider
+final apiServiceProvider = Provider<ApiService>((ref) {
+  final api = ApiService();
+  api.initialize();
+  return api;
+});
 
-// Supplements State
+// Auth State
+final authStateProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool?>>((ref) {
+  return AuthNotifier(ref.read(apiServiceProvider));
+});
+
+class AuthNotifier extends StateNotifier<AsyncValue<bool?>> {
+  final ApiService _api;
+
+  AuthNotifier(this._api) : super(const AsyncValue.data(null)) {
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    state = const AsyncValue.loading();
+    try {
+      final isAuth = await _api.isAuthenticated();
+      state = AsyncValue.data(isAuth);
+    } catch (e) {
+      state = AsyncValue.data(false);
+    }
+  }
+
+  Future<void> logout() async {
+    await _api.logout();
+    state = const AsyncValue.data(false);
+  }
+}
+
+// ─── Supplements State ──────────────────────────────────────────────────────
+
 final supplementsProvider = StateNotifierProvider<SupplementsNotifier, AsyncValue<List<Supplement>>>((ref) {
-  return SupplementsNotifier(ref.read(localStorageProvider));
+  return SupplementsNotifier(
+    ref.read(localStorageProvider),
+    ref.read(apiServiceProvider),
+  );
 });
 
 class SupplementsNotifier extends StateNotifier<AsyncValue<List<Supplement>>> {
   final LocalStorageService _local;
+  final ApiService _api;
 
-  SupplementsNotifier(this._local) : super(const AsyncValue.loading()) {
+  SupplementsNotifier(this._local, this._api) : super(const AsyncValue.loading()) {
     loadSupplements();
   }
 
   Future<void> loadSupplements() async {
     try {
       state = const AsyncValue.loading();
-      var supplements = await _local.getSupplements();
 
-      // Seed dummy data if empty and not already seeded
-      if (supplements.isEmpty && !_seeded) {
-        _seeded = true;
-        supplements = DummyData.supplements;
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        final supplements = await _api.getSupplements();
+        state = AsyncValue.data(supplements);
+        // Sync to local for offline
         await _local.saveSupplements(supplements);
-        // Also seed dose logs
-        await _local.saveDoseLogs(DummyData.doseLogs);
+        return;
       }
 
+      // Fallback to local
+      final supplements = await _local.getSupplements();
       state = AsyncValue.data(supplements);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -47,6 +86,22 @@ class SupplementsNotifier extends StateNotifier<AsyncValue<List<Supplement>>> {
 
   Future<void> addSupplement(Supplement supplement) async {
     final current = state.value ?? [];
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        final created = await _api.createSupplement(supplement);
+        final updated = [...current, created];
+        state = AsyncValue.data(updated);
+        await _local.saveSupplements(updated);
+        return;
+      } catch (_) {
+        // Fall through to local
+      }
+    }
+
+    // Local fallback
     final updated = [...current, supplement];
     await _local.saveSupplements(updated);
     state = AsyncValue.data(updated);
@@ -54,6 +109,22 @@ class SupplementsNotifier extends StateNotifier<AsyncValue<List<Supplement>>> {
 
   Future<void> updateSupplement(String id, Map<String, dynamic> data) async {
     final current = state.value ?? [];
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        final updated = await _api.updateSupplement(id, data);
+        final newList = current.map((s) => s.id == id ? updated : s).toList();
+        state = AsyncValue.data(newList);
+        await _local.saveSupplements(newList);
+        return;
+      } catch (_) {
+        // Fall through to local
+      }
+    }
+
+    // Local fallback
     final newList = current.map((s) {
       if (s.id == id) {
         return s.copyWith(
@@ -73,6 +144,17 @@ class SupplementsNotifier extends StateNotifier<AsyncValue<List<Supplement>>> {
 
   Future<void> deleteSupplement(String id) async {
     final current = state.value ?? [];
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        await _api.deleteSupplement(id);
+      } catch (_) {
+        // Continue with local update regardless
+      }
+    }
+
     final newList = current.where((s) => s.id != id).toList();
     await _local.saveSupplements(newList);
     state = AsyncValue.data(newList);
@@ -103,20 +185,40 @@ class SupplementsNotifier extends StateNotifier<AsyncValue<List<Supplement>>> {
   }
 }
 
-// Dose Logs State
+// ─── Dose Logs State ────────────────────────────────────────────────────────
+
 final doseLogsProvider = StateNotifierProvider<DoseLogsNotifier, AsyncValue<List<DoseLog>>>((ref) {
-  return DoseLogsNotifier(ref.read(localStorageProvider));
+  return DoseLogsNotifier(
+    ref.read(localStorageProvider),
+    ref.read(apiServiceProvider),
+  );
 });
 
 class DoseLogsNotifier extends StateNotifier<AsyncValue<List<DoseLog>>> {
   final LocalStorageService _local;
+  final ApiService _api;
 
-  DoseLogsNotifier(this._local) : super(const AsyncValue.data([]));
+  DoseLogsNotifier(this._local, this._api) : super(const AsyncValue.data([]));
 
   Future<void> loadTodayLogs() async {
     try {
-      final allLogs = await _local.getDoseLogs();
       final today = app_date.DateUtils.getTodayDateString();
+
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        try {
+          final logs = await _api.getTodayLogs(today);
+          state = AsyncValue.data(logs);
+          await _local.saveDoseLogs(logs);
+          return;
+        } catch (_) {
+          // Fall through to local
+        }
+      }
+
+      // Fallback to local
+      final allLogs = await _local.getDoseLogs();
       final todayLogs = allLogs.where((l) => l.date == today).toList();
       state = AsyncValue.data(todayLogs);
     } catch (e, st) {
@@ -128,6 +230,22 @@ class DoseLogsNotifier extends StateNotifier<AsyncValue<List<DoseLog>>> {
     final current = state.value ?? [];
     final today = app_date.DateUtils.getTodayDateString();
     final now = DateTime.now();
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        final log = await _api.createDoseLog(supplementId, today);
+        final updated = [...current, log];
+        state = AsyncValue.data(updated);
+        await _local.saveDoseLogs(updated);
+        return;
+      } catch (_) {
+        // Fall through to local
+      }
+    }
+
+    // Local fallback
     final log = DoseLog(
       id: now.millisecondsSinceEpoch.toString(),
       supplementId: supplementId,
@@ -143,6 +261,17 @@ class DoseLogsNotifier extends StateNotifier<AsyncValue<List<DoseLog>>> {
   Future<void> unlogDose(String supplementId) async {
     final current = state.value ?? [];
     final today = app_date.DateUtils.getTodayDateString();
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        await _api.removeDoseLog(supplementId, today);
+      } catch (_) {
+        // Continue with local
+      }
+    }
+
     final updated = current.where((l) => !(l.supplementId == supplementId && l.date == today)).toList();
     await _local.saveDoseLogs(updated);
     state = AsyncValue.data(updated);

@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
+import 'local_storage_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -9,21 +11,92 @@ class ApiService {
 
   late final Dio _dio;
   bool _initialized = false;
+  final _local = LocalStorageService();
 
-  void initialize({String baseUrl = 'http://localhost:8000'}) {
+  String get _defaultBaseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000';  // Android emulator localhost
+    }
+    return 'http://localhost:8000';   // iOS simulator / desktop
+  }
+
+  void initialize({String? baseUrl}) {
     if (_initialized) return;
     _dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: baseUrl ?? _defaultBaseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {'Content-Type': 'application/json'},
       ),
     );
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await _local.getToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        handler.next(options);
+      },
+      onError: (error, handler) async {
+        if (error.response?.statusCode == 401) {
+          await _local.clearToken();
+        }
+        handler.next(error);
+      },
+    ));
     _initialized = true;
   }
 
-  // Supplements
+  Dio get dio => _dio;
+
+  // ─── Auth ───────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> register(String email, String password, {String? name}) async {
+    final response = await _dio.post('/auth/register', data: {
+      'email': email,
+      'password': password,
+      if (name != null) 'name': name,
+    });
+    final data = response.data['data'] as Map<String, dynamic>;
+    final token = data['token'] as String;
+    await _local.setToken(token);
+    return data;
+  }
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final response = await _dio.post('/auth/login', data: {
+      'email': email,
+      'password': password,
+    });
+    final data = response.data['data'] as Map<String, dynamic>;
+    final token = data['token'] as String;
+    await _local.setToken(token);
+    return data;
+  }
+
+  Future<void> logout() async {
+    await _local.clearToken();
+  }
+
+  Future<Map<String, dynamic>?> getMe() async {
+    try {
+      final response = await _dio.get('/auth/me');
+      return response.data['data'] as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> isAuthenticated() async {
+    final token = await _local.getToken();
+    if (token == null) return false;
+    final me = await getMe();
+    return me != null;
+  }
+
+  // ─── Supplements ────────────────────────────────────────────────────────
+
   Future<List<Supplement>> getSupplements() async {
     final response = await _dio.get('/supplements');
     final data = response.data['data'] as List<dynamic>?;
@@ -44,7 +117,8 @@ class ApiService {
     await _dio.delete('/supplements/$id');
   }
 
-  // Dose Logs
+  // ─── Dose Logs ──────────────────────────────────────────────────────────
+
   Future<List<DoseLog>> getTodayLogs(String date) async {
     final response = await _dio.get('/dose-logs/today/$date');
     final data = response.data['data'] as List<dynamic>?;
@@ -67,5 +141,56 @@ class ApiService {
 
   Future<void> removeDoseLog(String supplementId, String date) async {
     await _dio.delete('/dose-logs/$supplementId/$date');
+  }
+
+  // ─── Insights ───────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getDashboardInsights() async {
+    final response = await _dio.get('/insights/dashboard');
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getSupplementInsights(String supplementId) async {
+    final response = await _dio.get('/insights/supplement/$supplementId');
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getTrends() async {
+    final response = await _dio.get('/insights/trends');
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  // ─── Measurements ───────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getMeasurements() async {
+    final response = await _dio.get('/measurements');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  Future<Map<String, dynamic>> createMeasurement(Map<String, dynamic> data) async {
+    final response = await _dio.post('/measurements', data: data);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteMeasurement(String id) async {
+    await _dio.delete('/measurements/$id');
+  }
+
+  // ─── Appointments ───────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getAppointments() async {
+    final response = await _dio.get('/appointments');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  Future<Map<String, dynamic>> createAppointment(Map<String, dynamic> data) async {
+    final response = await _dio.post('/appointments', data: data);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteAppointment(String id) async {
+    await _dio.delete('/appointments/$id');
   }
 }

@@ -13,6 +13,7 @@ class SupplementBase(BaseModel):
     time_slots: List[str] = Field(default_factory=list)
     start_date: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     created_at: int = Field(default_factory=lambda: int(datetime.now().timestamp() * 1000))
+    user_id: str = Field(...)
 
 
 class SupplementCreate(SupplementBase):
@@ -43,5 +44,6 @@ class Supplement(SupplementBase, Document):
                 "time_slots": ["Morning"],
                 "start_date": "2024-01-15",
                 "created_at": 1705276800000,
+                "user_id": "user_id_here",
             }
         }

@@ -1,48 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
+import '../providers/app_provider.dart';
+import '../models/supplement_model.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
+import 'supplement_detail_screen.dart';
 
-class TreatmentScreen extends StatefulWidget {
+class TreatmentScreen extends ConsumerStatefulWidget {
   const TreatmentScreen({super.key});
 
   @override
-  State<TreatmentScreen> createState() => _TreatmentScreenState();
+  ConsumerState<TreatmentScreen> createState() => _TreatmentScreenState();
 }
 
-class _TreatmentScreenState extends State<TreatmentScreen>
+class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final AnimationController _dotsCtrl;
-
-  final List<Map<String, dynamic>> _medications = [
-    {
-      'name': 'Vitamin D3',
-      'dosage': '2000 IU',
-      'schedule': 'Daily — 08:00',
-      'stock': 29,
-      'color': AppColors.accentDark,
-      'icon': Icons.wb_sunny_rounded,
-    },
-    {
-      'name': 'Omega-3',
-      'dosage': 'Fish Oil',
-      'schedule': 'Daily — 08:00',
-      'stock': 45,
-      'color': AppColors.textSecondary,
-      'icon': Icons.water_drop_rounded,
-    },
-    {
-      'name': 'Magnesium',
-      'dosage': '400mg',
-      'schedule': 'Evening — 20:00',
-      'stock': 12,
-      'color': AppColors.textMuted,
-      'icon': Icons.bolt_rounded,
-    },
-  ];
 
   @override
   void initState() {
@@ -88,6 +65,15 @@ class _TreatmentScreenState extends State<TreatmentScreen>
     );
   }
 
+  void _navigateToSupplementDetail(Supplement supplement) {
+    Haptics.medium();
+    ref.read(selectedSupplementProvider.notifier).state = supplement;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SupplementDetailScreen(supplement: supplement)),
+    );
+  }
+
   void _showMoodBottomSheet() {
     Haptics.medium();
     showModalBottomSheet(
@@ -101,6 +87,8 @@ class _TreatmentScreenState extends State<TreatmentScreen>
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final supplementsAsync = ref.watch(supplementsProvider);
+
     return Scaffold(
       backgroundColor: tc.bg,
       body: SafeArea(
@@ -113,7 +101,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
               children: [
                 SizedBox(height: GR.sm),
 
-                // ── Header (no heading, just action icon) ────────────
+                // ── Header ────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -148,7 +136,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       ),
                       SizedBox(height: GR.xs + 2),
                       Text(
-                        'This Week · 6 of 7 days',
+                        'This Week \u00B7 Track your progress',
                         style: AppTextStyles.bodySmall(context),
                       ),
                     ],
@@ -284,71 +272,98 @@ class _TreatmentScreenState extends State<TreatmentScreen>
 
                 SizedBox(height: GR.md),
 
-                // ── Medication List (like Today page) ────────────────
-                ..._medications.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final med = entry.value;
-                  final isLow = (med['stock'] as int) < 15;
-
-                  return GestureDetector(
-                    onTap: () => Haptics.light(),
+                // ── Real Medication List from Provider ───────────────
+                supplementsAsync.when(
+                  loading: () => Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Icon circle — no border, no fill, just icon
-                          SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: Icon(
-                              med['icon'] as IconData,
-                              size: 26,
-                              color: med['color'] as Color,
-                            ),
-                          ),
-                          SizedBox(width: GR.md),
-                          // Name + schedule — like Today page name + dosage
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: EdgeInsets.all(GR.xl),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: tc.accent,
+                      ),
+                    ),
+                  ),
+                  error: (err, _) => Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(GR.xl),
+                      child: Text(
+                        'Error loading medications',
+                        style: AppTextStyles.bodySmall(context, color: tc.textMuted),
+                      ),
+                    ),
+                  ),
+                  data: (supplements) {
+                    if (supplements.isEmpty) {
+                      return _buildEmptyState(context, tc);
+                    }
+                    return Column(
+                      children: supplements.take(5).toList().asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final supp = entry.value;
+                        final isLow = supp.isLowStock;
+
+                        return GestureDetector(
+                          onTap: () => _navigateToSupplementDetail(supp),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  med['name'] as String,
-                                  style: AppTextStyles.body(context, weight: FontWeight.w500),
+                                // Icon
+                                SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: Icon(
+                                    _getIconForSupplement(supp.name),
+                                    size: 26,
+                                    color: isLow ? tc.orange : tc.accentDark,
+                                  ),
                                 ),
-                                SizedBox(height: GR.xs - 2),
-                                Text(
-                                  med['schedule'] as String,
-                                  style: AppTextStyles.bodySmall(context),
+                                SizedBox(width: GR.md),
+                                // Name + schedule
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        supp.name,
+                                        style: AppTextStyles.body(context, weight: FontWeight.w500),
+                                      ),
+                                      SizedBox(height: GR.xs - 2),
+                                      Text(
+                                        _formatSchedule(supp.timeSlots),
+                                        style: AppTextStyles.bodySmall(context),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Stock badge
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
+                                  decoration: BoxDecoration(
+                                    color: isLow ? tc.orangeLight.withValues(alpha: 0.5) : tc.accentBg,
+                                    borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                                  ),
+                                  child: Text(
+                                    '${supp.stockCount}',
+                                    style: AppTextStyles.caption(
+                                      context,
+                                      weight: FontWeight.w700,
+                                      color: isLow ? tc.orange : tc.accentDark,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          // Stock badge — like LowStockBadge position
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
-                            decoration: BoxDecoration(
-                              color: isLow ? tc.orangeLight.withValues(alpha: 0.5) : tc.accentBg,
-                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                            ),
-                            child: Text(
-                              '${med['stock']}',
-                              style: AppTextStyles.caption(
-                                context,
-                                weight: FontWeight.w700,
-                                color: isLow ? tc.orange : tc.accentDark,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                      .animate(controller: _entranceCtrl)
-                      .fadeIn(delay: Duration(milliseconds: 300 + i * 100), duration: 500.ms)
-                      .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 300 + i * 100), duration: 500.ms, curve: Curves.easeOutCubic);
-                }),
+                        )
+                            .animate(controller: _entranceCtrl)
+                            .fadeIn(delay: Duration(milliseconds: 300 + i * 100), duration: 500.ms)
+                            .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 300 + i * 100), duration: 500.ms, curve: Curves.easeOutCubic);
+                      }).toList(),
+                    );
+                  },
+                ),
 
                 SizedBox(height: GR.xxl + GR.xl),
               ],
@@ -357,6 +372,59 @@ class _TreatmentScreenState extends State<TreatmentScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildEmptyState(BuildContext context, ThemeColors tc) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: GR.xl),
+        child: Column(
+          children: [
+            Icon(
+              Icons.medication_outlined,
+              size: 48,
+              color: tc.textMuted,
+            ),
+            SizedBox(height: GR.md),
+            Text(
+              'No medications yet',
+              style: AppTextStyles.body(context, color: tc.textMuted),
+            ),
+            SizedBox(height: GR.sm),
+            Text(
+              'Tap "Add Med" to get started',
+              style: AppTextStyles.caption(context, color: tc.textMuted),
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate(controller: _entranceCtrl)
+        .fadeIn(delay: 300.ms, duration: 500.ms)
+        .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 500.ms, curve: Curves.easeOutCubic);
+  }
+
+  IconData _getIconForSupplement(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('vitamin d') || lower.contains('d3')) return Icons.wb_sunny_rounded;
+    if (lower.contains('omega') || lower.contains('fish')) return Icons.water_drop_rounded;
+    if (lower.contains('magnesium')) return Icons.bolt_rounded;
+    if (lower.contains('iron')) return Icons.bloodtype_rounded;
+    if (lower.contains('calcium')) return Icons.fitness_center_rounded;
+    if (lower.contains('probiotic')) return Icons.biotech_rounded;
+    if (lower.contains('melatonin') || lower.contains('sleep')) return Icons.bedtime_rounded;
+    if (lower.contains('b12') || lower.contains('vitamin b')) return Icons.energy_savings_leaf_rounded;
+    if (lower.contains('zinc')) return Icons.shield_rounded;
+    if (lower.contains('coq')) return Icons.favorite_rounded;
+    if (lower.contains('ashwagandha') || lower.contains('ginseng')) return Icons.spa_rounded;
+    if (lower.contains('vitamin c')) return Icons.apple_rounded;
+    return Icons.medication_rounded;
+  }
+
+  String _formatSchedule(List<String> timeSlots) {
+    if (timeSlots.isEmpty) return 'No schedule set';
+    if (timeSlots.length == 1) return 'Daily \u2014 ${timeSlots.first}';
+    return 'Daily \u2014 ${timeSlots.join(', ')}';
   }
 }
 
@@ -370,91 +438,80 @@ class _MoodBottomSheet extends StatefulWidget {
 
 class _MoodBottomSheetState extends State<_MoodBottomSheet> {
   final List<Map<String, dynamic>> _moods = [
-    {'emoji': '😄', 'label': 'Great'},
-    {'emoji': '🙂', 'label': 'Good'},
-    {'emoji': '😐', 'label': 'Okay'},
-    {'emoji': '😕', 'label': 'Bad'},
-    {'emoji': '😢', 'label': 'Terrible'},
+    {'emoji': '\uD83D\uDE04', 'label': 'Great'},
+    {'emoji': '\uD83D\uDE42', 'label': 'Good'},
+    {'emoji': '\uD83D\uDE10', 'label': 'Okay'},
+    {'emoji': '\uD83D\uDE15', 'label': 'Bad'},
+    {'emoji': '\uD83D\uDE22', 'label': 'Terrible'},
   ];
-
-  void _logMood(String label) {
-    Haptics.medium();
-    // Log mood with timestamp (could be stored in provider in future)
-    final timestamp = DateTime.now();
-    debugPrint('Mood logged: $label at $timestamp');
-    Navigator.pop(context);
-  }
 
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: tc.cardBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: tc.bg,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg + 8)),
       ),
-      padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, GR.lg + 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: tc.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          SizedBox(height: GR.lg),
-
-          Text(
-            'How are you feeling?',
-            style: AppTextStyles.h2(context),
-          ),
-          SizedBox(height: GR.xs + 2),
-          Text(
-            'Track your mood to see patterns over time',
-            style: AppTextStyles.bodySmall(context),
-          ),
-          SizedBox(height: GR.xl + 2),
-
-          // Mood icons row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _moods.map((mood) {
-              return GestureDetector(
-                onTap: () => _logMood(mood['label'] as String),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: tc.surface,
-                        borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                        border: Border.all(color: tc.border),
-                      ),
-                      child: Center(
-                        child: Text(
-                          mood['emoji'] as String,
-                          style: const TextStyle(fontSize: 28),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: GR.sm),
-                    Text(
-                      mood['label'] as String,
-                      style: AppTextStyles.caption(context, color: tc.textSecondary),
-                    ),
-                  ],
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(GR.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: tc.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-              );
-            }).toList(),
+              ),
+              SizedBox(height: GR.lg),
+              Text(
+                'How are you feeling?',
+                style: AppTextStyles.h3(context),
+              ),
+              SizedBox(height: GR.xl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: _moods.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final mood = entry.value;
+                  return GestureDetector(
+                    onTap: () {
+                      Haptics.success();
+                      Navigator.pop(context);
+                    },
+                    child: Column(
+                      children: [
+                        Text(
+                          mood['emoji'] as String,
+                          style: const TextStyle(fontSize: 36),
+                        ),
+                        SizedBox(height: GR.sm),
+                        Text(
+                          mood['label'] as String,
+                          style: AppTextStyles.caption(context),
+                        ),
+                      ],
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(delay: Duration(milliseconds: i * 80), duration: 300.ms)
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1.0, 1.0),
+                        delay: Duration(milliseconds: i * 80),
+                        duration: 300.ms,
+                        curve: Curves.easeOutBack,
+                      );
+                }).toList(),
+              ),
+              SizedBox(height: GR.xl),
+            ],
           ),
-
-          SizedBox(height: GR.lg),
-        ],
+        ),
       ),
     );
   }
@@ -477,7 +534,7 @@ class _DotMatrixScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
-    const dotCount = 40;
+    const dotCount = 30;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
     final activeCount = (dotCount * normalizedValue * progress).round();
 
@@ -500,15 +557,7 @@ class _DotMatrixScale extends StatelessWidget {
                 color: color,
                 borderRadius: BorderRadius.circular(3),
               ),
-            )
-                .animate()
-                .scale(
-                  begin: const Offset(0.0, 0.0),
-                  end: const Offset(1.0, 1.0),
-                  delay: Duration(milliseconds: i * 15),
-                  duration: 300.ms,
-                  curve: Curves.easeOutBack,
-                );
+            );
           }),
         ),
         SizedBox(height: GR.sm + 2),
@@ -530,7 +579,7 @@ class _DotMatrixScale extends StatelessWidget {
   }
 }
 
-// ─── Quick Action Button ───────────────────────────────────────────────────
+// ─── Quick Action Button ─────────────────────────────────────────────────────
 class _QuickActionButton extends StatelessWidget {
   final IconData icon;
   final String label;

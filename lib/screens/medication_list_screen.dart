@@ -1,105 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
+import '../providers/app_provider.dart';
+import '../models/supplement_model.dart';
+import 'add_medication_screen.dart';
 
-class MedicationListScreen extends StatefulWidget {
+class MedicationListScreen extends ConsumerStatefulWidget {
   const MedicationListScreen({super.key});
 
   @override
-  State<MedicationListScreen> createState() => _MedicationListScreenState();
+  ConsumerState<MedicationListScreen> createState() => _MedicationListScreenState();
 }
 
-class _MedicationListScreenState extends State<MedicationListScreen>
+class _MedicationListScreenState extends ConsumerState<MedicationListScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
-
-  final List<Map<String, dynamic>> _medications = [
-    {
-      'name': 'Vitamin D3',
-      'dosage': '2000 IU',
-      'schedule': 'Daily — 08:00',
-      'stock': 29,
-      'maxStock': 30,
-      'icon': Icons.wb_sunny_rounded,
-      'form': 'Softgel',
-      'takenWith': 'Food',
-      'nextRefill': 'Jul 12',
-      'adherence': 96,
-      'times': ['08:00'],
-      'takenToday': true,
-    },
-    {
-      'name': 'Omega-3',
-      'dosage': 'Fish Oil',
-      'schedule': 'Daily — 08:00',
-      'stock': 45,
-      'maxStock': 60,
-      'icon': Icons.water_drop_rounded,
-      'form': 'Softgel',
-      'takenWith': 'Food',
-      'nextRefill': 'Aug 05',
-      'adherence': 92,
-      'times': ['08:00'],
-      'takenToday': true,
-    },
-    {
-      'name': 'Magnesium',
-      'dosage': '400mg',
-      'schedule': 'Evening — 20:00',
-      'stock': 12,
-      'maxStock': 30,
-      'icon': Icons.bolt_rounded,
-      'form': 'Tablet',
-      'takenWith': 'Water',
-      'nextRefill': 'Jun 18',
-      'adherence': 88,
-      'times': ['20:00'],
-      'takenToday': false,
-    },
-    {
-      'name': 'Vitamin B12',
-      'dosage': '1000 mcg',
-      'schedule': 'Morning — 08:00',
-      'stock': 60,
-      'maxStock': 60,
-      'icon': Icons.wb_sunny_rounded,
-      'form': 'Sublingual',
-      'takenWith': 'Empty stomach',
-      'nextRefill': 'Sep 01',
-      'adherence': 98,
-      'times': ['08:00'],
-      'takenToday': true,
-    },
-    {
-      'name': 'Zinc',
-      'dosage': '25 mg',
-      'schedule': 'Daily — 13:00',
-      'stock': 8,
-      'maxStock': 30,
-      'icon': Icons.wb_cloudy_rounded,
-      'form': 'Capsule',
-      'takenWith': 'Food',
-      'nextRefill': 'Jun 14',
-      'adherence': 85,
-      'times': ['13:00'],
-      'takenToday': false,
-    },
-    {
-      'name': 'Probiotics',
-      'dosage': '50B CFU',
-      'schedule': 'Morning — 08:00',
-      'stock': 15,
-      'maxStock': 30,
-      'icon': Icons.wb_sunny_rounded,
-      'form': 'Capsule',
-      'takenWith': 'Empty stomach',
-      'nextRefill': 'Jun 22',
-      'adherence': 90,
-      'times': ['08:00'],
-      'takenToday': true,
-    },
-  ];
 
   @override
   void initState() {
@@ -122,19 +39,54 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     super.dispose();
   }
 
-  void _showMedicationDetail(Map<String, dynamic> med) {
+  void _showMedicationDetail(Supplement supp) {
     Haptics.medium();
+    ref.read(selectedSupplementProvider.notifier).state = supp;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _MedicationDetailSheet(med: med),
+      builder: (context) => _SupplementDetailSheet(supplement: supp),
     );
+  }
+
+  void _navigateToAddMedication() {
+    Haptics.medium();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddMedicationScreen()),
+    );
+  }
+
+  IconData _getIconForSupplement(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('vitamin d') || lower.contains('d3')) return Icons.wb_sunny_rounded;
+    if (lower.contains('omega') || lower.contains('fish')) return Icons.water_drop_rounded;
+    if (lower.contains('magnesium')) return Icons.bolt_rounded;
+    if (lower.contains('iron')) return Icons.bloodtype_rounded;
+    if (lower.contains('calcium')) return Icons.fitness_center_rounded;
+    if (lower.contains('probiotic')) return Icons.biotech_rounded;
+    if (lower.contains('melatonin') || lower.contains('sleep')) return Icons.bedtime_rounded;
+    if (lower.contains('b12') || lower.contains('vitamin b')) return Icons.energy_savings_leaf_rounded;
+    if (lower.contains('zinc')) return Icons.shield_rounded;
+    if (lower.contains('coq')) return Icons.favorite_rounded;
+    if (lower.contains('ashwagandha') || lower.contains('ginseng')) return Icons.spa_rounded;
+    if (lower.contains('vitamin c')) return Icons.apple_rounded;
+    return Icons.medication_rounded;
+  }
+
+  String _formatSchedule(List<String> timeSlots) {
+    if (timeSlots.isEmpty) return 'No schedule';
+    if (timeSlots.length == 1) return 'Daily \u2014 ${timeSlots.first}';
+    return 'Daily \u2014 ${timeSlots.join(', ')}';
   }
 
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final supplementsAsync = ref.watch(supplementsProvider);
+    final doseLogsAsync = ref.watch(doseLogsProvider);
+
     return Scaffold(
       backgroundColor: tc.bg,
       body: SafeArea(
@@ -165,10 +117,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {
-                        Haptics.light();
-                        // Navigate to add medication
-                      },
+                      onTap: _navigateToAddMedication,
                       child: Container(
                         width: GR.lg + 2,
                         height: GR.lg + 2,
@@ -194,12 +143,25 @@ class _MedicationListScreenState extends State<MedicationListScreen>
 
             // Subtitle count
             SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(GR.lg, GR.xs, GR.lg, 0),
-                child: Text(
-                  '${_medications.length} medications · ${_medications.where((m) => m['takenToday'] as bool).length} taken today',
-                  style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
+              child: supplementsAsync.when(
+                loading: () => Padding(
+                  padding: EdgeInsets.fromLTRB(GR.lg, GR.xs, GR.lg, 0),
+                  child: Text('Loading...', style: AppTextStyles.bodySmall(context, color: tc.textSecondary)),
                 ),
+                error: (_, __) => Padding(
+                  padding: EdgeInsets.fromLTRB(GR.lg, GR.xs, GR.lg, 0),
+                  child: Text('Error loading', style: AppTextStyles.bodySmall(context, color: tc.textSecondary)),
+                ),
+                data: (supplements) {
+                  final takenCount = doseLogsAsync.value?.length ?? 0;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(GR.lg, GR.xs, GR.lg, 0),
+                    child: Text(
+                      '${supplements.length} medications \u00B7 $takenCount taken today',
+                      style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -212,17 +174,45 @@ class _MedicationListScreenState extends State<MedicationListScreen>
             ),
 
             // Medication list
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(GR.lg, 0, GR.lg, GR.xxl),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final med = _medications[index];
-                    return _buildMedicationItem(context, med, index);
-                  },
-                  childCount: _medications.length,
+            supplementsAsync.when(
+              loading: () => SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(GR.xl),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: tc.accent),
+                  ),
                 ),
               ),
+              error: (_, __) => SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(GR.xl),
+                    child: Text(
+                      'Error loading medications',
+                      style: AppTextStyles.bodySmall(context, color: tc.textMuted),
+                    ),
+                  ),
+                ),
+              ),
+              data: (supplements) {
+                if (supplements.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: _buildEmptyState(context, tc),
+                  );
+                }
+                return SliverPadding(
+                  padding: EdgeInsets.fromLTRB(GR.lg, 0, GR.lg, GR.xxl),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final supp = supplements[index];
+                        return _buildMedicationItem(context, supp, index);
+                      },
+                      childCount: supplements.length,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -230,17 +220,40 @@ class _MedicationListScreenState extends State<MedicationListScreen>
     );
   }
 
-  Widget _buildMedicationItem(BuildContext context, Map<String, dynamic> med, int index) {
+  Widget _buildEmptyState(BuildContext context, ThemeColors tc) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: GR.xxl),
+        child: Column(
+          children: [
+            Icon(Icons.medication_outlined, size: 48, color: tc.textMuted),
+            SizedBox(height: GR.md),
+            Text(
+              'No medications yet',
+              style: AppTextStyles.body(context, color: tc.textMuted),
+            ),
+            SizedBox(height: GR.sm),
+            Text(
+              'Tap + to add your first medication',
+              style: AppTextStyles.caption(context, color: tc.textMuted),
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate(controller: _entranceCtrl)
+        .fadeIn(delay: 300.ms, duration: 500.ms)
+        .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 500.ms, curve: Curves.easeOutCubic);
+  }
+
+  Widget _buildMedicationItem(BuildContext context, Supplement supp, int index) {
     final tc = ThemeColors.of(context);
-    final stock = med['stock'] as int;
-    final maxStock = med['maxStock'] as int;
-    final adherence = med['adherence'] as int;
-    final isLow = stock < 15;
-    final takenToday = med['takenToday'] as bool;
-    final stockRatio = (stock / maxStock).clamp(0.0, 1.0);
+    final stock = supp.stockCount;
+    final isLow = supp.isLowStock;
+    final takenToday = ref.watch(doseLogsProvider.notifier).isTakenToday(supp.id);
 
     return GestureDetector(
-      onTap: () => _showMedicationDetail(med),
+      onTap: () => _showMedicationDetail(supp),
       child: Container(
         margin: EdgeInsets.only(bottom: GR.sm + 2),
         padding: EdgeInsets.all(GR.md),
@@ -261,7 +274,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                 borderRadius: BorderRadius.circular(GR.radiusMd + 2),
               ),
               child: Icon(
-                med['icon'] as IconData,
+                _getIconForSupplement(supp.name),
                 size: 24,
                 color: takenToday ? tc.accent : tc.textMuted,
               ),
@@ -277,44 +290,50 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                     children: [
                       Expanded(
                         child: Text(
-                          med['name'] as String,
-                          style: AppTextStyles.body(context, weight: FontWeight.w600),
+                          supp.name,
+                          style: AppTextStyles.body(context, weight: FontWeight.w500),
                         ),
                       ),
-                      if (takenToday)
+                      if (isLow)
                         Container(
-                          width: 18,
-                          height: 18,
+                          padding: EdgeInsets.symmetric(horizontal: GR.sm, vertical: 2),
                           decoration: BoxDecoration(
-                            color: tc.accent,
-                            shape: BoxShape.circle,
+                            color: tc.orangeLight.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(GR.radiusSm),
                           ),
-                          child: Icon(Icons.check_rounded, size: 12, color: Colors.white),
+                          child: Text(
+                            'Low',
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: FontWeight.w700,
+                              color: tc.orange,
+                            ),
+                          ),
                         ),
                     ],
                   ),
-                  SizedBox(height: GR.xs - 1),
+                  SizedBox(height: GR.xs - 2),
                   Text(
-                    med['schedule'] as String,
-                    style: AppTextStyles.caption(context, color: tc.textSecondary),
+                    _formatSchedule(supp.timeSlots),
+                    style: AppTextStyles.bodySmall(context),
                   ),
-                  SizedBox(height: GR.xs + 2),
+                  SizedBox(height: GR.xs),
                   // Stock bar
                   Row(
                     children: [
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: 3,
                           decoration: BoxDecoration(
                             color: tc.surface,
                             borderRadius: BorderRadius.circular(2),
                           ),
                           child: FractionallySizedBox(
                             alignment: Alignment.centerLeft,
-                            widthFactor: stockRatio,
+                            widthFactor: (stock / 60).clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isLow ? tc.textSecondary : tc.accent,
+                                color: isLow ? tc.orange : tc.accent,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -324,139 +343,66 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                       SizedBox(width: GR.sm),
                       Text(
                         '$stock left',
-                        style: AppTextStyles.micro(context,
-                            weight: FontWeight.w600,
-                            color: isLow ? tc.textSecondary : tc.textMuted),
+                        style: AppTextStyles.caption(
+                          context,
+                          weight: FontWeight.w600,
+                          color: isLow ? tc.orange : tc.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-
-            SizedBox(width: GR.md),
-
-            // Adherence ring
-            _AdherenceRing(adherence: adherence, size: 42),
+            SizedBox(width: GR.sm),
+            // Taken indicator
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
+                borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+              ),
+              child: Icon(
+                takenToday ? Icons.check_rounded : Icons.circle_outlined,
+                size: 18,
+                color: takenToday ? tc.accent : tc.textMuted,
+              ),
+            ),
           ],
         ),
       ),
     )
         .animate(controller: _entranceCtrl)
         .fadeIn(delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms)
-        .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms, curve: Curves.easeOutCubic)
-        .scale(
-            begin: const Offset(0.96, 0.96),
-            end: const Offset(1.0, 1.0),
-            delay: Duration(milliseconds: 100 + index * 60),
-            duration: 400.ms,
-            curve: Curves.easeOutBack);
+        .slideY(begin: 0.15, end: 0, delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms, curve: Curves.easeOutCubic);
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ADHERENCE RING
-// ═══════════════════════════════════════════════════════════════════════════════
-class _AdherenceRing extends StatelessWidget {
-  final int adherence;
-  final double size;
+// ─── Supplement Detail Bottom Sheet ──────────────────────────────────────────
+class _SupplementDetailSheet extends StatelessWidget {
+  final Supplement supplement;
 
-  const _AdherenceRing({required this.adherence, this.size = 42});
+  const _SupplementDetailSheet({required this.supplement});
 
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
-    final color = adherence >= 95
-        ? tc.accent
-        : adherence >= 85
-            ? tc.textSecondary
-            : tc.textMuted;
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CircularProgressIndicator(
-            value: adherence / 100,
-            strokeWidth: 3.5,
-            backgroundColor: tc.surface,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-          Center(
-            child: Text(
-              '$adherence',
-              style: AppTextStyles.micro(context, weight: FontWeight.w800, color: tc.textPrimary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MEDICATION DETAIL BOTTOM SHEET
-// ═══════════════════════════════════════════════════════════════════════════════
-class _MedicationDetailSheet extends StatefulWidget {
-  final Map<String, dynamic> med;
-
-  const _MedicationDetailSheet({required this.med});
-
-  @override
-  State<_MedicationDetailSheet> createState() => _MedicationDetailSheetState();
-}
-
-class _MedicationDetailSheetState extends State<_MedicationDetailSheet>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tc = ThemeColors.of(context);
-    final med = widget.med;
-    final stock = med['stock'] as int;
-    final maxStock = med['maxStock'] as int;
-    final isLow = stock < 15;
-    final adherence = med['adherence'] as int;
-    final adherenceColor = adherence >= 95
-        ? tc.accent
-        : adherence >= 85
-            ? tc.textSecondary
-            : tc.textMuted;
-    final takenToday = med['takenToday'] as bool;
+    final stock = supplement.stockCount;
+    final isLow = supplement.isLowStock;
 
     return Container(
       decoration: BoxDecoration(
         color: tc.bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg + 8)),
       ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
+            // Handle
             Padding(
-              padding: EdgeInsets.only(top: GR.sm, bottom: GR.md),
+              padding: EdgeInsets.only(top: GR.md),
               child: Container(
                 width: 36,
                 height: 4,
@@ -466,24 +412,24 @@ class _MedicationDetailSheetState extends State<_MedicationDetailSheet>
                 ),
               ),
             ),
+            SizedBox(height: GR.lg),
 
-            // Header: icon + name + dosage + taken badge
+            // Icon + name
             Padding(
               padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
-                      borderRadius: BorderRadius.circular(GR.radiusMd + 4),
+                      color: tc.accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(GR.radiusLg - 4),
                     ),
                     child: Icon(
-                      med['icon'] as IconData,
+                      Icons.medication_rounded,
                       size: 28,
-                      color: takenToday ? tc.accent : tc.textMuted,
+                      color: tc.accent,
                     ),
                   ),
                   SizedBox(width: GR.md),
@@ -491,38 +437,24 @@ class _MedicationDetailSheetState extends State<_MedicationDetailSheet>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(med['name'] as String, style: AppTextStyles.h3(context)),
+                        Text(
+                          supplement.name,
+                          style: AppTextStyles.h3(context),
+                        ),
                         SizedBox(height: GR.xs - 2),
-                        Text(med['dosage'] as String, style: AppTextStyles.bodySmall(context)),
-                        SizedBox(height: GR.xs),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: GR.sm, vertical: GR.xs - 2),
-                          decoration: BoxDecoration(
-                            color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
-                            borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                          ),
-                          child: Text(
-                            takenToday ? 'Taken today' : 'Not taken yet',
-                            style: AppTextStyles.caption(
-                              context,
-                              weight: FontWeight.w700,
-                              color: takenToday ? tc.accent : tc.textMuted,
-                            ),
-                          ),
+                        Text(
+                          supplement.dosageText,
+                          style: AppTextStyles.bodySmall(context),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-            )
-                .animate(controller: _ctrl)
-                .fadeIn(delay: 0.ms, duration: 400.ms)
-                .slideY(begin: 0.15, end: 0, delay: 0.ms, duration: 400.ms, curve: Curves.easeOutCubic),
-
+            ),
             SizedBox(height: GR.lg),
 
-            // Quick stats row
+            // Quick stats
             Padding(
               padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
@@ -531,171 +463,118 @@ class _MedicationDetailSheetState extends State<_MedicationDetailSheet>
                     context,
                     label: 'Stock',
                     value: '$stock',
-                    unit: 'of $maxStock',
-                    color: isLow ? tc.textSecondary : tc.accent,
-                    bgColor: isLow ? tc.surface : tc.accent.withValues(alpha: 0.08),
-                    progress: stock / maxStock,
+                    unit: 'remaining',
+                    color: isLow ? tc.orange : tc.accent,
+                    bgColor: isLow ? tc.orangeLight.withValues(alpha: 0.3) : tc.accent.withValues(alpha: 0.08),
+                    progress: (stock / 60).clamp(0.0, 1.0),
                   ),
                   SizedBox(width: GR.sm),
                   _buildStatCard(
                     context,
-                    label: 'Adherence',
-                    value: '$adherence%',
-                    unit: 'this month',
-                    color: adherenceColor,
-                    bgColor: tc.surface,
-                    progress: adherence / 100,
+                    label: 'Frequency',
+                    value: '${supplement.frequency}x',
+                    unit: 'per day',
+                    color: tc.accentDark,
+                    bgColor: tc.accentBg,
+                    progress: supplement.frequency / 4,
                   ),
                 ],
               ),
-            )
-                .animate(controller: _ctrl)
-                .fadeIn(delay: 100.ms, duration: 400.ms)
-                .slideY(begin: 0.15, end: 0, delay: 100.ms, duration: 400.ms, curve: Curves.easeOutCubic),
-
+            ),
             SizedBox(height: GR.lg),
 
-            // Details list
+            // Details
             Padding(
               padding: EdgeInsets.symmetric(horizontal: GR.lg),
-              child: GoldenCard(
+              child: Container(
                 padding: EdgeInsets.all(GR.md),
+                decoration: BoxDecoration(
+                  color: tc.cardBg,
+                  borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                  border: Border.all(color: tc.border),
+                ),
                 child: Column(
                   children: [
-                    _buildDetailRow(context, 'Schedule', med['schedule'] as String),
+                    _buildDetailRow(context, 'Schedule', _formatSchedule(supplement.timeSlots)),
                     Divider(height: 1, color: tc.border),
-                    _buildDetailRow(context, 'Form', med['form'] as String),
+                    _buildDetailRow(context, 'Dosage', supplement.dosageText),
                     Divider(height: 1, color: tc.border),
-                    _buildDetailRow(context, 'Take with', med['takenWith'] as String),
-                    Divider(height: 1, color: tc.border),
-                    _buildDetailRow(context, 'Next refill', med['nextRefill'] as String),
+                    _buildDetailRow(context, 'Started', supplement.startDate),
                   ],
                 ),
               ),
-            )
-                .animate(controller: _ctrl)
-                .fadeIn(delay: 200.ms, duration: 400.ms)
-                .slideY(begin: 0.15, end: 0, delay: 200.ms, duration: 400.ms, curve: Curves.easeOutCubic),
-
+            ),
             SizedBox(height: GR.lg),
 
             // Time chips
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: GR.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Reminder times', style: AppTextStyles.body(context, weight: FontWeight.w500)),
-                  SizedBox(height: GR.sm),
-                  Wrap(
-                    spacing: GR.sm,
-                    children: (med['times'] as List<String>).map((time) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                        decoration: BoxDecoration(
-                          color: tc.accent.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                        ),
-                        child: Text(
-                          time,
-                          style: AppTextStyles.caption(
-                            context,
-                            weight: FontWeight.w600,
-                            color: tc.accentDark,
+            if (supplement.timeSlots.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: GR.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Reminder times', style: AppTextStyles.body(context, weight: FontWeight.w500)),
+                    SizedBox(height: GR.sm),
+                    Wrap(
+                      spacing: GR.sm,
+                      children: supplement.timeSlots.map((time) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+                          decoration: BoxDecoration(
+                            color: tc.accent.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
+                          child: Text(
+                            time,
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: FontWeight.w600,
+                              color: tc.accentDark,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-            )
-                .animate(controller: _ctrl)
-                .fadeIn(delay: 300.ms, duration: 400.ms)
-                .slideY(begin: 0.15, end: 0, delay: 300.ms, duration: 400.ms, curve: Curves.easeOutCubic),
-
             SizedBox(height: GR.lg),
 
-            // Action buttons
+            // Close button
             Padding(
               padding: EdgeInsets.symmetric(horizontal: GR.lg),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Haptics.medium();
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: tc.cardBg,
-                          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
-                          border: Border.all(color: tc.border),
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.edit_rounded, size: 16, color: tc.textPrimary),
-                              SizedBox(width: GR.xs + 2),
-                              Text('Edit', style: AppTextStyles.bodySmall(context, weight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                      ),
+              child: GestureDetector(
+                onTap: () {
+                  Haptics.light();
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: tc.cardBg,
+                    borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                    border: Border.all(color: tc.border),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Close',
+                      style: AppTextStyles.bodySmall(context, weight: FontWeight.w600),
                     ),
                   ),
-                  SizedBox(width: GR.sm),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Haptics.success();
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: takenToday ? tc.surface : tc.accent,
-                          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                takenToday ? Icons.check_rounded : Icons.check_circle_rounded,
-                                size: 16,
-                                color: takenToday ? tc.textMuted : Colors.white,
-                              ),
-                              SizedBox(width: GR.xs + 2),
-                              Text(
-                                takenToday ? 'Taken' : 'Mark Taken',
-                                style: AppTextStyles.bodySmall(
-                                  context,
-                                  weight: FontWeight.w600,
-                                  color: takenToday ? tc.textMuted : Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            )
-                .animate(controller: _ctrl)
-                .fadeIn(delay: 400.ms, duration: 400.ms)
-                .slideY(begin: 0.15, end: 0, delay: 400.ms, duration: 400.ms, curve: Curves.easeOutCubic),
-
+            ),
             SizedBox(height: GR.xxl),
           ],
         ),
       ),
     );
+  }
+
+  String _formatSchedule(List<String> timeSlots) {
+    if (timeSlots.isEmpty) return 'No schedule';
+    if (timeSlots.length == 1) return timeSlots.first;
+    return timeSlots.join(', ');
   }
 
   Widget _buildStatCard(
