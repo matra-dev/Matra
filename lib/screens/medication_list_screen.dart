@@ -5,6 +5,7 @@ import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import '../providers/app_provider.dart';
 import '../models/supplement_model.dart';
+import '../widgets/dot_matrix_loading.dart';
 import 'add_medication_screen.dart';
 
 class MedicationListScreen extends ConsumerStatefulWidget {
@@ -176,12 +177,7 @@ class _MedicationListScreenState extends ConsumerState<MedicationListScreen>
             // Medication list
             supplementsAsync.when(
               loading: () => SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(GR.xl),
-                    child: CircularProgressIndicator(strokeWidth: 2, color: tc.accent),
-                  ),
-                ),
+                child: DotMatrixLoadingCenter(dotSize: 6, color: tc.accent),
               ),
               error: (_, __) => SliverToBoxAdapter(
                 child: Center(

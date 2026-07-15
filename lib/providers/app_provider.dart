@@ -43,6 +43,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool?>> {
     await _api.logout();
     state = const AsyncValue.data(false);
   }
+
+  void setAuthenticated(bool value) {
+    state = AsyncValue.data(value);
+  }
 }
 
 // ─── Supplements State ──────────────────────────────────────────────────────

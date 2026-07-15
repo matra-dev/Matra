@@ -104,6 +104,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
+                title: 'Language',
+                delay: 250,
+                children: [
+                  _buildLanguageTile(context),
+                ],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _buildSection(
+                title: 'Accessibility',
+                delay: 275,
+                children: [
+                  _buildFontSizeTile(context),
+                ],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _buildSection(
                 title: 'Appearance',
                 delay: 300,
                 children: [
@@ -191,6 +209,321 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             curve: Curves.easeOutCubic,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final currentLocale = ref.watch(localeProvider);
+    
+    final languages = {
+      'en': 'English',
+      'es': 'Español',
+      'hi': 'हिन्दी',
+      'fr': 'Français',
+    };
+    
+    final currentLanguage = languages[currentLocale.languageCode] ?? 'English';
+
+    return GestureDetector(
+      onTap: () => _showLanguagePicker(context),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+        child: Row(
+          children: [
+            Icon(Icons.language_rounded, size: GR.iconSm, color: tc.textSecondary),
+            SizedBox(width: GR.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Language',
+                    style: AppTextStyles.body(context, weight: FontWeight.w500),
+                  ),
+                  SizedBox(height: GR.xs - 2),
+                  Text(
+                    currentLanguage,
+                    style: AppTextStyles.caption(context, color: tc.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: tc.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context) {
+    Haptics.medium();
+    final tc = ThemeColors.of(context);
+    final currentLocale = ref.read(localeProvider);
+    
+    final languages = [
+      {'code': 'en', 'name': 'English', 'native': 'English'},
+      {'code': 'es', 'name': 'Spanish', 'native': 'Español'},
+      {'code': 'hi', 'name': 'Hindi', 'native': 'हिन्दी'},
+      {'code': 'fr', 'name': 'French', 'native': 'Français'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: tc.bg,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg + 8)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: GR.md),
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(color: tc.border, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(GR.lg),
+                child: Text('Select Language', style: AppTextStyles.h3(context)),
+              ),
+              ...languages.map((lang) {
+                final isSelected = lang['code'] == currentLocale.languageCode;
+                return GestureDetector(
+                  onTap: () {
+                    Haptics.success();
+                    ref.read(localeProvider.notifier).setLocale(lang['code']!);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.md),
+                    decoration: BoxDecoration(
+                      color: isSelected ? tc.accent.withValues(alpha: 0.08) : Colors.transparent,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                lang['native']!,
+                                style: AppTextStyles.body(
+                                  context,
+                                  weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                ),
+                              ),
+                              SizedBox(height: GR.xs - 2),
+                              Text(
+                                lang['name']!,
+                                style: AppTextStyles.caption(context, color: tc.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          Icon(Icons.check_rounded, size: 18, color: tc.accent),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(height: GR.xl),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFontSizeTile(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final currentLevel = ref.watch(fontSizeProvider);
+    
+    final levels = [
+      {'level': FontSizeLevel.small, 'label': 'Small', 'sample': 'Aa'},
+      {'level': FontSizeLevel.normal, 'label': 'Normal', 'sample': 'Aa'},
+      {'level': FontSizeLevel.large, 'label': 'Large', 'sample': 'Aa'},
+      {'level': FontSizeLevel.huge, 'label': 'Huge', 'sample': 'Aa'},
+    ];
+
+    return GestureDetector(
+      onTap: () => _showFontSizePicker(context),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm + 2),
+        child: Row(
+          children: [
+            Icon(Icons.format_size_rounded, size: GR.iconSm, color: tc.textSecondary),
+            SizedBox(width: GR.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Text Size',
+                    style: AppTextStyles.body(context, weight: FontWeight.w500),
+                  ),
+                  SizedBox(height: GR.xs - 2),
+                  Text(
+                    currentLevel.label,
+                    style: AppTextStyles.caption(context, color: tc.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: levels.map((l) {
+                final isSelected = l['level'] == currentLevel;
+                final level = l['level'] as FontSizeLevel;
+                return Container(
+                  width: 28,
+                  height: 28,
+                  margin: EdgeInsets.only(left: 4),
+                  decoration: BoxDecoration(
+                    color: isSelected ? tc.accent.withValues(alpha: 0.15) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isSelected ? tc.accent : tc.border,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      l['sample']! as String,
+                      style: TextStyle(
+                        fontFamily: 'Artific',
+                        fontSize: 10 * level.scale,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? tc.accent : tc.textMuted,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(width: GR.xs),
+            Icon(Icons.chevron_right_rounded, size: 20, color: tc.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFontSizePicker(BuildContext context) {
+    Haptics.medium();
+    final tc = ThemeColors.of(context);
+    final currentLevel = ref.read(fontSizeProvider);
+    
+    final levels = [
+      {'level': FontSizeLevel.small, 'label': 'Small', 'desc': 'Compact text for more content', 'sample': 'Aa'},
+      {'level': FontSizeLevel.normal, 'label': 'Normal', 'desc': 'Standard readable size', 'sample': 'Aa'},
+      {'level': FontSizeLevel.large, 'label': 'Large', 'desc': 'Easier to read', 'sample': 'Aa'},
+      {'level': FontSizeLevel.huge, 'label': 'Huge', 'desc': 'Maximum readability', 'sample': 'Aa'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: tc.bg,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(GR.radiusLg + 8)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: GR.md),
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(color: tc.border, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(GR.lg),
+                child: Text('Text Size', style: AppTextStyles.h3(context)),
+              ),
+              ...levels.map((l) {
+                final level = l['level'] as FontSizeLevel;
+                final isSelected = level == currentLevel;
+                final label = l['label'] as String;
+                final desc = l['desc'] as String;
+                return GestureDetector(
+                  onTap: () {
+                    Haptics.success();
+                    ref.read(fontSizeProvider.notifier).setLevel(level);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.md),
+                    decoration: BoxDecoration(
+                      color: isSelected ? tc.accent.withValues(alpha: 0.08) : Colors.transparent,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                label,
+                                style: AppTextStyles.body(
+                                  context,
+                                  weight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                ),
+                              ),
+                              SizedBox(height: GR.xs - 2),
+                              Text(
+                                desc,
+                                style: AppTextStyles.caption(context, color: tc.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: isSelected ? tc.accent.withValues(alpha: 0.15) : tc.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? tc.accent : tc.border,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Aa',
+                              style: TextStyle(
+                                fontFamily: 'Artific',
+                                fontSize: 14 * level.scale,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? tc.accent : tc.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (isSelected) ...[
+                          SizedBox(width: GR.sm),
+                          Icon(Icons.check_rounded, size: 18, color: tc.accent),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(height: GR.xl),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import '../providers/app_provider.dart';
 import '../models/supplement_model.dart';
+import '../widgets/dot_matrix_loading.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'supplement_detail_screen.dart';
@@ -274,15 +275,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
 
                 // ── Real Medication List from Provider ───────────────
                 supplementsAsync.when(
-                  loading: () => Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(GR.xl),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: tc.accent,
-                      ),
-                    ),
-                  ),
+                  loading: () => DotMatrixLoadingCenter(dotSize: 6, color: tc.accent),
                   error: (err, _) => Center(
                     child: Padding(
                       padding: EdgeInsets.all(GR.xl),
@@ -377,23 +370,59 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
   Widget _buildEmptyState(BuildContext context, ThemeColors tc) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: GR.xl),
+        padding: EdgeInsets.symmetric(vertical: GR.xl, horizontal: GR.lg),
         child: Column(
           children: [
-            Icon(
-              Icons.medication_outlined,
-              size: 48,
-              color: tc.textMuted,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: tc.accent.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(GR.radiusLg),
+              ),
+              child: Icon(
+                Icons.medication_outlined,
+                size: 36,
+                color: tc.accent,
+              ),
             ),
-            SizedBox(height: GR.md),
+            SizedBox(height: GR.lg),
             Text(
-              'No medications yet',
-              style: AppTextStyles.body(context, color: tc.textMuted),
+              'Build Your Stack',
+              style: AppTextStyles.h3(context),
             ),
             SizedBox(height: GR.sm),
             Text(
-              'Tap "Add Med" to get started',
-              style: AppTextStyles.caption(context, color: tc.textMuted),
+              'Add supplements to track your daily regimen and monitor adherence.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
+            ),
+            SizedBox(height: GR.lg),
+            GestureDetector(
+              onTap: _navigateToAddMedication,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: GR.lg, vertical: GR.md),
+                decoration: BoxDecoration(
+                  color: tc.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                  border: Border.all(color: tc.accent.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, size: 16, color: tc.accent),
+                    SizedBox(width: GR.sm),
+                    Text(
+                      'Add First Supplement',
+                      style: AppTextStyles.bodySmall(
+                        context,
+                        weight: FontWeight.w600,
+                        color: tc.accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

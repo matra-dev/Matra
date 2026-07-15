@@ -191,3 +191,128 @@ Expected: Only 1 info-level deprecation warning (`withOpacity` → `withValues`)
 ---
 
 ## Date: 2026-06-08
+
+---
+
+## App Store Readiness Fixes — June 8, 2026
+
+### Android (`android/app/src/main/AndroidManifest.xml`)
+- ✅ Already correct: `android:label="StackSense"`
+- ✅ Already correct: `INTERNET`, `ACCESS_NETWORK_STATE`, `VIBRATE` permissions
+- ✅ Already correct: `android:usesCleartextTraffic="false"`
+
+### Android Splash (`android/app/src/main/res/drawable/launch_background.xml`)
+- ✅ Already themed: Dark background with teal rounded square + app icon
+
+### Android Colors (`android/app/src/main/res/values/colors.xml`)
+- ✅ Changed `splash_background` from `#FAFAFA` → `#0A0A0A` (dark theme)
+
+### iOS Info.plist (`ios/Runner/Info.plist`)
+- ✅ Changed `CFBundleDisplayName` from `Miakhalifa` → `StackSense`
+- ✅ Changed `CFBundleName` from `miakhalifa` → `stacksense`
+- ✅ Restricted orientation to Portrait only (iPhone)
+- ✅ Added `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` (required by App Store)
+
+### iOS Launch Screen (`ios/Runner/Base.lproj/LaunchScreen.storyboard`)
+- ✅ Changed background from white → dark (`#0A0A0A`)
+- ✅ Replaced LaunchImage with centered "StackSense" label (teal color `#00BFA5`)
+- ✅ Added "Medication Reminder" tagline label
+
+### Phone Login Screen (`lib/screens/phone_login_screen.dart`)
+- ✅ Already has orbital background matching landing screen
+- ✅ Fixed `otpSentTo` and `resendCode` localization calls (use Flutter placeholder syntax, not `replaceAll`)
+- ✅ Removed unused `isLast` variable
+
+### Landing Screen (`lib/screens/landing_screen.dart`)
+- ✅ Already has orbital background with rotating animation
+- ✅ Already matches Matra design aesthetic
+
+---
+
+## Verification
+
+Run this to verify all pages compile:
+```bash
+flutter analyze
+```
+
+Expected: **No issues found** (0 errors, 0 warnings)
+
+---
+
+## Date: 2026-06-08
+
+---
+
+## Notion-Inspired Admin Console — June 8, 2026
+
+### Admin Dashboard (`lib/screens/admin_screen.dart`) — COMPLETE REWRITE
+
+**Design Philosophy: Notion-inspired management system**
+- Sidebar navigation with 5 sections (Overview, Users, Customer Care, Matra Engine, Analytics)
+- Responsive layout: sidebar on desktop, bottom nav on mobile
+- Monochrome + teal accent color scheme matching app design language
+- Card-based UI with borders, subtle shadows, and golden ratio spacing
+
+**Sections:**
+
+1. **Overview Panel**
+   - 4 stat cards with trend indicators (Users, Supplements, Dose Logs, Open Tickets)
+   - Recent Users list with avatars and supplement counts
+   - Quick Actions panel (Add User, Broadcast, System, Backup)
+   - Ticket Pipeline progress bar with color-coded legend
+
+2. **Users Panel**
+   - Data table with columns: User, Supplements, Logs, Status
+   - User avatars with initials
+   - Active/Inactive status badges
+   - Search bar in app bar
+   - Staggered entrance animations
+
+3. **Customer Care (Kanban Board)**
+   - 4 columns: Backlog, To Do, In Progress, Done
+   - 8 demo tickets with real-world scenarios
+   - Priority badges (High/Medium/Low) with color coding
+   - Ticket cards with assignee, tags, description
+   - **Move tickets between columns** with left/right arrows
+   - **Ticket detail bottom sheet** on tap
+   - Ticket count badges on sidebar nav
+
+4. **Matra Engine (System Management Brain)**
+   - System Health status card (green = all operational)
+   - 6 engine metric cards: API Response Time, DB Connections, Memory, Uptime, Error Rate, Queue Depth
+   - Data Flow diagram showing: Client → API Gateway → Auth → App Logic → MongoDB
+   - Service Status list with latency indicators
+
+5. **Analytics Panel**
+   - 4 summary cards: Active Users, Avg Supplements, High Priority Tickets, Resolution Rate
+   - Ticket Distribution bar chart (animated)
+   - User Activity chart (12-day bar chart)
+
+### Font Size Settings (`lib/screens/settings_screen.dart`)
+- New "Accessibility" section in Settings
+- Visual preview with 4 "Aa" badges showing different sizes
+- Bottom sheet picker with: Small (0.88x), Normal (1.0x), Large (1.15x), Huge (1.35x)
+- Each option shows description and live preview
+- Persists via `fontSizeProvider` (already existed, now has UI)
+- All text across the app automatically scales
+
+### Android Build Fixes
+- Created `ic_launcher_round.png` for all densities
+- Created `ic_launcher_foreground.png` for all densities
+
+---
+
+## Verification
+
+```bash
+flutter analyze
+# Expected: No issues found (0 errors, 0 warnings)
+
+flutter build apk --debug
+# Expected: Build successful
+```
+
+---
+
+## Date: 2026-06-08

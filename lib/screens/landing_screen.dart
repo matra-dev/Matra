@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../theme/app_text_styles.dart';
 import '../utils/haptics.dart';
 import 'main_navigation_screen.dart';
 
@@ -68,9 +69,10 @@ class _LandingScreenState extends State<LandingScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final tc = ThemeColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: tc.bg,
       body: Stack(
         children: [
           // Soft multi-color radial gradient background
@@ -124,7 +126,7 @@ class _LandingScreenState extends State<LandingScreen>
                           ),
                         );
                       },
-                      child: const Column(
+                      child: Column(
                         children: [
                           Text(
                             'Matra',
@@ -132,7 +134,7 @@ class _LandingScreenState extends State<LandingScreen>
                               fontFamily: 'Artific',
                               fontSize: 40,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A2E),
+                              color: tc.textPrimary,
                               letterSpacing: -1.2,
                               height: 1.1,
                             ),
@@ -144,7 +146,7 @@ class _LandingScreenState extends State<LandingScreen>
                               fontFamily: 'Artific',
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF4A5568),
+                              color: tc.textSecondary,
                               letterSpacing: -0.3,
                               height: 1.2,
                             ),
@@ -155,7 +157,7 @@ class _LandingScreenState extends State<LandingScreen>
                               fontFamily: 'Artific',
                               fontSize: 20,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF4A5568),
+                              color: tc.textSecondary,
                               letterSpacing: -0.3,
                               height: 1.2,
                             ),
@@ -233,7 +235,7 @@ class _LandingScreenState extends State<LandingScreen>
                           ),
                         );
                       },
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 40),
                         child: Text(
                           'Never miss a dose. Track your supplements\nwith smart reminders and stock alerts.',
@@ -242,7 +244,7 @@ class _LandingScreenState extends State<LandingScreen>
                             fontFamily: 'Artific',
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
-                            color: Color(0xFF718096),
+                            color: tc.textMuted,
                             height: 1.5,
                           ),
                         ),
@@ -272,17 +274,17 @@ class _LandingScreenState extends State<LandingScreen>
                           width: 200,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: tc.textPrimary,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Get Started',
                               style: TextStyle(
                                 fontFamily: 'Artific',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: tc.textPrimary,
                               ),
                             ),
                           ),
@@ -319,6 +321,7 @@ class _FeatureTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -336,10 +339,10 @@ class _FeatureTag extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
+          color: tc.cardBg.withValues(alpha: 0.75),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFE2E8F0),
+            color: tc.border,
             width: 1,
           ),
         ),

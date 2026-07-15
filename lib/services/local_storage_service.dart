@@ -14,7 +14,20 @@ class LocalStorageService {
     _prefs ??= await SharedPreferences.getInstance();
   }
 
-  // Supplements
+  // ─── Onboarding ───────────────────────────────────────────────────────────
+
+  Future<bool> hasSeenOnboarding() async {
+    await init();
+    return _prefs?.getBool('@stacksense/onboarding_seen') ?? false;
+  }
+
+  Future<void> setOnboardingSeen() async {
+    await init();
+    await _prefs?.setBool('@stacksense/onboarding_seen', true);
+  }
+
+  // ─── Supplements ──────────────────────────────────────────────────────────
+
   Future<List<Supplement>> getSupplements() async {
     await init();
     final jsonStr = _prefs?.getString('@stacksense/supplements');
@@ -33,7 +46,8 @@ class LocalStorageService {
     await _prefs?.setString('@stacksense/supplements', jsonEncode(data));
   }
 
-  // Dose Logs
+  // ─── Dose Logs ────────────────────────────────────────────────────────────
+
   Future<List<DoseLog>> getDoseLogs() async {
     await init();
     final jsonStr = _prefs?.getString('@stacksense/dose_logs');
@@ -52,7 +66,8 @@ class LocalStorageService {
     await _prefs?.setString('@stacksense/dose_logs', jsonEncode(data));
   }
 
-  // Auth Token
+  // ─── Auth Token ───────────────────────────────────────────────────────────
+
   Future<String?> getToken() async {
     await init();
     return _prefs?.getString('@stacksense/token');
@@ -68,10 +83,13 @@ class LocalStorageService {
     await _prefs?.remove('@stacksense/token');
   }
 
+  // ─── Clear All ────────────────────────────────────────────────────────────
+
   Future<void> clearAll() async {
     await init();
     await _prefs?.remove('@stacksense/supplements');
     await _prefs?.remove('@stacksense/dose_logs');
     await _prefs?.remove('@stacksense/token');
+    await _prefs?.remove('@stacksense/onboarding_seen');
   }
 }

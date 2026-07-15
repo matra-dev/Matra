@@ -4,9 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/supplement_model.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../utils/app_date_utils.dart' as app_date;
 import '../utils/haptics.dart';
+import '../widgets/dot_matrix_loading.dart';
 import 'supplement_form_screen.dart';
 
 class SupplementDetailScreen extends ConsumerStatefulWidget {
@@ -84,19 +85,23 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
     Haptics.heavy();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Supplement?'),
-        content: Text('Are you sure you want to delete "${widget.supplement.name}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final tc = ThemeColors.of(context);
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Delete Supplement?', style: TextStyle(color: tc.textPrimary)),
+          content: Text('Are you sure you want to delete "${widget.supplement.name}"?', style: TextStyle(color: tc.textSecondary)),
+          backgroundColor: tc.cardBg,
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: TextStyle(color: tc.textMuted))),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: tc.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
@@ -111,18 +116,19 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
   @override
   Widget build(BuildContext context) {
     final supplement = widget.supplement;
+    final tc = ThemeColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: tc.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             pinned: true,
             elevation: 0,
-            backgroundColor: const Color(0xFFFAFAFA),
+            backgroundColor: tc.bg,
             leading: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+              child: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: tc.textPrimary),
             ),
             leadingWidth: 56,
           ),
@@ -136,13 +142,13 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE3F2FD),
+                      color: tc.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.medication_rounded,
                       size: 28,
-                      color: Color(0xFF4A90D9),
+                      color: tc.blue,
                     ),
                   )
                       .animate(controller: _pageController)
@@ -151,11 +157,11 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                   const SizedBox(height: 14),
                   Text(
                     supplement.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Artific',
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A),
+                      color: tc.textPrimary,
                       letterSpacing: -0.5,
                     ),
                   )
@@ -165,11 +171,11 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                   const SizedBox(height: 4),
                   Text(
                     supplement.dosageText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Artific',
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFFAAAAAA),
+                      color: tc.textMuted,
                     ),
                   )
                       .animate(controller: _pageController)
@@ -193,7 +199,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         label: 'Days Active',
                         value: supplement.daysSinceStart,
                         icon: Icons.calendar_today_rounded,
-                        color: const Color(0xFF4A90D9),
+                        color: tc.blue,
                         delay: 250,
                         pageController: _pageController,
                       ),
@@ -204,7 +210,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         label: 'Total Doses',
                         value: _totalDoses,
                         icon: Icons.check_circle_rounded,
-                        color: const Color(0xFF4CAF50),
+                        color: tc.accent,
                         delay: 350,
                         pageController: _pageController,
                       ),
@@ -215,7 +221,7 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         label: 'Stock',
                         value: supplement.stockCount,
                         icon: Icons.inventory_2_rounded,
-                        color: supplement.isLowStock ? const Color(0xFFF9A825) : const Color(0xFFFF9800),
+                        color: supplement.isLowStock ? tc.amber : tc.orange,
                         delay: 450,
                         pageController: _pageController,
                       ),
@@ -229,20 +235,20 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                 Container(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: tc.cardBg,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                    border: Border.all(color: tc.border),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Last 7 Days',
                         style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A1A),
+                          color: tc.textPrimary,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -250,15 +256,15 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                       SizedBox(
                         height: 180,
                         child: _loadingStats
-                            ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const DotMatrixLoadingCenter(dotSize: 6)
                             : _weeklyData.isEmpty
-                                ? const Center(
+                                ? Center(
                                     child: Text(
                                       'No data yet',
                                       style: TextStyle(
                                         fontFamily: 'Artific',
                                         fontSize: 13,
-                                        color: Color(0xFFBBBBBB),
+                                        color: tc.textMuted,
                                       ),
                                     ),
                                   )
@@ -280,20 +286,20 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: tc.cardBg,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                    border: Border.all(color: tc.border),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Details',
                         style: TextStyle(
                           fontFamily: 'Artific',
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A1A),
+                          color: tc.textPrimary,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -303,18 +309,18 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         label: 'Frequency',
                         value: '${supplement.frequency}x per day',
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(left: 44, top: 12, bottom: 12),
-                        child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 44, top: 12, bottom: 12),
+                        child: Divider(height: 1, color: tc.divider),
                       ),
                       _DetailRow(
                         icon: Icons.schedule_rounded,
                         label: 'Time Slots',
                         value: supplement.timeSlots.join(', '),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(left: 44, top: 12, bottom: 12),
-                        child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 44, top: 12, bottom: 12),
+                        child: Divider(height: 1, color: tc.divider),
                       ),
                       _DetailRow(
                         icon: Icons.calendar_today_rounded,
@@ -326,26 +332,26 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF8E1),
+                            color: tc.amber.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFFFE082)),
+                            border: Border.all(color: tc.amber.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.warning_amber_rounded,
-                                color: Color(0xFFF9A825),
+                                color: tc.amber,
                                 size: 18,
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   'Only ${supplement.stockCount} doses remaining',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Artific',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFFF9A825),
+                                    color: tc.amber,
                                   ),
                                 ),
                               ),
@@ -379,19 +385,19 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: tc.textPrimary,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.edit_rounded, color: Colors.white, size: 16),
-                              SizedBox(width: 8),
+                              Icon(Icons.edit_rounded, color: tc.bg, size: 16),
+                              const SizedBox(width: 8),
                               Text(
                                 'Edit',
                                 style: TextStyle(
                                   fontFamily: 'Artific',
-                                  color: Colors.white,
+                                  color: tc.bg,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
@@ -408,21 +414,21 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFEBEE),
+                            color: tc.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFFFCDD2)),
+                            border: Border.all(color: tc.red.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.delete_outline_rounded,
-                                  color: AppColors.danger.withValues(alpha: 0.7), size: 16),
+                                  color: tc.red.withValues(alpha: 0.7), size: 16),
                               const SizedBox(width: 8),
                               Text(
                                 'Delete',
                                 style: TextStyle(
                                   fontFamily: 'Artific',
-                                  color: AppColors.danger.withValues(alpha: 0.85),
+                                  color: tc.red.withValues(alpha: 0.85),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
@@ -468,6 +474,7 @@ class _AnimatedStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return AnimatedBuilder(
       animation: pageController,
       builder: (context, child) {
@@ -483,9 +490,9 @@ class _AnimatedStatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: tc.cardBg,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
+          border: Border.all(color: tc.border),
         ),
         child: Column(
           children: [
@@ -511,11 +518,11 @@ class _AnimatedStatCard extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFFAAAAAA),
+                color: tc.textMuted,
               ),
             ),
           ],
@@ -551,6 +558,7 @@ class _AnimatedAreaChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final maxY = data.map((d) => d.count).reduce((a, b) => a > b ? a : b).toDouble();
     final safeMaxY = maxY < 1 ? 2.0 : maxY + 0.5;
 
@@ -571,7 +579,7 @@ class _AnimatedAreaChart extends StatelessWidget {
               horizontalInterval: safeMaxY > 2 ? (safeMaxY / 2).ceil().toDouble() : 1,
               getDrawingHorizontalLine: (value) {
                 return FlLine(
-                  color: const Color(0xFFF0F0F0),
+                  color: tc.borderLight,
                   strokeWidth: 1,
                   dashArray: [4, 4],
                 );
@@ -597,7 +605,7 @@ class _AnimatedAreaChart extends StatelessWidget {
                           fontFamily: 'Artific',
                           fontSize: 12,
                           fontWeight: day.isToday ? FontWeight.w700 : FontWeight.w500,
-                          color: day.isToday ? const Color(0xFF1A1A1A) : const Color(0xFFBBBBBB),
+                          color: day.isToday ? tc.textPrimary : tc.textMuted,
                         ),
                       ),
                     );
@@ -611,15 +619,15 @@ class _AnimatedAreaChart extends StatelessWidget {
               touchTooltipData: LineTouchTooltipData(
                 tooltipRoundedRadius: 10,
                 tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                getTooltipColor: (_) => const Color(0xFF1A1A1A),
+                getTooltipColor: (_) => tc.textPrimary,
                 getTooltipItems: (touchedSpots) {
                   return touchedSpots.map((spot) {
                     final day = data[spot.x.toInt()];
                     return LineTooltipItem(
                       '${day.count} dose${day.count == 1 ? '' : 's'}',
-                      const TextStyle(
+                      TextStyle(
                         fontFamily: 'Artific',
-                        color: Colors.white,
+                        color: tc.bg,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -631,7 +639,7 @@ class _AnimatedAreaChart extends StatelessWidget {
                 return spotIndexes.map((index) {
                   return TouchedSpotIndicatorData(
                     FlLine(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+                      color: tc.accent.withValues(alpha: 0.3),
                       strokeWidth: 1,
                       dashArray: [4, 4],
                     ),
@@ -640,9 +648,9 @@ class _AnimatedAreaChart extends StatelessWidget {
                       getDotPainter: (spot, percent, bar, index) {
                         return FlDotCirclePainter(
                           radius: 5,
-                          color: Colors.white,
+                          color: tc.cardBg,
                           strokeWidth: 2.5,
-                          strokeColor: const Color(0xFF4CAF50),
+                          strokeColor: tc.accent,
                         );
                       },
                     ),
@@ -662,16 +670,16 @@ class _AnimatedAreaChart extends StatelessWidget {
                 curveSmoothness: 0.35,
                 preventCurveOverShooting: true,
                 barWidth: 3,
-                color: const Color(0xFF4CAF50),
+                color: tc.accent,
                 belowBarData: BarAreaData(
                   show: true,
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFF4CAF50).withValues(alpha: 0.25 * progress),
-                      const Color(0xFF4CAF50).withValues(alpha: 0.05 * progress),
-                      const Color(0xFF4CAF50).withValues(alpha: 0.0),
+                      tc.accent.withValues(alpha: 0.25 * progress),
+                      tc.accent.withValues(alpha: 0.05 * progress),
+                      tc.accent.withValues(alpha: 0.0),
                     ],
                     stops: const [0.0, 0.5, 1.0],
                   ),
@@ -682,11 +690,11 @@ class _AnimatedAreaChart extends StatelessWidget {
                     final day = data[index];
                     return FlDotCirclePainter(
                       radius: day.isToday ? 5 : 3.5,
-                      color: Colors.white,
+                      color: tc.cardBg,
                       strokeWidth: day.isToday ? 2.5 : 2,
                       strokeColor: day.count > 0
-                          ? const Color(0xFF4CAF50)
-                          : const Color(0xFFDDDDDD),
+                          ? tc.accent
+                          : tc.border,
                     );
                   },
                 ),
@@ -712,16 +720,17 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Row(
       children: [
         Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: tc.surface,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 18, color: const Color(0xFF888888)),
+          child: Icon(icon, size: 18, color: tc.textSecondary),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -730,21 +739,21 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Artific',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFFAAAAAA),
+                  color: tc.textMuted,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Artific',
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                  color: tc.textPrimary,
                 ),
               ),
             ],

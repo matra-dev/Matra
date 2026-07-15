@@ -54,6 +54,34 @@ class FontSizeNotifier extends StateNotifier<FontSizeLevel> {
   }
 }
 
+// ─── Locale Provider ───────────────────────────────────────────────────────
+
+final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>(
+  (ref) => LocaleNotifier(),
+);
+
+class LocaleNotifier extends StateNotifier<Locale> {
+  static const _key = 'app_locale';
+
+  LocaleNotifier() : super(const Locale('en')) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_key);
+    if (saved != null) {
+      state = Locale(saved);
+    }
+  }
+
+  Future<void> setLocale(String languageCode) async {
+    state = Locale(languageCode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, languageCode);
+  }
+}
+
 // ─── Dark Mode Provider ────────────────────────────────────────────────────
 
 final darkModeProvider = StateNotifierProvider<DarkModeNotifier, bool>(
@@ -131,6 +159,7 @@ class ThemeColors {
   Color get blue => isDark ? const Color(0xFF82B1FF) : const Color(0xFF448AFF);
   Color get purple => isDark ? const Color(0xFFB39DDB) : const Color(0xFF7E57C2);
   Color get red => isDark ? const Color(0xFFFF8A80) : const Color(0xFFEF5350);
+  Color get error => isDark ? const Color(0xFFFF8A80) : const Color(0xFFEF5350);
   Color get amber => isDark ? const Color(0xFFFFD180) : const Color(0xFFFFB74D);
 
   // Bottom nav
