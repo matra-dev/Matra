@@ -708,7 +708,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     ),
                     SizedBox(width: GR.xs + 2),
                     Text(
-                      'WEEKLY DOT MATRIX',
+                      'WEEKLY BREAKDOWN',
                       style: AppTextStyles.caption(context),
                     ),
                     const Spacer(),
@@ -2045,54 +2045,54 @@ class _InsightsScreenState extends State<InsightsScreen>
         final isHigh = adherence >= 90;
 
         return Padding(
-          padding:
-              EdgeInsets.only(bottom: i == weekData.length - 1 ? 0 : GR.sm + 2),
+          padding: EdgeInsets.only(bottom: i == weekData.length - 1 ? 0 : 8),
           child: Row(
             children: [
               SizedBox(
-                width: 40,
+                width: 36,
                 child: Text(
                   d['day'] as String,
-                  style:
-                      AppTextStyles.bodySmall(context, weight: FontWeight.w600),
+                  style: AppTextStyles.bodySmall(context, weight: FontWeight.w500),
                 ),
               ),
-              // Dot matrix for this day
-              Row(
-                children: List.generate(total, (dotIndex) {
-                  final isTaken = dotIndex < taken;
-                  return Container(
-                    width: 10,
-                    height: 10,
-                    margin: EdgeInsets.only(right: GR.xs + 2),
-                    decoration: BoxDecoration(
-                      color: isTaken ? tc.accent : tc.border,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  )
-                      .animate(controller: _entranceCtrl)
-                      .fadeIn(
-                        delay: Duration(
-                            milliseconds: 1000 + i * 80 + dotIndex * 30),
-                        duration: 200.ms,
+              Expanded(
+                child: Row(
+                  children: List.generate(total, (dotIndex) {
+                    final isTaken = dotIndex < taken;
+                    return Expanded(
+                      child: Container(
+                        height: 8,
+                        margin: const EdgeInsets.only(right: 3),
+                        decoration: BoxDecoration(
+                          color: isTaken ? tc.accent : tc.surface,
+                          borderRadius: BorderRadius.circular(2.5),
+                        ),
                       )
-                      .scale(
-                        begin: const Offset(0.0, 0.0),
-                        end: const Offset(1.0, 1.0),
-                        delay: Duration(
-                            milliseconds: 1000 + i * 80 + dotIndex * 30),
-                        duration: 200.ms,
-                        curve: Curves.easeOutBack,
-                      );
-                }),
+                          .animate(controller: _entranceCtrl)
+                          .fadeIn(
+                            delay: Duration(
+                                milliseconds: 1000 + i * 60 + dotIndex * 25),
+                            duration: 180.ms,
+                          )
+                          .scale(
+                            begin: const Offset(0.0, 0.0),
+                            end: const Offset(1.0, 1.0),
+                            delay: Duration(
+                                milliseconds: 1000 + i * 60 + dotIndex * 25),
+                            duration: 180.ms,
+                            curve: Curves.easeOutBack,
+                          ),
+                    );
+                  }),
+                ),
               ),
-              const Spacer(),
+              SizedBox(width: 12),
               Text(
                 '$adherence%',
                 style: AppTextStyles.caption(
                   context,
-                  weight: FontWeight.w700,
-                  color: isHigh ? tc.accentDark : tc.textSecondary,
+                  weight: FontWeight.w600,
+                  color: isHigh ? tc.accentDark : tc.textMuted,
                 ),
               ),
             ],
@@ -2105,140 +2105,118 @@ class _InsightsScreenState extends State<InsightsScreen>
   // ─── 30-Day Streak Grid ────────────────────────────────────────────────────
   Widget _buildStreakGrid(BuildContext context) {
     final tc = ThemeColors.of(context);
-    // 30 days of adherence data (true = all taken, false = some missed)
     final streakData = [
-      true, true, false, true, true, true, true, // week 1
-      true, true, true, true, false, true, true, // week 2
-      true, true, true, true, true, true, true, // week 3
-      true, false, true, true, true, true, true, // week 4
-      true, true, true, // remaining
+      true, true, false, true, true, true, true,
+      true, true, true, true, false, true, true,
+      true, true, true, true, true, true, true,
+      true, false, true, true, true, true, true,
+      true, true, true,
     ];
+
+    final rows = <List<bool>>[];
+    for (int r = 0; r < 5; r++) {
+      final row = <bool>[];
+      for (int c = 0; c < 6; c++) {
+        final idx = r * 6 + c;
+        if (idx < streakData.length) row.add(streakData[idx]);
+      }
+      rows.add(row);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Day labels (1-30 as a compact grid)
-        Wrap(
-          spacing: GR.xs + 2,
-          runSpacing: GR.xs + 2,
-          children: streakData.asMap().entries.map((entry) {
-            final i = entry.key;
-            final isPerfect = entry.value;
-            final dayNum = i + 1;
+        ...rows.asMap().entries.map((rowEntry) {
+          final rowIdx = rowEntry.key;
+          final rowDays = rowEntry.value;
+          return Padding(
+            padding: EdgeInsets.only(bottom: rowIdx < rows.length - 1 ? 4 : 0),
+            child: Row(
+              children: rowDays.asMap().entries.map((dayEntry) {
+                final dayIdx = dayEntry.key;
+                final isPerfect = dayEntry.value;
+                final dayNum = rowIdx * 6 + dayIdx + 1;
+                final globalIdx = dayNum - 1;
 
-            return Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color:
-                    isPerfect ? tc.accent.withValues(alpha: 0.12) : tc.surface,
-                borderRadius: BorderRadius.circular(GR.radiusSm),
-                border: Border.all(
-                  color:
-                      isPerfect ? tc.accent.withValues(alpha: 0.3) : tc.border,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '$dayNum',
-                  style: AppTextStyles.caption(
-                    context,
-                    weight: FontWeight.w600,
-                    color: isPerfect ? tc.accentDark : tc.textMuted,
-                  ),
-                ),
-              ),
-            )
-                .animate(controller: _entranceCtrl)
-                .fadeIn(
-                  delay: Duration(milliseconds: 1200 + i * 25),
-                  duration: 200.ms,
-                )
-                .scale(
-                  begin: const Offset(0.5, 0.5),
-                  end: const Offset(1.0, 1.0),
-                  delay: Duration(milliseconds: 1200 + i * 25),
-                  duration: 200.ms,
-                  curve: Curves.easeOutBack,
+                return Expanded(
+                  child: Container(
+                    height: 32,
+                    margin: EdgeInsets.only(
+                        right: dayIdx < rowDays.length - 1 ? 4 : 0),
+                    decoration: BoxDecoration(
+                      color: isPerfect
+                          ? tc.accent.withValues(alpha: 0.1)
+                          : tc.surface,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isPerfect
+                            ? tc.accent.withValues(alpha: 0.2)
+                            : tc.border,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$dayNum',
+                        style: AppTextStyles.caption(
+                          context,
+                          weight: FontWeight.w500,
+                          color: isPerfect ? tc.accentDark : tc.textMuted,
+                        ),
+                      ),
+                    ),
+                  )
+                      .animate(controller: _entranceCtrl)
+                      .fadeIn(
+                        delay: Duration(milliseconds: 1200 + globalIdx * 25),
+                        duration: 200.ms,
+                      )
+                      .scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1.0, 1.0),
+                        delay: Duration(milliseconds: 1200 + globalIdx * 25),
+                        duration: 200.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                 );
-          }).toList(),
-        ),
+              }).toList(),
+            ),
+          );
+        }),
+
         SizedBox(height: GR.md),
-        // Summary row
+
         Row(
           children: [
             Expanded(
-              child: Container(
-                padding: EdgeInsets.all(GR.md),
-                decoration: BoxDecoration(
-                  color: tc.surface,
-                  borderRadius: BorderRadius.circular(GR.radiusMd),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '24',
-                      style: AppTextStyles.h2(context, color: tc.accentDark),
-                    ),
-                    SizedBox(height: GR.xs - 2),
-                    Text(
-                      'Perfect days',
-                      style: AppTextStyles.caption(context,
-                          color: tc.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildStatItem(context, '24', 'Perfect', tc.accentDark),
             ),
             SizedBox(width: GR.sm),
             Expanded(
-              child: Container(
-                padding: EdgeInsets.all(GR.md),
-                decoration: BoxDecoration(
-                  color: tc.surface,
-                  borderRadius: BorderRadius.circular(GR.radiusMd),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '6',
-                      style: AppTextStyles.h2(context, color: tc.textSecondary),
-                    ),
-                    SizedBox(height: GR.xs - 2),
-                    Text(
-                      'Missed doses',
-                      style: AppTextStyles.caption(context,
-                          color: tc.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildStatItem(context, '6', 'Missed', tc.textSecondary),
             ),
             SizedBox(width: GR.sm),
             Expanded(
-              child: Container(
-                padding: EdgeInsets.all(GR.md),
-                decoration: BoxDecoration(
-                  color: tc.surface,
-                  borderRadius: BorderRadius.circular(GR.radiusMd),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '80%',
-                      style: AppTextStyles.h2(context, color: tc.textPrimary),
-                    ),
-                    SizedBox(height: GR.xs - 2),
-                    Text(
-                      'Adherence',
-                      style: AppTextStyles.caption(context,
-                          color: tc.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
+              child: _buildStatItem(context, '80%', 'Adherence', tc.textPrimary),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(BuildContext context, String value, String label, Color valueColor) {
+    final tc = ThemeColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: AppTextStyles.h3(context, color: valueColor),
+        ),
+        SizedBox(height: 2),
+        Text(
+          label,
+          style: AppTextStyles.caption(context, color: tc.textSecondary),
         ),
       ],
     );
