@@ -1,5 +1,7 @@
+import 'health_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 
@@ -16,7 +18,9 @@ class _InsightsScreenState extends State<InsightsScreen>
   late final AnimationController _trendCtrl;
   late final AnimationController _calendarCtrl;
   late final AnimationController _detailCtrl;
+  late final PageController _carouselCtrl;
   int _activeTab = 0;
+  int _carouselPage = 0;
   DateTime _calendarMonth = DateTime.now();
   DateTime? _selectedCalendarDay;
   bool _calendarExpanded = true;
@@ -40,6 +44,7 @@ class _InsightsScreenState extends State<InsightsScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
+    _carouselCtrl = PageController(viewportFraction: 0.88);
     _startAnimations();
   }
 
@@ -56,6 +61,7 @@ class _InsightsScreenState extends State<InsightsScreen>
     _trendCtrl.dispose();
     _calendarCtrl.dispose();
     _detailCtrl.dispose();
+    _carouselCtrl.dispose();
     super.dispose();
   }
 
@@ -75,81 +81,87 @@ class _InsightsScreenState extends State<InsightsScreen>
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: tc.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ───────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(GR.lg, GR.sm, GR.lg, 0),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Haptics.light(),
-                    child: Container(
-                      width: GR.lg + 2,
-                      height: GR.lg + 2,
-                      decoration: BoxDecoration(
-                        color: tc.cardBg,
-                        borderRadius: BorderRadius.circular(GR.radiusMd + 1),
-                        border: Border.all(color: tc.border),
-                      ),
-                      child: Icon(
-                        Icons.share_outlined,
-                        size: GR.iconSm + 2,
-                        color: tc.textPrimary,
+        backgroundColor: tc.bg,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Header ───────────────────────────────────────────
+              Padding(
+                padding: EdgeInsets.fromLTRB(GR.lg, GR.sm, GR.lg, 0),
+                child: Row(
+                  children: [
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Haptics.light();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const HealthDashboardScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: GR.lg + 2,
+                        height: GR.lg + 2,
+                        decoration: BoxDecoration(
+                          color: tc.cardBg,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                          border: Border.all(color: tc.border),
+                        ),
+                        child: Icon(
+                          Icons.share_outlined,
+                          size: GR.iconSm + 2,
+                          color: tc.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: GR.md),
-
-            // ── Custom pill tabs ─────────────────────────────────
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: GR.lg),
-              child: Row(
-                children: [
-                  _buildTabButton('Overview', 0),
-                  SizedBox(width: GR.sm),
-                  _buildTabButton('Trends', 1),
-                  SizedBox(width: GR.sm),
-                  _buildTabButton('History', 2),
-                ],
-              ),
-            ),
-
-            SizedBox(height: GR.md),
-
-            // ── Tab Content ──────────────────────────────────────
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_activeTab),
-                  child: _activeTab == 0
-                      ? _buildOverviewTab()
-                      : _activeTab == 1
-                          ? _buildTrendsTab()
-                          : _buildHistoryTab(),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+
+              SizedBox(height: GR.md),
+
+              // ── Custom pill tabs ─────────────────────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: GR.lg),
+                child: Row(
+                  children: [
+                    _buildTabButton('Overview', 0),
+                    SizedBox(width: GR.sm),
+                    _buildTabButton('Trends', 1),
+                    SizedBox(width: GR.sm),
+                    _buildTabButton('History', 2),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: GR.md),
+
+              // ── Tab Content ──────────────────────────────────────
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(_activeTab),
+                    child: _activeTab == 0
+                        ? _buildOverviewTab()
+                        : _activeTab == 1
+                            ? _buildTrendsTab()
+                            : _buildHistoryTab(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 
   Widget _buildTabButton(String label, int index) {
@@ -189,93 +201,126 @@ class _InsightsScreenState extends State<InsightsScreen>
   // ─── Tab 1: Overview ─────────────────────────────────────────────────────
   Widget _buildOverviewTab() {
     final tc = ThemeColors.of(context);
+
+    // Carousel data: each supplement with its stats
+    final supplements = [
+      {
+        'name': 'Vitamin D3',
+        'subtitle': 'Daily Intake',
+        'value': '2000',
+        'unit': 'IU',
+        'status': 'On Track',
+        'statusColor': tc.accentDark,
+        'statusBg': tc.accentBg,
+        'week': [true, true, true, true, true, false, true],
+        'summary': '6/7 days · On Track',
+      },
+      {
+        'name': 'Omega-3',
+        'subtitle': 'Fish Oil Supplement',
+        'value': '1000',
+        'unit': 'mg',
+        'status': 'On Track',
+        'statusColor': tc.accentDark,
+        'statusBg': tc.accentBg,
+        'week': [true, true, true, true, true, true, true],
+        'summary': '7/7 days · Perfect',
+      },
+      {
+        'name': 'Magnesium',
+        'subtitle': 'Evening Supplement',
+        'value': '400',
+        'unit': 'mg',
+        'status': 'Needs Attention',
+        'statusColor': tc.textSecondary,
+        'statusBg': tc.surface,
+        'week': [true, false, true, true, false, true, true],
+        'summary': '5/7 days · Missed 2',
+      },
+      {
+        'name': 'Zinc',
+        'subtitle': 'Immune Support',
+        'value': '25',
+        'unit': 'mg',
+        'status': 'On Track',
+        'statusColor': tc.accentDark,
+        'statusBg': tc.accentBg,
+        'week': [true, true, true, true, true, true, false],
+        'summary': '6/7 days · On Track',
+      },
+      {
+        'name': 'Probiotics',
+        'subtitle': 'Gut Health',
+        'value': '50B',
+        'unit': 'CFU',
+        'status': 'On Track',
+        'statusColor': tc.accentDark,
+        'statusBg': tc.accentBg,
+        'week': [true, true, false, true, true, true, true],
+        'summary': '6/7 days · On Track',
+      },
+    ];
+
     return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: GR.sm),
 
-          // ── Title ────────────────────────────────────────────
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  'Vitamin D',
-                  style: AppTextStyles.h1(context),
-                ),
-                SizedBox(height: GR.xs + 2),
-                Text(
-                  'December 16, 2025 · Daily Intake',
-                  style: AppTextStyles.bodySmall(context),
-                ),
-              ],
+          // ── Swipeable Supplement Carousel ──────────────────────
+          SizedBox(
+            height: 340,
+            child: PageView.builder(
+              controller: _carouselCtrl,
+              physics: const BouncingScrollPhysics(),
+              itemCount: supplements.length,
+              onPageChanged: (page) {
+                Haptics.light();
+                setState(() => _carouselPage = page);
+              },
+              itemBuilder: (context, index) {
+                final supp = supplements[index];
+                final week = supp['week'] as List<bool>;
+                return _buildSupplementCard(
+                  context,
+                  name: supp['name'] as String,
+                  subtitle: supp['subtitle'] as String,
+                  value: supp['value'] as String,
+                  unit: supp['unit'] as String,
+                  status: supp['status'] as String,
+                  statusColor: supp['statusColor'] as Color,
+                  statusBg: supp['statusBg'] as Color,
+                  week: week,
+                  summary: supp['summary'] as String,
+                  index: index,
+                  pageKey: _carouselPage == index ? _carouselPage : -1,
+                );
+              },
             ),
           )
               .animate(controller: _entranceCtrl)
-              .fadeIn(delay: 150.ms, duration: 700.ms)
-              .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
-
-          SizedBox(height: GR.xl + 2),
-
-          // ── Big Value ──────────────────────────────────────────
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                AnimatedBuilder(
-                  animation: _entranceCtrl,
-                  builder: (_, __) {
-                    final v = Curves.easeOutCubic.transform(
-                      ((_entranceCtrl.value - 0.3).clamp(0.0, 0.4)) / 0.4,
-                    );
-                    return Text(
-                      (2000 * v).toStringAsFixed(0),
-                      style: AppTextStyles.display(context),
-                    );
-                  },
-                ),
-                SizedBox(width: GR.xs + 2),
-                Padding(
-                  padding: EdgeInsets.only(bottom: GR.md + 2),
-                  child: Text(
-                    'IU',
-                    style: AppTextStyles.h3(context, color: tc.textMuted),
-                  ),
-                ),
-              ],
-            ),
-          )
-              .animate(controller: _entranceCtrl)
-              .fadeIn(delay: 300.ms, duration: 800.ms)
-              .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0), delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic),
+              .fadeIn(delay: 100.ms, duration: 600.ms)
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 100.ms,
+                  duration: 600.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.lg),
 
-          // ── Status Pill ──────────────────────────────────────
+          // ── Page Indicator ───────────────────────────────────
           Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: GR.md + 1, vertical: GR.xs + 2),
-              decoration: BoxDecoration(
-                color: tc.accentLight.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                border: Border.all(color: tc.accentLight),
-              ),
-              child: Text(
-                'On Track',
-                style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
-              ),
-            ),
+            child: _buildPageIndicator(context, supplements.length),
           )
               .animate(controller: _entranceCtrl)
-              .fadeIn(delay: 500.ms, duration: 500.ms)
-              .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0), delay: 500.ms, duration: 500.ms, curve: Curves.easeOutBack),
+              .fadeIn(delay: 300.ms, duration: 400.ms),
 
-          SizedBox(height: GR.xl + 2),
+          SizedBox(height: GR.lg + 2),
 
-          // ── Weekly Adherence ─────────────────────────────────
+          // ── Weekly Adherence (global) ────────────────────────
           GoldenCard(
             padding: EdgeInsets.all(GR.lg),
             child: Column(
@@ -290,24 +335,35 @@ class _InsightsScreenState extends State<InsightsScreen>
                     ),
                     SizedBox(width: GR.xs + 2),
                     Text(
-                      'WEEKLY ADHERENCE',
+                      'OVERALL ADHERENCE',
                       style: AppTextStyles.caption(context),
                     ),
                     const Spacer(),
-                    Row(
-                      children: [
-                        Text(
-                          'View All',
-                          style: AppTextStyles.caption(context, color: tc.accent),
-                        ),
-                        SizedBox(width: GR.xs - 2),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 12,
-                          color: tc.accent,
-                        ),
-                      ],
-                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Haptics.light();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const HealthDashboardScreen(),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            'View All',
+                            style: AppTextStyles.caption(context,
+                                color: tc.accent),
+                          ),
+                          SizedBox(width: GR.xs - 2),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: tc.accent,
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
                 SizedBox(height: GR.md),
@@ -334,7 +390,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                   child: Center(
                     child: Text(
                       '6/7 days · On Track',
-                      style: AppTextStyles.bodySmall(context, weight: FontWeight.w600, color: tc.accentDark),
+                      style: AppTextStyles.bodySmall(context,
+                          weight: FontWeight.w600, color: tc.accentDark),
                     ),
                   ),
                 ),
@@ -342,12 +399,209 @@ class _InsightsScreenState extends State<InsightsScreen>
             ),
           )
               .animate(controller: _entranceCtrl)
-              .fadeIn(delay: 900.ms, duration: 700.ms)
-              .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+              .fadeIn(delay: 500.ms, duration: 700.ms)
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 500.ms,
+                  duration: 700.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.xxl + GR.xl),
         ],
       ),
+    );
+  }
+
+  Widget _buildSupplementCard(
+    BuildContext context, {
+    required String name,
+    required String subtitle,
+    required String value,
+    required String unit,
+    required String status,
+    required Color statusColor,
+    required Color statusBg,
+    required List<bool> week,
+    required String summary,
+    required int index,
+    required int pageKey,
+  }) {
+    final tc = ThemeColors.of(context);
+    return Padding(
+      key: ValueKey('supp_card_$pageKey'),
+      padding: EdgeInsets.symmetric(horizontal: GR.xs + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Name + subtitle
+          Text(
+            name,
+            style: AppTextStyles.h1(context),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 80.ms, duration: 500.ms).slideY(
+              begin: 0.25,
+              end: 0,
+              delay: 80.ms,
+              duration: 500.ms,
+              curve: Curves.easeOutCubic),
+          SizedBox(height: GR.xs + 2),
+          Text(
+            '$subtitle · ${DateFormat('MMMM d, yyyy').format(DateTime.now())}',
+            style: AppTextStyles.bodySmall(context),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 160.ms, duration: 500.ms).slideY(
+              begin: 0.2,
+              end: 0,
+              delay: 160.ms,
+              duration: 500.ms,
+              curve: Curves.easeOutCubic),
+          SizedBox(height: GR.lg + 2),
+
+          // Big value
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                style: AppTextStyles.display(context),
+              ).animate().fadeIn(delay: 260.ms, duration: 500.ms).slideY(
+                  begin: 0.3,
+                  end: 0,
+                  delay: 260.ms,
+                  duration: 500.ms,
+                  curve: Curves.easeOutCubic),
+              SizedBox(width: GR.xs + 2),
+              Padding(
+                padding: EdgeInsets.only(bottom: GR.md + 2),
+                child: Text(
+                  unit,
+                  style: AppTextStyles.h3(context, color: tc.textMuted),
+                ).animate().fadeIn(delay: 340.ms, duration: 400.ms).slideY(
+                    begin: 0.15,
+                    end: 0,
+                    delay: 340.ms,
+                    duration: 400.ms,
+                    curve: Curves.easeOutCubic),
+              ),
+            ],
+          ),
+          SizedBox(height: GR.lg),
+
+          // Status pill
+          Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: GR.md + 1, vertical: GR.xs + 2),
+            decoration: BoxDecoration(
+              color: statusBg.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(GR.radiusLg - 1),
+              border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              status,
+              style: AppTextStyles.caption(context,
+                  weight: FontWeight.w700, color: statusColor),
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 420.ms, duration: 400.ms)
+              .slideY(
+                  begin: 0.15,
+                  end: 0,
+                  delay: 420.ms,
+                  duration: 400.ms,
+                  curve: Curves.easeOutCubic)
+              .scale(
+                  begin: Offset(0.92, 0.92),
+                  end: Offset(1.0, 1.0),
+                  delay: 420.ms,
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack),
+          SizedBox(height: GR.lg),
+
+          // Mini week strip
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: week.asMap().entries.map((entry) {
+              final i = entry.key;
+              final taken = entry.value;
+              final dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: GR.xs),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: taken
+                            ? tc.accent.withValues(alpha: 0.12)
+                            : tc.surface,
+                        borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                        border: Border.all(
+                          color: taken
+                              ? tc.accent.withValues(alpha: 0.3)
+                              : tc.border,
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          taken ? Icons.check_rounded : Icons.close_rounded,
+                          size: 14,
+                          color: taken ? tc.accent : tc.textMuted,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: GR.xs - 1),
+                    Text(
+                      dayLabels[i],
+                      style: AppTextStyles.caption(
+                        context,
+                        weight: FontWeight.w600,
+                        color: taken ? tc.accentDark : tc.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ).animate().fadeIn(delay: 500.ms, duration: 500.ms).slideY(
+              begin: 0.15,
+              end: 0,
+              delay: 500.ms,
+              duration: 500.ms,
+              curve: Curves.easeOutCubic),
+          SizedBox(height: GR.sm + 2),
+          Text(
+            summary,
+            style: AppTextStyles.caption(context, color: tc.textSecondary),
+          ).animate().fadeIn(delay: 600.ms, duration: 400.ms).slideY(
+              begin: 0.1,
+              end: 0,
+              delay: 600.ms,
+              duration: 400.ms,
+              curve: Curves.easeOutCubic),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageIndicator(BuildContext context, int count) {
+    final tc = ThemeColors.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(count, (i) {
+        return Container(
+          width: i == 0 ? 20 : 8,
+          height: 8,
+          margin: EdgeInsets.symmetric(horizontal: 3),
+          decoration: BoxDecoration(
+            color: i == 0 ? tc.accent : tc.border,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
     );
   }
 
@@ -419,7 +673,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                   child: AnimatedBuilder(
                     animation: _trendCtrl,
                     builder: (context, child) {
-                      final progress = Curves.easeOutCubic.transform(_trendCtrl.value);
+                      final progress =
+                          Curves.easeOutCubic.transform(_trendCtrl.value);
                       return _buildGradientAreaChart(context, progress);
                     },
                   ),
@@ -429,28 +684,132 @@ class _InsightsScreenState extends State<InsightsScreen>
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 700.ms, duration: 700.ms)
-              .slideY(begin: 0.2, end: 0, delay: 700.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 700.ms,
+                  duration: 700.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.xl + 2),
 
-          // ── Weekly Summary Bars ────────────────────────────────
+          // ── Weekly Dot Matrix Breakdown ────────────────────────
           GoldenCard(
             padding: EdgeInsets.all(GR.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Weekly Breakdown',
-                  style: AppTextStyles.h3(context),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.grid_view_rounded,
+                      size: GR.iconSm - 2,
+                      color: tc.textMuted,
+                    ),
+                    SizedBox(width: GR.xs + 2),
+                    Text(
+                      'WEEKLY DOT MATRIX',
+                      style: AppTextStyles.caption(context),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: tc.accent,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(width: GR.xs),
+                        Text(
+                          'Taken',
+                          style: AppTextStyles.caption(context,
+                              color: tc.textSecondary),
+                        ),
+                        SizedBox(width: GR.sm),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: tc.border,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(width: GR.xs),
+                        Text(
+                          'Missed',
+                          style: AppTextStyles.caption(context,
+                              color: tc.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 SizedBox(height: GR.lg),
-                _buildWeeklyBars(context),
+                _buildWeeklyDotMatrix(context),
               ],
             ),
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 900.ms, duration: 700.ms)
-              .slideY(begin: 0.2, end: 0, delay: 900.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 900.ms,
+                  duration: 700.ms,
+                  curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xl + 2),
+
+          // ── 30-Day Streak Calendar ───────────────────────────
+          GoldenCard(
+            padding: EdgeInsets.all(GR.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_month_rounded,
+                      size: GR.iconSm - 2,
+                      color: tc.textMuted,
+                    ),
+                    SizedBox(width: GR.xs + 2),
+                    Text(
+                      '30-DAY STREAK',
+                      style: AppTextStyles.caption(context),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                      decoration: BoxDecoration(
+                        color: tc.accentBg,
+                        borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                      ),
+                      child: Text(
+                        '24/30 days',
+                        style: AppTextStyles.caption(context,
+                            weight: FontWeight.w700, color: tc.accentDark),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: GR.lg),
+                _buildStreakGrid(context),
+              ],
+            ),
+          )
+              .animate(controller: _entranceCtrl)
+              .fadeIn(delay: 1100.ms, duration: 700.ms)
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 1100.ms,
+                  duration: 700.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.xxl + GR.xl),
         ],
@@ -466,43 +825,218 @@ class _InsightsScreenState extends State<InsightsScreen>
     // Rich per-dose data: date -> list of {name, dosage, time, taken, icon, color}
     final doseLogData = <DateTime, List<Map<String, dynamic>>>{
       DateTime(now.year, now.month, now.day): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:15 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:15 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:15 PM', 'taken': false, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:15 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:15 AM',
+          'taken': true,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:15 PM',
+          'taken': false,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
       ],
       DateTime(now.year, now.month, now.day - 1): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:05 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:05 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:30 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
-        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:00 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:05 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:05 AM',
+          'taken': true,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:30 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
+        {
+          'name': 'Zinc',
+          'dosage': '25 mg',
+          'time': '01:00 PM',
+          'taken': true,
+          'icon': Icons.wb_cloudy_rounded,
+          'color': AppColors.orange
+        },
       ],
       DateTime(now.year, now.month, now.day - 2): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:20 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:20 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:20 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:20 AM',
+          'taken': true,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:00 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
       ],
       DateTime(now.year, now.month, now.day - 3): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '09:00 AM', 'taken': false, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '09:00 AM', 'taken': false, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '09:00 AM',
+          'taken': false,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '09:00 AM',
+          'taken': false,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:00 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
       ],
       DateTime(now.year, now.month, now.day - 4): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:10 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:10 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:15 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
-        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:30 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
-        {'name': 'Probiotics', 'dosage': '50B CFU', 'time': '08:10 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:10 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:10 AM',
+          'taken': true,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:15 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
+        {
+          'name': 'Zinc',
+          'dosage': '25 mg',
+          'time': '01:30 PM',
+          'taken': true,
+          'icon': Icons.wb_cloudy_rounded,
+          'color': AppColors.orange
+        },
+        {
+          'name': 'Probiotics',
+          'dosage': '50B CFU',
+          'time': '08:10 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
       ],
       DateTime(now.year, now.month, now.day - 5): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:00 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:00 AM', 'taken': true, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
-        {'name': 'Zinc', 'dosage': '25 mg', 'time': '01:00 PM', 'taken': true, 'icon': Icons.wb_cloudy_rounded, 'color': AppColors.orange},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:00 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:00 AM',
+          'taken': true,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:00 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
+        {
+          'name': 'Zinc',
+          'dosage': '25 mg',
+          'time': '01:00 PM',
+          'taken': true,
+          'icon': Icons.wb_cloudy_rounded,
+          'color': AppColors.orange
+        },
       ],
       DateTime(now.year, now.month, now.day - 6): [
-        {'name': 'Vitamin D3', 'dosage': '2000 IU', 'time': '08:30 AM', 'taken': true, 'icon': Icons.wb_sunny_rounded, 'color': AppColors.accentDark},
-        {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'time': '08:30 AM', 'taken': false, 'icon': Icons.water_drop_rounded, 'color': AppColors.blue},
-        {'name': 'Magnesium', 'dosage': '400 mg', 'time': '08:00 PM', 'taken': true, 'icon': Icons.bolt_rounded, 'color': AppColors.purple},
+        {
+          'name': 'Vitamin D3',
+          'dosage': '2000 IU',
+          'time': '08:30 AM',
+          'taken': true,
+          'icon': Icons.wb_sunny_rounded,
+          'color': AppColors.accentDark
+        },
+        {
+          'name': 'Omega-3 Fish Oil',
+          'dosage': '1000 mg',
+          'time': '08:30 AM',
+          'taken': false,
+          'icon': Icons.water_drop_rounded,
+          'color': AppColors.blue
+        },
+        {
+          'name': 'Magnesium',
+          'dosage': '400 mg',
+          'time': '08:00 PM',
+          'taken': true,
+          'icon': Icons.bolt_rounded,
+          'color': AppColors.purple
+        },
       ],
     };
 
@@ -539,7 +1073,8 @@ class _InsightsScreenState extends State<InsightsScreen>
       totalTaken += entry['taken']!;
       totalDoses += entry['total']!;
     }
-    final adherence = totalDoses > 0 ? ((totalTaken / totalDoses) * 100).round() : 0;
+    final adherence =
+        totalDoses > 0 ? ((totalTaken / totalDoses) * 100).round() : 0;
     final streakDays = _calculateStreak(adherenceData);
 
     // Determine which day to show detail for
@@ -563,7 +1098,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                 onTap: () {
                   Haptics.light();
                   setState(() {
-                    _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month - 1);
+                    _calendarMonth =
+                        DateTime(_calendarMonth.year, _calendarMonth.month - 1);
                   });
                   _calendarCtrl.reset();
                   _calendarCtrl.forward();
@@ -575,7 +1111,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                     color: tc.surface,
                     borderRadius: BorderRadius.circular(GR.radiusMd),
                   ),
-                  child: Icon(Icons.chevron_left_rounded, size: 22, color: tc.textPrimary),
+                  child: Icon(Icons.chevron_left_rounded,
+                      size: 22, color: tc.textPrimary),
                 ),
               ),
               SizedBox(width: GR.md),
@@ -604,7 +1141,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                 onTap: () {
                   Haptics.light();
                   setState(() {
-                    _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month + 1);
+                    _calendarMonth =
+                        DateTime(_calendarMonth.year, _calendarMonth.month + 1);
                   });
                   _calendarCtrl.reset();
                   _calendarCtrl.forward();
@@ -616,14 +1154,20 @@ class _InsightsScreenState extends State<InsightsScreen>
                     color: tc.surface,
                     borderRadius: BorderRadius.circular(GR.radiusMd),
                   ),
-                  child: Icon(Icons.chevron_right_rounded, size: 22, color: tc.textPrimary),
+                  child: Icon(Icons.chevron_right_rounded,
+                      size: 22, color: tc.textPrimary),
                 ),
               ),
             ],
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 50.ms, duration: 400.ms)
-              .slideY(begin: 0.2, end: 0, delay: 50.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 50.ms,
+                  duration: 400.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.lg),
 
@@ -637,7 +1181,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                   children: [
                     Text(
                       'Calendar',
-                      style: AppTextStyles.body(context, weight: FontWeight.w700),
+                      style:
+                          AppTextStyles.body(context, weight: FontWeight.w700),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -673,7 +1218,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                       // Day of week headers
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
+                        children:
+                            ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
                           return SizedBox(
                             width: 40,
                             child: Center(
@@ -712,12 +1258,14 @@ class _InsightsScreenState extends State<InsightsScreen>
                         SizedBox(width: GR.xs + 2),
                         Text(
                           'Tap to expand calendar',
-                          style: AppTextStyles.caption(context, color: tc.textSecondary),
+                          style: AppTextStyles.caption(context,
+                              color: tc.textSecondary),
                         ),
                         const Spacer(),
                         Text(
                           '$adherence% adherence',
-                          style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
+                          style: AppTextStyles.caption(context,
+                              weight: FontWeight.w700, color: tc.accentDark),
                         ),
                       ],
                     ),
@@ -727,7 +1275,12 @@ class _InsightsScreenState extends State<InsightsScreen>
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 150.ms, duration: 500.ms)
-              .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 150.ms,
+                  duration: 500.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.lg),
 
@@ -764,7 +1317,12 @@ class _InsightsScreenState extends State<InsightsScreen>
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 300.ms, duration: 500.ms)
-              .slideY(begin: 0.2, end: 0, delay: 300.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.2,
+                  end: 0,
+                  delay: 300.ms,
+                  duration: 500.ms,
+                  curve: Curves.easeOutCubic),
 
           SizedBox(height: GR.lg + 2),
 
@@ -795,7 +1353,9 @@ class _InsightsScreenState extends State<InsightsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _selectedCalendarDay != null ? _dayName(_selectedCalendarDay!) : 'Today',
+                      _selectedCalendarDay != null
+                          ? _dayName(_selectedCalendarDay!)
+                          : 'Today',
                       style: AppTextStyles.h3(context),
                     ),
                     SizedBox(height: GR.xs - 2),
@@ -810,26 +1370,30 @@ class _InsightsScreenState extends State<InsightsScreen>
                 const Spacer(),
                 if (hasDetailData) ...[
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: GR.sm + 4, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
                       color: tc.accentBg,
                       borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                     ),
                     child: Text(
                       '${detailItems.where((i) => i['taken'] as bool).length}/${detailItems.length}',
-                      style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
+                      style: AppTextStyles.caption(context,
+                          weight: FontWeight.w700, color: tc.accentDark),
                     ),
                   ),
                 ] else ...[
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: GR.sm + 4, vertical: GR.xs + 2),
                     decoration: BoxDecoration(
                       color: tc.surface,
                       borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                     ),
                     child: Text(
                       'No detailed logs',
-                      style: AppTextStyles.caption(context, color: tc.textSecondary),
+                      style: AppTextStyles.caption(context,
+                          color: tc.textSecondary),
                     ),
                   ),
                 ],
@@ -838,7 +1402,12 @@ class _InsightsScreenState extends State<InsightsScreen>
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 500.ms, duration: 400.ms)
-              .slideY(begin: 0.15, end: 0, delay: 500.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.15,
+                  end: 0,
+                  delay: 500.ms,
+                  duration: 400.ms,
+                  curve: Curves.easeOutCubic),
 
           // ── Detailed Dose List ───────────────────────────────
           if (hasDetailData) ...[
@@ -860,7 +1429,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: (item['color'] as Color).withValues(alpha: 0.12),
+                              color: (item['color'] as Color)
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(GR.radiusMd),
                             ),
                             child: Icon(
@@ -877,7 +1447,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                               children: [
                                 Text(
                                   item['name'] as String,
-                                  style: AppTextStyles.body(context, weight: FontWeight.w600),
+                                  style: AppTextStyles.body(context,
+                                      weight: FontWeight.w600),
                                 ),
                                 SizedBox(height: GR.xs - 2),
                                 Row(
@@ -913,16 +1484,22 @@ class _InsightsScreenState extends State<InsightsScreen>
                           ),
                           // Status with label
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: GR.sm + 2, vertical: GR.xs + 1),
                             decoration: BoxDecoration(
-                              color: isTaken ? tc.accent.withValues(alpha: 0.12) : tc.surface,
-                              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                              color: isTaken
+                                  ? tc.accent.withValues(alpha: 0.12)
+                                  : tc.surface,
+                              borderRadius:
+                                  BorderRadius.circular(GR.radiusSm + 2),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  isTaken ? Icons.check_rounded : Icons.close_rounded,
+                                  isTaken
+                                      ? Icons.check_rounded
+                                      : Icons.close_rounded,
                                   size: 14,
                                   color: isTaken ? tc.accent : tc.textMuted,
                                 ),
@@ -952,7 +1529,12 @@ class _InsightsScreenState extends State<InsightsScreen>
             )
                 .animate(controller: _detailCtrl)
                 .fadeIn(delay: 100.ms, duration: 500.ms)
-                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+                .slideY(
+                    begin: 0.2,
+                    end: 0,
+                    delay: 100.ms,
+                    duration: 500.ms,
+                    curve: Curves.easeOutCubic),
           ] else ...[
             // No detailed data for this day
             GoldenCard(
@@ -968,12 +1550,14 @@ class _InsightsScreenState extends State<InsightsScreen>
                     SizedBox(height: GR.sm),
                     Text(
                       'No detailed logs for this day',
-                      style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
+                      style: AppTextStyles.bodySmall(context,
+                          color: tc.textSecondary),
                     ),
                     SizedBox(height: GR.xs),
                     Text(
                       'Select a day with data from the calendar',
-                      style: AppTextStyles.caption(context, color: tc.textMuted),
+                      style:
+                          AppTextStyles.caption(context, color: tc.textMuted),
                     ),
                   ],
                 ),
@@ -995,7 +1579,12 @@ class _InsightsScreenState extends State<InsightsScreen>
           )
               .animate(controller: _entranceCtrl)
               .fadeIn(delay: 600.ms, duration: 400.ms)
-              .slideY(begin: 0.15, end: 0, delay: 600.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+              .slideY(
+                  begin: 0.15,
+                  end: 0,
+                  delay: 600.ms,
+                  duration: 400.ms,
+                  curve: Curves.easeOutCubic),
 
           ..._buildRecentDaysList(context, doseLogData, adherenceData),
 
@@ -1007,8 +1596,18 @@ class _InsightsScreenState extends State<InsightsScreen>
 
   String _monthYearText(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
@@ -1049,7 +1648,8 @@ class _InsightsScreenState extends State<InsightsScreen>
     );
   }
 
-  Widget _buildCalendarGrid(BuildContext context, Map<DateTime, Map<String, int>> data) {
+  Widget _buildCalendarGrid(
+      BuildContext context, Map<DateTime, Map<String, int>> data) {
     final tc = ThemeColors.of(context);
     final year = _calendarMonth.year;
     final month = _calendarMonth.month;
@@ -1076,7 +1676,8 @@ class _InsightsScreenState extends State<InsightsScreen>
         final entry = data[day];
         final hasData = entry != null;
         final allTaken = hasData && entry['taken'] == entry['total'];
-        final partial = hasData && entry['taken']! > 0 && entry['taken']! < entry['total']!;
+        final partial =
+            hasData && entry['taken']! > 0 && entry['taken']! < entry['total']!;
         final missed = hasData && entry['taken'] == 0;
 
         Color dotColor = tc.border;
@@ -1102,11 +1703,12 @@ class _InsightsScreenState extends State<InsightsScreen>
               width: 40,
               height: 52,
               decoration: BoxDecoration(
-                color: isSelected ? tc.accent.withValues(alpha: 0.12) : Colors.transparent,
+                color: isSelected
+                    ? tc.accent.withValues(alpha: 0.12)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(GR.radiusMd),
-                border: isToday
-                    ? Border.all(color: tc.accent, width: 1.5)
-                    : null,
+                border:
+                    isToday ? Border.all(color: tc.accent, width: 1.5) : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1116,7 +1718,9 @@ class _InsightsScreenState extends State<InsightsScreen>
                     style: TextStyle(
                       fontFamily: 'Artific',
                       fontSize: 15,
-                      fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: isToday || isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: isToday
                           ? tc.accent
                           : isSelected
@@ -1178,7 +1782,8 @@ class _InsightsScreenState extends State<InsightsScreen>
   ) {
     final tc = ThemeColors.of(context);
     final now = DateTime.now();
-    final sortedDays = doseLogData.keys.toList()..sort((a, b) => b.compareTo(a));
+    final sortedDays = doseLogData.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
 
     return sortedDays.asMap().entries.map((entry) {
       final i = entry.key;
@@ -1240,11 +1845,13 @@ class _InsightsScreenState extends State<InsightsScreen>
                         children: [
                           Text(
                             '${day.day}',
-                            style: AppTextStyles.body(context, weight: FontWeight.w700),
+                            style: AppTextStyles.body(context,
+                                weight: FontWeight.w700),
                           ),
                           Text(
                             _monthShort(day.month),
-                            style: AppTextStyles.caption(context, color: tc.textMuted),
+                            style: AppTextStyles.caption(context,
+                                color: tc.textMuted),
                           ),
                         ],
                       ),
@@ -1256,7 +1863,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                         children: [
                           Text(
                             dayLabel,
-                            style: AppTextStyles.body(context, weight: FontWeight.w600),
+                            style: AppTextStyles.body(context,
+                                weight: FontWeight.w600),
                           ),
                           SizedBox(height: GR.xs - 2),
                           Text(
@@ -1284,12 +1892,17 @@ class _InsightsScreenState extends State<InsightsScreen>
                   children: items.map((item) {
                     final isTaken = item['taken'] as bool;
                     return Container(
-                      padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: GR.sm + 2, vertical: GR.xs + 1),
                       decoration: BoxDecoration(
-                        color: isTaken ? (item['color'] as Color).withValues(alpha: 0.1) : tc.surface,
+                        color: isTaken
+                            ? (item['color'] as Color).withValues(alpha: 0.1)
+                            : tc.surface,
                         borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                         border: Border.all(
-                          color: isTaken ? (item['color'] as Color).withValues(alpha: 0.3) : tc.border,
+                          color: isTaken
+                              ? (item['color'] as Color).withValues(alpha: 0.3)
+                              : tc.border,
                         ),
                       ),
                       child: Row(
@@ -1298,7 +1911,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                           Icon(
                             item['icon'] as IconData,
                             size: 12,
-                            color: isTaken ? item['color'] as Color : tc.textMuted,
+                            color:
+                                isTaken ? item['color'] as Color : tc.textMuted,
                           ),
                           SizedBox(width: GR.xs),
                           Text(
@@ -1306,13 +1920,16 @@ class _InsightsScreenState extends State<InsightsScreen>
                             style: AppTextStyles.caption(
                               context,
                               weight: FontWeight.w600,
-                              color: isTaken ? item['color'] as Color : tc.textMuted,
+                              color: isTaken
+                                  ? item['color'] as Color
+                                  : tc.textMuted,
                             ),
                           ),
                           SizedBox(width: GR.xs - 1),
                           Text(
                             item['time'] as String,
-                            style: AppTextStyles.caption(context, color: tc.textMuted),
+                            style: AppTextStyles.caption(context,
+                                color: tc.textMuted),
                           ),
                         ],
                       ),
@@ -1325,18 +1942,46 @@ class _InsightsScreenState extends State<InsightsScreen>
         ),
       )
           .animate(controller: _entranceCtrl)
-          .fadeIn(delay: Duration(milliseconds: 700 + i * 100), duration: const Duration(milliseconds: 400))
-          .slideY(begin: 0.15, end: 0, delay: Duration(milliseconds: 700 + i * 100), duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
+          .fadeIn(
+              delay: Duration(milliseconds: 700 + i * 100),
+              duration: const Duration(milliseconds: 400))
+          .slideY(
+              begin: 0.15,
+              end: 0,
+              delay: Duration(milliseconds: 700 + i * 100),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic);
     }).toList();
   }
 
   String _dayName(DateTime day) {
-    const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const names = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
     return names[day.weekday - 1];
   }
 
   String _monthShort(int month) {
-    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const names = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return names[month - 1];
   }
 
@@ -1361,7 +2006,8 @@ class _InsightsScreenState extends State<InsightsScreen>
                 SizedBox(width: GR.xs),
                 Text(
                   label,
-                  style: AppTextStyles.caption(context, color: tc.textSecondary),
+                  style:
+                      AppTextStyles.caption(context, color: tc.textSecondary),
                 ),
               ],
             ),
@@ -1376,60 +2022,78 @@ class _InsightsScreenState extends State<InsightsScreen>
     );
   }
 
-  Widget _buildWeeklyBars(BuildContext context) {
+  // ─── Weekly Dot Matrix ─────────────────────────────────────────────────────
+  Widget _buildWeeklyDotMatrix(BuildContext context) {
     final tc = ThemeColors.of(context);
-    final days = [
-      {'day': 'Mon', 'val': 85},
-      {'day': 'Tue', 'val': 92},
-      {'day': 'Wed', 'val': 78},
-      {'day': 'Thu', 'val': 100},
-      {'day': 'Fri', 'val': 95},
-      {'day': 'Sat', 'val': 60},
-      {'day': 'Sun', 'val': 88},
+    final weekData = [
+      {'day': 'Mon', 'total': 5, 'taken': 4},
+      {'day': 'Tue', 'total': 5, 'taken': 5},
+      {'day': 'Wed', 'total': 5, 'taken': 4},
+      {'day': 'Thu', 'total': 5, 'taken': 5},
+      {'day': 'Fri', 'total': 5, 'taken': 5},
+      {'day': 'Sat', 'total': 5, 'taken': 3},
+      {'day': 'Sun', 'total': 5, 'taken': 4},
     ];
 
     return Column(
-      children: days.map((d) {
-        final val = d['val'] as int;
-        final isHigh = val >= 90;
+      children: weekData.asMap().entries.map((entry) {
+        final i = entry.key;
+        final d = entry.value;
+        final total = d['total'] as int;
+        final taken = d['taken'] as int;
+        final adherence = ((taken / total) * 100).round();
+        final isHigh = adherence >= 90;
+
         return Padding(
-          padding: EdgeInsets.only(bottom: GR.sm + 2),
+          padding:
+              EdgeInsets.only(bottom: i == weekData.length - 1 ? 0 : GR.sm + 2),
           child: Row(
             children: [
               SizedBox(
                 width: 40,
                 child: Text(
                   d['day'] as String,
-                  style: AppTextStyles.bodySmall(context),
+                  style:
+                      AppTextStyles.bodySmall(context, weight: FontWeight.w600),
                 ),
               ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: tc.border,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+              // Dot matrix for this day
+              Row(
+                children: List.generate(total, (dotIndex) {
+                  final isTaken = dotIndex < taken;
+                  return Container(
+                    width: 10,
+                    height: 10,
+                    margin: EdgeInsets.only(right: GR.xs + 2),
+                    decoration: BoxDecoration(
+                      color: isTaken ? tc.accent : tc.border,
+                      borderRadius: BorderRadius.circular(3),
                     ),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.easeOutCubic,
-                      height: 8,
-                      width: (val / 100.0) * MediaQuery.of(context).size.width * 0.55,
-                      decoration: BoxDecoration(
-                        color: isHigh ? tc.accent : tc.orange,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
-                ),
+                  )
+                      .animate(controller: _entranceCtrl)
+                      .fadeIn(
+                        delay: Duration(
+                            milliseconds: 1000 + i * 80 + dotIndex * 30),
+                        duration: 200.ms,
+                      )
+                      .scale(
+                        begin: const Offset(0.0, 0.0),
+                        end: const Offset(1.0, 1.0),
+                        delay: Duration(
+                            milliseconds: 1000 + i * 80 + dotIndex * 30),
+                        duration: 200.ms,
+                        curve: Curves.easeOutBack,
+                      );
+                }),
               ),
-              SizedBox(width: GR.sm),
+              const Spacer(),
               Text(
-                '$val%',
-                style: AppTextStyles.caption(context, weight: FontWeight.w700, color: isHigh ? tc.accentDark : tc.orange),
+                '$adherence%',
+                style: AppTextStyles.caption(
+                  context,
+                  weight: FontWeight.w700,
+                  color: isHigh ? tc.accentDark : tc.textSecondary,
+                ),
               ),
             ],
           ),
@@ -1438,11 +2102,187 @@ class _InsightsScreenState extends State<InsightsScreen>
     );
   }
 
+  // ─── 30-Day Streak Grid ────────────────────────────────────────────────────
+  Widget _buildStreakGrid(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    // 30 days of adherence data (true = all taken, false = some missed)
+    final streakData = [
+      true, true, false, true, true, true, true, // week 1
+      true, true, true, true, false, true, true, // week 2
+      true, true, true, true, true, true, true, // week 3
+      true, false, true, true, true, true, true, // week 4
+      true, true, true, // remaining
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Day labels (1-30 as a compact grid)
+        Wrap(
+          spacing: GR.xs + 2,
+          runSpacing: GR.xs + 2,
+          children: streakData.asMap().entries.map((entry) {
+            final i = entry.key;
+            final isPerfect = entry.value;
+            final dayNum = i + 1;
+
+            return Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color:
+                    isPerfect ? tc.accent.withValues(alpha: 0.12) : tc.surface,
+                borderRadius: BorderRadius.circular(GR.radiusSm),
+                border: Border.all(
+                  color:
+                      isPerfect ? tc.accent.withValues(alpha: 0.3) : tc.border,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '$dayNum',
+                  style: AppTextStyles.caption(
+                    context,
+                    weight: FontWeight.w600,
+                    color: isPerfect ? tc.accentDark : tc.textMuted,
+                  ),
+                ),
+              ),
+            )
+                .animate(controller: _entranceCtrl)
+                .fadeIn(
+                  delay: Duration(milliseconds: 1200 + i * 25),
+                  duration: 200.ms,
+                )
+                .scale(
+                  begin: const Offset(0.5, 0.5),
+                  end: const Offset(1.0, 1.0),
+                  delay: Duration(milliseconds: 1200 + i * 25),
+                  duration: 200.ms,
+                  curve: Curves.easeOutBack,
+                );
+          }).toList(),
+        ),
+        SizedBox(height: GR.md),
+        // Summary row
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(GR.md),
+                decoration: BoxDecoration(
+                  color: tc.surface,
+                  borderRadius: BorderRadius.circular(GR.radiusMd),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '24',
+                      style: AppTextStyles.h2(context, color: tc.accentDark),
+                    ),
+                    SizedBox(height: GR.xs - 2),
+                    Text(
+                      'Perfect days',
+                      style: AppTextStyles.caption(context,
+                          color: tc.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(width: GR.sm),
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(GR.md),
+                decoration: BoxDecoration(
+                  color: tc.surface,
+                  borderRadius: BorderRadius.circular(GR.radiusMd),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '6',
+                      style: AppTextStyles.h2(context, color: tc.textSecondary),
+                    ),
+                    SizedBox(height: GR.xs - 2),
+                    Text(
+                      'Missed doses',
+                      style: AppTextStyles.caption(context,
+                          color: tc.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(width: GR.sm),
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(GR.md),
+                decoration: BoxDecoration(
+                  color: tc.surface,
+                  borderRadius: BorderRadius.circular(GR.radiusMd),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '80%',
+                      style: AppTextStyles.h2(context, color: tc.textPrimary),
+                    ),
+                    SizedBox(height: GR.xs - 2),
+                    Text(
+                      'Adherence',
+                      style: AppTextStyles.caption(context,
+                          color: tc.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   // ─── Gradient Area Chart ───────────────────────────────────────────────────
   Widget _buildGradientAreaChart(BuildContext context, double progress) {
     final tc = ThemeColors.of(context);
-    final data = const [65, 72, 68, 85, 90, 88, 92, 95, 89, 94, 96, 91, 93, 97, 98, 96];
-    final labels = const ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'];
+    final data = const [
+      65,
+      72,
+      68,
+      85,
+      90,
+      88,
+      92,
+      95,
+      89,
+      94,
+      96,
+      91,
+      93,
+      97,
+      98,
+      96
+    ];
+    final labels = const [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      '11',
+      '12',
+      '13',
+      '14',
+      '15',
+      '16'
+    ];
 
     return CustomPaint(
       size: const Size(double.infinity, 160),
@@ -1594,7 +2434,7 @@ class _GradientAreaPainter extends CustomPainter {
       final val = (maxVal - (range * i / 4)).toStringAsFixed(0);
       final y = padding.top + (chartH * i / 4);
       final span = TextSpan(text: val, style: labelStyle);
-      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+      final tp = TextPainter(text: span);
       tp.layout();
       tp.paint(canvas, Offset(padding.left - tp.width - 6, y - tp.height / 2));
     }
@@ -1602,7 +2442,7 @@ class _GradientAreaPainter extends CustomPainter {
     // Draw X-axis labels (every 4th)
     for (int i = 0; i < points.length; i += 4) {
       final span = TextSpan(text: labels[i], style: labelStyle);
-      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+      final tp = TextPainter(text: span);
       tp.layout();
       tp.paint(
         canvas,
@@ -1639,12 +2479,11 @@ class _GradientAreaPainter extends CustomPainter {
     final t2 = t * t;
     final t3 = t2 * t;
 
-    return 0.5 * (
-      (2 * p1) +
-      (-p0 + p2) * t +
-      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-      (-p0 + 3 * p1 - 3 * p2 + p3) * t3
-    );
+    return 0.5 *
+        ((2 * p1) +
+            (-p0 + p2) * t +
+            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+            (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
   }
 
   @override
@@ -1707,7 +2546,9 @@ class _DayPill extends StatelessWidget {
       ),
     )
         .animate()
-        .fadeIn(delay: Duration(milliseconds: 1200 + delay * 60), duration: const Duration(milliseconds: 400))
+        .fadeIn(
+            delay: Duration(milliseconds: 1200 + delay * 60),
+            duration: const Duration(milliseconds: 400))
         .scale(
           begin: const Offset(0.7, 0.7),
           end: const Offset(1.0, 1.0),

@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/haptics.dart';
 
-/// Day Detail Screen — Hero-zoomed calendar view with dot matrix adherence
+/// Day Detail Screen — Hero-zoomed calendar view with expandable pill breakdown
 /// Opens when tapping a day in the Today page week strip
 class DayDetailScreen extends StatefulWidget {
   final DateTime selectedDate;
@@ -27,18 +27,21 @@ class _DayDetailScreenState extends State<DayDetailScreen>
   late final AnimationController _calendarCtrl;
   late final ScrollController _scrollCtrl;
 
-  // Demo adherence data for the month (0-100 for each day)
-  final List<int> _monthAdherence = [
-    100, 100, 85, 100, 100, 70, 100, // week 1
-    100, 100, 100, 100, 85, 100, 100, // week 2
-    100, 100, 100, 60, 100, 100, 100, // week 3
-    100, 100, 100, 100, 100, 100, 100, // week 4
-    100, 100, 100, // remaining
-  ];
+  DateTime _selectedDay;
+
+  // Track which time slots are expanded
+  final Set<String> _expandedSlots = {};
+
+  _DayDetailScreenState() : _selectedDay = DateTime.now();
+
+  // Rich demo data: date -> list of pills with name, dosage, time, taken status
+  late final Map<DateTime, List<Map<String, dynamic>>> _pillData;
 
   @override
   void initState() {
     super.initState();
+    _selectedDay = widget.selectedDate;
+    _pillData = _generatePillData();
     _entranceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -53,6 +56,73 @@ class _DayDetailScreenState extends State<DayDetailScreen>
     );
     _scrollCtrl = ScrollController();
     _startAnimations();
+  }
+
+  Map<DateTime, List<Map<String, dynamic>>> _generatePillData() {
+    final data = <DateTime, List<Map<String, dynamic>>>{};
+    final now = DateTime.now();
+    final baseDay = DateTime(now.year, now.month, now.day);
+
+    // Generate 31 days of data
+    for (int i = -15; i <= 15; i++) {
+      final day = baseDay.add(Duration(days: i));
+      final key = DateTime(day.year, day.month, day.day);
+
+      // Randomize which pills were taken
+      final morningTaken = i % 7 != 0; // skip every 7th day
+      final afternoonTaken = i % 5 != 0; // skip every 5th day
+      final eveningTaken = i % 3 != 0; // skip every 3rd day
+
+      data[key] = [
+        {
+          'slot': 'Morning',
+          'time': '08:00',
+          'icon': Icons.wb_sunny_rounded,
+          'pills': [
+            {'name': 'Vitamin D3', 'dosage': '2000 IU', 'taken': morningTaken},
+            {'name': 'Omega-3 Fish Oil', 'dosage': '1000 mg', 'taken': morningTaken && i % 2 == 0},
+            {'name': 'Probiotics', 'dosage': '50B CFU', 'taken': morningTaken},
+          ],
+        },
+        {
+          'slot': 'Afternoon',
+          'time': '13:00',
+          'icon': Icons.wb_cloudy_rounded,
+          'pills': [
+            {'name': 'Zinc', 'dosage': '25 mg', 'taken': afternoonTaken},
+            {'name': 'Vitamin C', 'dosage': '500 mg', 'taken': afternoonTaken && i % 3 != 1},
+          ],
+        },
+        {
+          'slot': 'Evening',
+          'time': '20:00',
+          'icon': Icons.nights_stay_rounded,
+          'pills': [
+            {'name': 'Magnesium', 'dosage': '400 mg', 'taken': eveningTaken},
+            {'name': 'Melatonin', 'dosage': '3 mg', 'taken': eveningTaken && i % 4 != 0},
+          ],
+        },
+      ];
+    }
+    return data;
+  }
+
+  List<Map<String, dynamic>> _getPillsForDay(DateTime day) {
+    final key = DateTime(day.year, day.month, day.day);
+    return _pillData[key] ?? [];
+  }
+
+  int _getAdherenceForDay(DateTime day) {
+    final pills = _getPillsForDay(day);
+    if (pills.isEmpty) return 100;
+    int total = 0;
+    int taken = 0;
+    for (final slot in pills) {
+      final slotPills = slot['pills'] as List<Map<String, dynamic>>;
+      total += slotPills.length;
+      taken += slotPills.where((p) => p['taken'] as bool).length;
+    }
+    return total > 0 ? ((taken / total) * 100).round() : 100;
   }
 
   void _startAnimations() async {
@@ -74,17 +144,31 @@ class _DayDetailScreenState extends State<DayDetailScreen>
   }
 
   List<DateTime> _getMonthDays() {
-    final firstDay = DateTime(widget.selectedDate.year, widget.selectedDate.month, 1);
-    final daysInMonth = DateTime(widget.selectedDate.year, widget.selectedDate.month + 1, 0).day;
+    final firstDay = DateTime(_selectedDay.year, _selectedDay.month, 1);
+    final daysInMonth = DateTime(_selectedDay.year, _selectedDay.month + 1, 0).day;
     return List.generate(daysInMonth, (i) => firstDay.add(Duration(days: i)));
   }
 
-  int _getAdherenceForDay(DateTime day) {
-    final dayIndex = day.day - 1;
-    if (dayIndex < _monthAdherence.length) {
-      return _monthAdherence[dayIndex];
-    }
-    return 100;
+  void _onDaySelected(DateTime day) {
+    Haptics.selection();
+    setState(() {
+      _selectedDay = day;
+      _expandedSlots.clear(); // collapse all when switching days
+    });
+    // Re-trigger dot matrix animation for new day
+    _dotsCtrl.reset();
+    _dotsCtrl.forward();
+  }
+
+  void _toggleSlot(String slot) {
+    Haptics.light();
+    setState(() {
+      if (_expandedSlots.contains(slot)) {
+        _expandedSlots.remove(slot);
+      } else {
+        _expandedSlots.add(slot);
+      }
+    });
   }
 
   @override
@@ -92,8 +176,9 @@ class _DayDetailScreenState extends State<DayDetailScreen>
     final tc = ThemeColors.of(context);
     final monthDays = _getMonthDays();
     final firstWeekday = monthDays.first.weekday % 7; // 0=Sunday
-    final adherence = _getAdherenceForDay(widget.selectedDate);
+    final adherence = _getAdherenceForDay(_selectedDay);
     final isPerfect = adherence == 100;
+    final pillsForDay = _getPillsForDay(_selectedDay);
 
     return Scaffold(
       backgroundColor: tc.bg,
@@ -102,7 +187,7 @@ class _DayDetailScreenState extends State<DayDetailScreen>
           controller: _scrollCtrl,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── Header with Hero tag ─────────────────────────────
+            // ── App Bar ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.sm, GR.lg, 0),
@@ -113,133 +198,81 @@ class _DayDetailScreenState extends State<DayDetailScreen>
                         Haptics.light();
                         Navigator.pop(context);
                       },
-                      child: Hero(
-                        tag: 'day_back_button',
-                        child: Container(
-                          width: GR.lg + 2,
-                          height: GR.lg + 2,
-                          decoration: BoxDecoration(
-                            color: tc.cardBg,
-                            borderRadius: BorderRadius.circular(GR.radiusMd),
-                            border: Border.all(color: tc.border),
-                          ),
-                          child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
+                      child: Container(
+                        width: GR.lg + 2,
+                        height: GR.lg + 2,
+                        decoration: BoxDecoration(
+                          color: tc.cardBg,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                          border: Border.all(color: tc.border),
                         ),
+                        child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
                       ),
                     ),
                     const Spacer(),
+                    Text(
+                      DateFormat('MMMM yyyy').format(_selectedDay),
+                      style: AppTextStyles.body(context, weight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    SizedBox(width: GR.lg + 2),
                   ],
                 ),
               ),
             ),
 
-            // ── Hero Day Card ────────────────────────────────────
+            // ── Hero Date Card ───────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
                 child: Hero(
                   tag: 'day_card_${widget.dayOffset}',
-                  child: Material(
-                    color: Colors.transparent,
-                    child: GoldenCard(
-                      padding: EdgeInsets.all(GR.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    DateFormat('EEEE').format(widget.selectedDate),
-                                    style: AppTextStyles.h2(context),
-                                  ),
-                                  SizedBox(height: GR.xs),
-                                  Text(
-                                    DateFormat('MMMM d, yyyy').format(widget.selectedDate),
-                                    style: AppTextStyles.bodySmall(context),
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              // Big day number
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  color: tc.accent.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(GR.radiusMd + 4),
+                  child: GoldenCard(
+                    padding: EdgeInsets.all(GR.lg),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  DateFormat('EEEE').format(_selectedDay),
+                                  style: AppTextStyles.h2(context),
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    '${widget.selectedDate.day}',
-                                    style: AppTextStyles.display(context, color: tc.accent),
-                                  ),
+                                SizedBox(height: GR.xs),
+                                Text(
+                                  DateFormat('MMMM d, yyyy').format(_selectedDay),
+                                  style: AppTextStyles.bodySmall(context),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
+                              decoration: BoxDecoration(
+                                color: isPerfect ? tc.accentBg : tc.surface,
+                                borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                              ),
+                              child: Text(
+                                '$adherence%',
+                                style: AppTextStyles.caption(
+                                  context,
+                                  weight: FontWeight.w700,
+                                  color: isPerfect ? tc.accentDark : tc.textSecondary,
                                 ),
                               ),
-                            ],
-                          ),
-                          SizedBox(height: GR.lg),
-                          // Adherence row
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Adherence',
-                                      style: AppTextStyles.caption(context),
-                                    ),
-                                    SizedBox(height: GR.xs),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        AnimatedBuilder(
-                                          animation: _entranceCtrl,
-                                          builder: (_, __) {
-                                            final v = Curves.easeOutCubic.transform(_entranceCtrl.value);
-                                            return Text(
-                                              (adherence * v).toStringAsFixed(0),
-                                              style: AppTextStyles.h1(context, color: isPerfect ? tc.accentDark : tc.orange),
-                                            );
-                                          },
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(bottom: GR.xs + 2),
-                                          child: Text(
-                                            '%',
-                                            style: AppTextStyles.h3(context, color: tc.textMuted),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Status pill
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
-                                decoration: BoxDecoration(
-                                  color: isPerfect ? tc.accentLight.withValues(alpha: 0.4) : tc.orangeLight.withValues(alpha: 0.4),
-                                  borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                                  border: Border.all(
-                                    color: isPerfect ? tc.accentLight : tc.orangeLight,
-                                  ),
-                                ),
-                                child: Text(
-                                  isPerfect ? 'Perfect' : 'Partial',
-                                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: isPerfect ? tc.accentDark : tc.orange),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: GR.lg),
-                          // Dot matrix scale
-                          _buildDotMatrixScale(adherence),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: GR.lg),
+                        _buildDotMatrixScale(adherence),
+                        SizedBox(height: GR.sm),
+                        Text(
+                          isPerfect ? 'Perfect day — all doses taken' : '$adherence% adherence — some doses missed',
+                          style: AppTextStyles.caption(context, color: tc.textSecondary),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -253,29 +286,29 @@ class _DayDetailScreenState extends State<DayDetailScreen>
                 child: Row(
                   children: [
                     _buildStatCard(
-                      label: 'Taken',
-                      value: isPerfect ? '5' : '3',
-                      unit: 'supplements',
-                      color: tc.accentDark,
-                      bgColor: tc.accentBg,
+                      label: 'Doses',
+                      value: '${pillsForDay.fold<int>(0, (sum, s) => sum + (s['pills'] as List).length)}',
+                      unit: 'scheduled',
+                      color: tc.textPrimary,
+                      bgColor: tc.surface,
                       delay: 0,
                     ),
                     SizedBox(width: GR.sm),
                     _buildStatCard(
-                      label: 'Missed',
-                      value: isPerfect ? '0' : '2',
+                      label: 'Taken',
+                      value: '${pillsForDay.fold<int>(0, (sum, s) => sum + (s['pills'] as List).where((p) => p['taken'] as bool).length)}',
                       unit: 'doses',
-                      color: tc.orange,
-                      bgColor: tc.orangeLight.withValues(alpha: 0.4),
+                      color: tc.accentDark,
+                      bgColor: tc.accentBg,
                       delay: 100,
                     ),
                     SizedBox(width: GR.sm),
                     _buildStatCard(
-                      label: 'Streak',
-                      value: '12',
-                      unit: 'days',
-                      color: tc.blue,
-                      bgColor: tc.blue.withValues(alpha: 0.1),
+                      label: 'Missed',
+                      value: '${pillsForDay.fold<int>(0, (sum, s) => sum + (s['pills'] as List).where((p) => !(p['taken'] as bool)).length)}',
+                      unit: 'doses',
+                      color: tc.textSecondary,
+                      bgColor: tc.surface,
                       delay: 200,
                     ),
                   ],
@@ -283,20 +316,14 @@ class _DayDetailScreenState extends State<DayDetailScreen>
               ),
             ),
 
-            // ── Monthly Calendar with Dot Matrix ─────────────────
+            // ── Monthly Calendar ─────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
                 child: GoldenCard(
                   padding: EdgeInsets.all(GR.lg),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        DateFormat('MMMM yyyy').format(widget.selectedDate),
-                        style: AppTextStyles.h3(context),
-                      ),
-                      SizedBox(height: GR.md),
                       // Day labels
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -331,7 +358,7 @@ class _DayDetailScreenState extends State<DayDetailScreen>
               ),
             ),
 
-            // ── Time Slot Breakdown ──────────────────────────────
+            // ── Schedule Breakdown ─────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
@@ -343,18 +370,20 @@ class _DayDetailScreenState extends State<DayDetailScreen>
                       style: AppTextStyles.h3(context),
                     ),
                     SizedBox(height: GR.md),
-                    _buildTimeSlotRow(context, 'Morning', '08:00', 3, 2, Icons.wb_sunny_rounded, const Color(0xFFFFB74D)),
-                    SizedBox(height: GR.sm),
-                    _buildTimeSlotRow(context, 'Afternoon', '13:00', 2, 2, Icons.wb_cloudy_rounded, const Color(0xFF4FC3F7)),
-                    SizedBox(height: GR.sm),
-                    _buildTimeSlotRow(context, 'Evening', '20:00', 2, 1, Icons.nights_stay_rounded, const Color(0xFF9575CD)),
+                    ...pillsForDay.asMap().entries.map((entry) {
+                      final slot = entry.value;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: GR.sm),
+                        child: _buildExpandableTimeSlot(context, slot),
+                      );
+                    }),
                   ],
                 ),
               ),
             ),
 
             // Bottom padding
-            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            SliverPadding(padding: EdgeInsets.only(bottom: GR.xxl)),
           ],
         ),
       ),
@@ -378,7 +407,7 @@ class _DayDetailScreenState extends State<DayDetailScreen>
             final isActive = i < visibleCount;
             final intensity = isActive ? (i / activeCount).clamp(0.3, 1.0) : 0.0;
             final color = isActive
-                ? Color.lerp(tc.amber, tc.accentDark, intensity)!
+                ? Color.lerp(tc.textMuted, tc.accentDark, intensity)!
                 : tc.border;
 
             return Container(
@@ -428,7 +457,9 @@ class _DayDetailScreenState extends State<DayDetailScreen>
               }
 
               final day = days[dayIndex];
-              final isSelected = day.day == widget.selectedDate.day;
+              final isSelected = day.day == _selectedDay.day &&
+                  day.month == _selectedDay.month &&
+                  day.year == _selectedDay.year;
               final isToday = day.day == DateTime.now().day &&
                   day.month == DateTime.now().month &&
                   day.year == DateTime.now().year;
@@ -444,37 +475,32 @@ class _DayDetailScreenState extends State<DayDetailScreen>
                 child: Transform.scale(
                   scale: 0.5 + (0.5 * easedProgress),
                   child: GestureDetector(
-                    onTap: () {
-                      Haptics.selection();
-                      // Could navigate to that day
-                    },
+                    onTap: () => _onDaySelected(day),
                     child: Container(
                       width: 36,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? tc.accent.withValues(alpha: 0.15)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                        border: Border.all(
-                          color: isSelected
-                              ? tc.accent
-                              : isToday
-                                  ? tc.accent.withValues(alpha: 0.5)
-                                  : Colors.transparent,
-                          width: isSelected ? 2 : 1,
-                        ),
+                        color: isSelected ? tc.accent.withValues(alpha: 0.12) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(GR.radiusSm),
+                        border: isToday
+                            ? Border.all(color: tc.accent, width: 1.5)
+                            : isSelected
+                                ? Border.all(color: tc.accent.withValues(alpha: 0.3))
+                                : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             '${day.day}',
-                            style: TextStyle(
-                              fontFamily: 'Artific',
-                              fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              color: isSelected ? tc.accentDark : tc.textPrimary,
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              color: isToday
+                                  ? tc.accent
+                                  : isSelected
+                                      ? tc.accentDark
+                                      : tc.textPrimary,
                             ),
                           ),
                           SizedBox(height: 2),
@@ -490,7 +516,7 @@ class _DayDetailScreenState extends State<DayDetailScreen>
                                 margin: EdgeInsets.symmetric(horizontal: 1),
                                 decoration: BoxDecoration(
                                   color: dotActive
-                                      ? isPerfect ? tc.accent : tc.orange
+                                      ? isPerfect ? tc.accent : tc.textSecondary
                                       : tc.border,
                                   borderRadius: BorderRadius.circular(2),
                                 ),
@@ -548,66 +574,190 @@ class _DayDetailScreenState extends State<DayDetailScreen>
         .slideY(begin: 0.3, end: 0, delay: Duration(milliseconds: 400 + delay), duration: 500.ms, curve: Curves.easeOutCubic);
   }
 
-  Widget _buildTimeSlotRow(
-    BuildContext context,
-    String slot,
-    String time,
-    int total,
-    int taken,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildExpandableTimeSlot(BuildContext context, Map<String, dynamic> slot) {
     final tc = ThemeColors.of(context);
+    final slotName = slot['slot'] as String;
+    final time = slot['time'] as String;
+    final icon = slot['icon'] as IconData;
+    final pills = slot['pills'] as List<Map<String, dynamic>>;
+    final total = pills.length;
+    final taken = pills.where((p) => p['taken'] as bool).length;
+    final isExpanded = _expandedSlots.contains(slotName);
+
+    Color slotColor;
+    switch (slotName) {
+      case 'Morning':
+        slotColor = tc.textPrimary;
+        break;
+      case 'Afternoon':
+        slotColor = tc.textSecondary;
+        break;
+      case 'Evening':
+        slotColor = tc.textMuted;
+        break;
+      default:
+        slotColor = tc.accent;
+    }
 
     return GoldenCard(
       padding: EdgeInsets.all(GR.md + 2),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: GR.lg + 2,
-            height: GR.lg + 2,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-            ),
-            child: Icon(icon, size: GR.iconSm, color: color),
-          ),
-          SizedBox(width: GR.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header row — tappable to expand
+          GestureDetector(
+            onTap: () => _toggleSlot(slotName),
+            child: Row(
               children: [
-                Text(
-                  slot,
-                  style: AppTextStyles.body(context, weight: FontWeight.w600),
+                Container(
+                  width: GR.lg + 2,
+                  height: GR.lg + 2,
+                  decoration: BoxDecoration(
+                    color: slotColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                  ),
+                  child: Icon(icon, size: GR.iconSm, color: slotColor),
                 ),
-                SizedBox(height: GR.xs - 2),
+                SizedBox(width: GR.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        slotName,
+                        style: AppTextStyles.body(context, weight: FontWeight.w600),
+                      ),
+                      SizedBox(height: GR.xs - 2),
+                      Text(
+                        time,
+                        style: AppTextStyles.bodySmall(context),
+                      ),
+                    ],
+                  ),
+                ),
+                // Mini dot matrix
+                Row(
+                  children: List.generate(total, (i) {
+                    final isTaken = i < taken;
+                    return Container(
+                      width: 6,
+                      height: 6,
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: isTaken ? slotColor : tc.border,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(width: GR.sm),
                 Text(
-                  time,
-                  style: AppTextStyles.bodySmall(context),
+                  '$taken/$total',
+                  style: AppTextStyles.caption(context, weight: FontWeight.w700, color: slotColor),
+                ),
+                SizedBox(width: GR.sm),
+                // Expand/collapse chevron
+                AnimatedRotation(
+                  turns: isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: tc.textSecondary,
+                  ),
                 ),
               ],
             ),
           ),
-          // Mini dot matrix
-          Row(
-            children: List.generate(total, (i) {
-              final isTaken = i < taken;
-              return Container(
-                width: 6,
-                height: 6,
-                margin: EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: isTaken ? color : tc.border,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
-          ),
-          SizedBox(width: GR.sm),
-          Text(
-            '$taken/$total',
-            style: AppTextStyles.caption(context, weight: FontWeight.w700, color: color),
+
+          // Expanded pill list
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 300),
+            firstCurve: Curves.easeOutCubic,
+            secondCurve: Curves.easeInCubic,
+            sizeCurve: Curves.easeOutCubic,
+            crossFadeState: isExpanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: Column(
+              children: [
+                SizedBox(height: GR.sm + 2),
+                Divider(height: 1, color: tc.border),
+                SizedBox(height: GR.sm + 2),
+                ...pills.asMap().entries.map((pillEntry) {
+                  final i = pillEntry.key;
+                  final pill = pillEntry.value;
+                  final isTaken = pill['taken'] as bool;
+                  final isLast = i == pills.length - 1;
+
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: isLast ? 0 : GR.sm + 2),
+                    child: Row(
+                      children: [
+                        // Status icon
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: isTaken
+                                ? tc.accent.withValues(alpha: 0.12)
+                                : tc.surface,
+                            borderRadius: BorderRadius.circular(GR.radiusSm),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              isTaken ? Icons.check_rounded : Icons.close_rounded,
+                              size: 16,
+                              color: isTaken ? tc.accent : tc.textMuted,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: GR.md),
+                        // Pill name + dosage
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pill['name'] as String,
+                                style: AppTextStyles.body(
+                                  context,
+                                  weight: isTaken ? FontWeight.w400 : FontWeight.w500,
+                                  color: isTaken ? tc.textMuted : tc.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: GR.xs - 2),
+                              Text(
+                                pill['dosage'] as String,
+                                style: AppTextStyles.caption(context, color: tc.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Taken/Missed label
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 1),
+                          decoration: BoxDecoration(
+                            color: isTaken ? tc.accentBg : tc.surface,
+                            borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                          ),
+                          child: Text(
+                            isTaken ? 'Taken' : 'Missed',
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: FontWeight.w600,
+                              color: isTaken ? tc.accentDark : tc.textMuted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+            secondChild: const SizedBox.shrink(),
           ),
         ],
       ),

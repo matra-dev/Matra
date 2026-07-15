@@ -31,7 +31,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
       'dosage': 'Fish Oil',
       'schedule': 'Daily — 08:00',
       'stock': 45,
-      'color': AppColors.blue,
+      'color': AppColors.textSecondary,
       'icon': Icons.water_drop_rounded,
     },
     {
@@ -39,7 +39,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
       'dosage': '400mg',
       'schedule': 'Evening — 20:00',
       'stock': 12,
-      'color': AppColors.purple,
+      'color': AppColors.textMuted,
       'icon': Icons.bolt_rounded,
     },
   ];
@@ -250,7 +250,7 @@ class _TreatmentScreenState extends State<TreatmentScreen>
                       child: _QuickActionButton(
                         icon: Icons.sentiment_satisfied_rounded,
                         label: 'Mood',
-                        color: tc.purple,
+                        color: tc.textSecondary,
                         delay: 150,
                         controller: _entranceCtrl,
                         onTap: _showMoodBottomSheet,
@@ -431,9 +431,9 @@ class _MoodBottomSheetState extends State<_MoodBottomSheet> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: tc.purple.withValues(alpha: 0.08),
+                        color: tc.surface,
                         borderRadius: BorderRadius.circular(GR.radiusLg - 1),
-                        border: Border.all(color: tc.purple.withValues(alpha: 0.15)),
+                        border: Border.all(color: tc.border),
                       ),
                       child: Center(
                         child: Text(

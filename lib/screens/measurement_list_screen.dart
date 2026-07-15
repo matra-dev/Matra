@@ -17,16 +17,16 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
   String _query = '';
 
   final List<Map<String, dynamic>> _measurements = [
-    {'name': 'Blood Pressure', 'unit': 'mmHg', 'icon': Icons.favorite_rounded, 'color': AppColors.accentDark},
-    {'name': 'Resting Heart Rate', 'unit': 'bpm', 'icon': Icons.monitor_heart_rounded, 'color': AppColors.red},
-    {'name': 'Weight', 'unit': 'kg', 'icon': Icons.scale_rounded, 'color': AppColors.blue},
-    {'name': 'Blood Sugar (before meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.orange},
-    {'name': 'Blood Sugar (after meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.orange},
-    {'name': 'Temperature', 'unit': '°C', 'icon': Icons.thermostat_rounded, 'color': AppColors.purple},
-    {'name': 'Oxygen Saturation', 'unit': '%', 'icon': Icons.air_rounded, 'color': const Color(0xFF00BCD4)},
-    {'name': 'Sleep Duration', 'unit': 'hours', 'icon': Icons.bedtime_rounded, 'color': const Color(0xFF3F51B5)},
-    {'name': 'Steps', 'unit': 'count', 'icon': Icons.directions_walk_rounded, 'color': const Color(0xFF4CAF50)},
-    {'name': 'Vitamin D Level', 'unit': 'ng/mL', 'icon': Icons.wb_sunny_rounded, 'color': AppColors.amber},
+    {'name': 'Blood Pressure', 'unit': 'mmHg', 'icon': Icons.favorite_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Resting Heart Rate', 'unit': 'bpm', 'icon': Icons.monitor_heart_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Weight', 'unit': 'kg', 'icon': Icons.scale_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Blood Sugar (before meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Blood Sugar (after meal)', 'unit': 'mg/dL', 'icon': Icons.water_drop_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Temperature', 'unit': '°C', 'icon': Icons.thermostat_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Oxygen Saturation', 'unit': '%', 'icon': Icons.air_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Sleep Duration', 'unit': 'hours', 'icon': Icons.bedtime_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Steps', 'unit': 'count', 'icon': Icons.directions_walk_rounded, 'color': AppColors.textPrimary},
+    {'name': 'Vitamin D Level', 'unit': 'ng/mL', 'icon': Icons.wb_sunny_rounded, 'color': AppColors.textPrimary},
   ];
 
   @override
@@ -92,12 +92,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                   const Spacer(),
                   Text(
                     'Select from List',
-                    style: TextStyle(
-                      fontFamily: 'Artific',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: tc.textPrimary,
-                    ),
+                    style: AppTextStyles.body(context, weight: FontWeight.w800),
                   ),
                   const Spacer(),
                   SizedBox(width: GR.lg + 2),
@@ -128,18 +123,10 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                       child: TextField(
                         controller: _searchController,
                         onChanged: (v) => setState(() => _query = v),
-                        style: TextStyle(
-                          fontFamily: 'Artific',
-                          fontSize: 16,
-                          color: tc.textPrimary,
-                        ),
+                        style: AppTextStyles.body(context),
                         decoration: InputDecoration(
                           hintText: 'Search',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Artific',
-                            fontSize: 16,
-                            color: tc.textMuted,
-                          ),
+                          hintStyle: AppTextStyles.body(context, color: tc.textMuted),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -163,13 +150,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                 children: [
                   Text(
                     'Popular measurements',
-                    style: TextStyle(
-                      fontFamily: 'Artific',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: tc.textMuted,
-                      letterSpacing: 0.5,
-                    ),
+                    style: AppTextStyles.caption(context, weight: FontWeight.w600, color: tc.textMuted),
                   ),
                 ],
               ),
@@ -205,12 +186,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
                           Expanded(
                             child: Text(
                               item['name']!,
-                              style: TextStyle(
-                                fontFamily: 'Artific',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: tc.textPrimary,
-                              ),
+                              style: AppTextStyles.body(context, weight: FontWeight.w500),
                             ),
                           ),
                           Icon(Icons.chevron_right_rounded, size: GR.iconSm, color: tc.textMuted),

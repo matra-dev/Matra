@@ -372,16 +372,17 @@ class _TimeSlotSection extends StatelessWidget {
     required this.selectedDate,
   });
 
-  Color get _slotColor {
+  Color _slotColor(BuildContext context) {
+    final tc = ThemeColors.of(context);
     switch (slot) {
       case 'Morning':
-        return const Color(0xFFFFB74D);
+        return tc.textPrimary;
       case 'Afternoon':
-        return const Color(0xFF4FC3F7);
+        return tc.textSecondary;
       case 'Evening':
-        return const Color(0xFF9575CD);
+        return tc.textMuted;
       default:
-        return AppColors.accent;
+        return tc.accent;
     }
   }
 
@@ -412,36 +413,26 @@ class _TimeSlotSection extends StatelessWidget {
                 width: GR.lg + 2,
                 height: GR.lg + 2,
                 decoration: BoxDecoration(
-                  color: _slotColor.withValues(alpha: 0.1),
+                  color: _slotColor(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                 ),
-                child: Icon(_slotIcon, size: GR.iconSm, color: _slotColor),
+                child: Icon(_slotIcon, size: GR.iconSm, color: _slotColor(context)),
               ),
               SizedBox(width: GR.sm + 2),
               Text(
                 slot,
-                style: TextStyle(
-                  fontFamily: 'Artific',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: _slotColor,
-                ),
+                style: AppTextStyles.body(context, weight: FontWeight.w600, color: _slotColor(context)),
               ),
               SizedBox(width: GR.sm + 2),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
                 decoration: BoxDecoration(
-                  color: _slotColor.withValues(alpha: 0.08),
+                  color: _slotColor(context).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(GR.radiusSm),
                 ),
                 child: Text(
                   '${supplements.length}',
-                  style: TextStyle(
-                    fontFamily: 'Artific',
-                    color: _slotColor,
-                    fontSize: GR.textSm + 1,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.caption(context, weight: FontWeight.w600, color: _slotColor(context)),
                 ),
               ),
             ],
@@ -512,7 +503,7 @@ class _SupplementRow extends StatelessWidget {
             SplitCapsuleIcon(
               checked: isTaken,
               onTap: onToggle,
-              size: 48,
+              size: 36,
             ),
             SizedBox(width: GR.md),
             Expanded(
@@ -521,23 +512,13 @@ class _SupplementRow extends StatelessWidget {
                 children: [
                   Text(
                     supplement.name,
-                    style: TextStyle(
-                      fontFamily: 'Artific',
-                      fontSize: 16,
-                      fontWeight: isTaken ? FontWeight.w400 : FontWeight.w500,
-                      color: isTaken ? tc.textMuted : tc.textPrimary,
-                    ),
+                    style: AppTextStyles.body(context, weight: isTaken ? FontWeight.w400 : FontWeight.w500, color: isTaken ? tc.textMuted : tc.textPrimary),
                   ),
                   if (!isTaken) ...[
                     SizedBox(height: GR.xs - 2),
                     Text(
                       supplement.dosageText,
-                      style: TextStyle(
-                        fontFamily: 'Artific',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: tc.textMuted,
-                      ),
+                      style: AppTextStyles.bodySmall(context, color: tc.textMuted),
                     ),
                   ],
                 ],
