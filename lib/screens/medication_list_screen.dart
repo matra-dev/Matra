@@ -20,78 +20,84 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       'dosage': '2000 IU',
       'schedule': 'Daily — 08:00',
       'stock': 29,
-      'color': AppColors.accentDark,
+      'maxStock': 30,
       'icon': Icons.wb_sunny_rounded,
       'form': 'Softgel',
       'takenWith': 'Food',
       'nextRefill': 'Jul 12',
       'adherence': 96,
       'times': ['08:00'],
+      'takenToday': true,
     },
     {
       'name': 'Omega-3',
       'dosage': 'Fish Oil',
       'schedule': 'Daily — 08:00',
       'stock': 45,
-      'color': AppColors.blue,
+      'maxStock': 60,
       'icon': Icons.water_drop_rounded,
       'form': 'Softgel',
       'takenWith': 'Food',
       'nextRefill': 'Aug 05',
       'adherence': 92,
       'times': ['08:00'],
+      'takenToday': true,
     },
     {
       'name': 'Magnesium',
       'dosage': '400mg',
       'schedule': 'Evening — 20:00',
       'stock': 12,
-      'color': AppColors.purple,
+      'maxStock': 30,
       'icon': Icons.bolt_rounded,
       'form': 'Tablet',
       'takenWith': 'Water',
       'nextRefill': 'Jun 18',
       'adherence': 88,
       'times': ['20:00'],
+      'takenToday': false,
     },
     {
       'name': 'Vitamin B12',
       'dosage': '1000 mcg',
       'schedule': 'Morning — 08:00',
       'stock': 60,
-      'color': AppColors.orange,
+      'maxStock': 60,
       'icon': Icons.wb_sunny_rounded,
       'form': 'Sublingual',
       'takenWith': 'Empty stomach',
       'nextRefill': 'Sep 01',
       'adherence': 98,
       'times': ['08:00'],
+      'takenToday': true,
     },
     {
       'name': 'Zinc',
       'dosage': '25 mg',
       'schedule': 'Daily — 13:00',
       'stock': 8,
-      'color': AppColors.red,
+      'maxStock': 30,
       'icon': Icons.wb_cloudy_rounded,
       'form': 'Capsule',
       'takenWith': 'Food',
       'nextRefill': 'Jun 14',
       'adherence': 85,
       'times': ['13:00'],
+      'takenToday': false,
     },
     {
       'name': 'Probiotics',
       'dosage': '50B CFU',
       'schedule': 'Morning — 08:00',
       'stock': 15,
-      'color': AppColors.accentDark,
+      'maxStock': 30,
       'icon': Icons.wb_sunny_rounded,
       'form': 'Capsule',
       'takenWith': 'Empty stomach',
       'nextRefill': 'Jun 22',
       'adherence': 90,
       'times': ['08:00'],
+      'takenToday': true,
     },
   ];
 
@@ -135,7 +141,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
         child: CustomScrollView(
           physics: const ClampingScrollPhysics(),
           slivers: [
-            // Header with back button
+            // Header with back + add
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.sm, GR.lg, 0),
@@ -151,25 +157,48 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                         height: GR.lg + 2,
                         decoration: BoxDecoration(
                           color: tc.cardBg,
-                          borderRadius: BorderRadius.circular(GR.radiusMd),
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
                           border: Border.all(color: tc.border),
                         ),
                         child: Icon(Icons.arrow_back_rounded, size: GR.iconSm, color: tc.textPrimary),
                       ),
                     ),
                     const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Haptics.light();
+                        // Navigate to add medication
+                      },
+                      child: Container(
+                        width: GR.lg + 2,
+                        height: GR.lg + 2,
+                        decoration: BoxDecoration(
+                          color: tc.accent,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 1),
+                        ),
+                        child: Icon(Icons.add_rounded, size: GR.iconSm, color: Colors.white),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
 
-            // Title — h2 like Settings page, not h1
+            // Title
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
+                child: Text('My Medications', style: AppTextStyles.h2(context)),
+              ),
+            ),
+
+            // Subtitle count
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(GR.lg, GR.xs, GR.lg, 0),
                 child: Text(
-                  'My Medications',
-                  style: AppTextStyles.h2(context),
+                  '${_medications.length} medications · ${_medications.where((m) => m['takenToday'] as bool).length} taken today',
+                  style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
                 ),
               ),
             ),
@@ -178,7 +207,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(GR.lg, GR.md, GR.lg, GR.md),
-                child: const Divider(height: 1, color: AppColors.border),
+                child: Divider(height: 1, color: tc.border),
               ),
             ),
 
@@ -189,66 +218,7 @@ class _MedicationListScreenState extends State<MedicationListScreen>
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final med = _medications[index];
-                    final isLow = (med['stock'] as int) < 15;
-
-                    return GestureDetector(
-                      onTap: () => _showMedicationDetail(med),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Icon — bare, no background
-                            SizedBox(
-                              width: 48,
-                              height: 48,
-                              child: Icon(
-                                med['icon'] as IconData,
-                                size: 26,
-                                color: med['color'] as Color,
-                              ),
-                            ),
-                            SizedBox(width: GR.md),
-                            // Name + schedule
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    med['name'] as String,
-                                    style: AppTextStyles.body(context, weight: FontWeight.w500),
-                                  ),
-                                  SizedBox(height: GR.xs - 2),
-                                  Text(
-                                    med['schedule'] as String,
-                                    style: AppTextStyles.bodySmall(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Stock badge
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: GR.sm + 2, vertical: GR.xs + 2),
-                              decoration: BoxDecoration(
-                                color: isLow ? AppColors.orangeLight.withValues(alpha: 0.5) : AppColors.accentBg,
-                                borderRadius: BorderRadius.circular(GR.radiusSm + 2),
-                              ),
-                              child: Text(
-                                '${med['stock']}',
-                                style: AppTextStyles.caption(
-                                  context,
-                                  weight: FontWeight.w700,
-                                  color: isLow ? AppColors.orange : AppColors.accentDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                        .animate(controller: _entranceCtrl)
-                        .fadeIn(delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms)
-                        .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms, curve: Curves.easeOutCubic);
+                    return _buildMedicationItem(context, med, index);
                   },
                   childCount: _medications.length,
                 ),
@@ -259,27 +229,221 @@ class _MedicationListScreenState extends State<MedicationListScreen>
       ),
     );
   }
+
+  Widget _buildMedicationItem(BuildContext context, Map<String, dynamic> med, int index) {
+    final tc = ThemeColors.of(context);
+    final stock = med['stock'] as int;
+    final maxStock = med['maxStock'] as int;
+    final adherence = med['adherence'] as int;
+    final isLow = stock < 15;
+    final takenToday = med['takenToday'] as bool;
+    final stockRatio = (stock / maxStock).clamp(0.0, 1.0);
+
+    return GestureDetector(
+      onTap: () => _showMedicationDetail(med),
+      child: Container(
+        margin: EdgeInsets.only(bottom: GR.sm + 2),
+        padding: EdgeInsets.all(GR.md),
+        decoration: BoxDecoration(
+          color: tc.cardBg,
+          borderRadius: BorderRadius.circular(GR.radiusLg - 2),
+          border: Border.all(color: tc.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Icon with background circle
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
+                borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+              ),
+              child: Icon(
+                med['icon'] as IconData,
+                size: 24,
+                color: takenToday ? tc.accent : tc.textMuted,
+              ),
+            ),
+            SizedBox(width: GR.md),
+
+            // Name + schedule + stock bar
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          med['name'] as String,
+                          style: AppTextStyles.body(context, weight: FontWeight.w600),
+                        ),
+                      ),
+                      if (takenToday)
+                        Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: tc.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.check_rounded, size: 12, color: Colors.white),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: GR.xs - 1),
+                  Text(
+                    med['schedule'] as String,
+                    style: AppTextStyles.caption(context, color: tc.textSecondary),
+                  ),
+                  SizedBox(height: GR.xs + 2),
+                  // Stock bar
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: tc.surface,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: stockRatio,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isLow ? tc.textSecondary : tc.accent,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: GR.sm),
+                      Text(
+                        '$stock left',
+                        style: AppTextStyles.micro(context,
+                            weight: FontWeight.w600,
+                            color: isLow ? tc.textSecondary : tc.textMuted),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(width: GR.md),
+
+            // Adherence ring
+            _AdherenceRing(adherence: adherence, size: 42),
+          ],
+        ),
+      ),
+    )
+        .animate(controller: _entranceCtrl)
+        .fadeIn(delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms)
+        .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 100 + index * 60), duration: 400.ms, curve: Curves.easeOutCubic)
+        .scale(
+            begin: const Offset(0.96, 0.96),
+            end: const Offset(1.0, 1.0),
+            delay: Duration(milliseconds: 100 + index * 60),
+            duration: 400.ms,
+            curve: Curves.easeOutBack);
+  }
 }
 
-// ───────────────────────────────────────────────
-// Medication Detail Bottom Sheet
-// ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADHERENCE RING
+// ═══════════════════════════════════════════════════════════════════════════════
+class _AdherenceRing extends StatelessWidget {
+  final int adherence;
+  final double size;
 
-class _MedicationDetailSheet extends StatelessWidget {
+  const _AdherenceRing({required this.adherence, this.size = 42});
+
+  @override
+  Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    final color = adherence >= 95
+        ? tc.accent
+        : adherence >= 85
+            ? tc.textSecondary
+            : tc.textMuted;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CircularProgressIndicator(
+            value: adherence / 100,
+            strokeWidth: 3.5,
+            backgroundColor: tc.surface,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+          Center(
+            child: Text(
+              '$adherence',
+              style: AppTextStyles.micro(context, weight: FontWeight.w800, color: tc.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MEDICATION DETAIL BOTTOM SHEET
+// ═══════════════════════════════════════════════════════════════════════════════
+class _MedicationDetailSheet extends StatefulWidget {
   final Map<String, dynamic> med;
 
   const _MedicationDetailSheet({required this.med});
 
   @override
+  State<_MedicationDetailSheet> createState() => _MedicationDetailSheetState();
+}
+
+class _MedicationDetailSheetState extends State<_MedicationDetailSheet>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
-    final isLow = (med['stock'] as int) < 15;
+    final med = widget.med;
+    final stock = med['stock'] as int;
+    final maxStock = med['maxStock'] as int;
+    final isLow = stock < 15;
     final adherence = med['adherence'] as int;
     final adherenceColor = adherence >= 95
-        ? tc.accentDark
+        ? tc.accent
         : adherence >= 85
-            ? tc.orange
-            : tc.red;
+            ? tc.textSecondary
+            : tc.textMuted;
+    final takenToday = med['takenToday'] as bool;
 
     return Container(
       decoration: BoxDecoration(
@@ -303,7 +467,7 @@ class _MedicationDetailSheet extends StatelessWidget {
               ),
             ),
 
-            // Header: icon + name + dosage
+            // Header: icon + name + dosage + taken badge
             Padding(
               padding: EdgeInsets.symmetric(horizontal: GR.lg),
               child: Row(
@@ -313,13 +477,13 @@ class _MedicationDetailSheet extends StatelessWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: (med['color'] as Color).withValues(alpha: 0.1),
+                      color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
                       borderRadius: BorderRadius.circular(GR.radiusMd + 4),
                     ),
                     child: Icon(
                       med['icon'] as IconData,
                       size: 28,
-                      color: med['color'] as Color,
+                      color: takenToday ? tc.accent : tc.textMuted,
                     ),
                   ),
                   SizedBox(width: GR.md),
@@ -327,21 +491,34 @@ class _MedicationDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          med['name'] as String,
-                          style: AppTextStyles.h3(context),
-                        ),
+                        Text(med['name'] as String, style: AppTextStyles.h3(context)),
                         SizedBox(height: GR.xs - 2),
-                        Text(
-                          med['dosage'] as String,
-                          style: AppTextStyles.bodySmall(context),
+                        Text(med['dosage'] as String, style: AppTextStyles.bodySmall(context)),
+                        SizedBox(height: GR.xs),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: GR.sm, vertical: GR.xs - 2),
+                          decoration: BoxDecoration(
+                            color: takenToday ? tc.accent.withValues(alpha: 0.1) : tc.surface,
+                            borderRadius: BorderRadius.circular(GR.radiusSm + 2),
+                          ),
+                          child: Text(
+                            takenToday ? 'Taken today' : 'Not taken yet',
+                            style: AppTextStyles.caption(
+                              context,
+                              weight: FontWeight.w700,
+                              color: takenToday ? tc.accent : tc.textMuted,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-            ),
+            )
+                .animate(controller: _ctrl)
+                .fadeIn(delay: 0.ms, duration: 400.ms)
+                .slideY(begin: 0.15, end: 0, delay: 0.ms, duration: 400.ms, curve: Curves.easeOutCubic),
 
             SizedBox(height: GR.lg),
 
@@ -353,10 +530,11 @@ class _MedicationDetailSheet extends StatelessWidget {
                   _buildStatCard(
                     context,
                     label: 'Stock',
-                    value: '${med['stock']}',
-                    unit: 'left',
-                    color: isLow ? AppColors.orange : AppColors.accentDark,
-                    bgColor: isLow ? AppColors.orangeLight.withValues(alpha: 0.4) : AppColors.accentBg,
+                    value: '$stock',
+                    unit: 'of $maxStock',
+                    color: isLow ? tc.textSecondary : tc.accent,
+                    bgColor: isLow ? tc.surface : tc.accent.withValues(alpha: 0.08),
+                    progress: stock / maxStock,
                   ),
                   SizedBox(width: GR.sm),
                   _buildStatCard(
@@ -365,11 +543,15 @@ class _MedicationDetailSheet extends StatelessWidget {
                     value: '$adherence%',
                     unit: 'this month',
                     color: adherenceColor,
-                    bgColor: adherenceColor.withValues(alpha: 0.1),
+                    bgColor: tc.surface,
+                    progress: adherence / 100,
                   ),
                 ],
               ),
-            ),
+            )
+                .animate(controller: _ctrl)
+                .fadeIn(delay: 100.ms, duration: 400.ms)
+                .slideY(begin: 0.15, end: 0, delay: 100.ms, duration: 400.ms, curve: Curves.easeOutCubic),
 
             SizedBox(height: GR.lg),
 
@@ -381,16 +563,19 @@ class _MedicationDetailSheet extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildDetailRow(context, 'Schedule', med['schedule'] as String),
-                    const Divider(height: 1, color: AppColors.border),
+                    Divider(height: 1, color: tc.border),
                     _buildDetailRow(context, 'Form', med['form'] as String),
-                    const Divider(height: 1, color: AppColors.border),
+                    Divider(height: 1, color: tc.border),
                     _buildDetailRow(context, 'Take with', med['takenWith'] as String),
-                    const Divider(height: 1, color: AppColors.border),
+                    Divider(height: 1, color: tc.border),
                     _buildDetailRow(context, 'Next refill', med['nextRefill'] as String),
                   ],
                 ),
               ),
-            ),
+            )
+                .animate(controller: _ctrl)
+                .fadeIn(delay: 200.ms, duration: 400.ms)
+                .slideY(begin: 0.15, end: 0, delay: 200.ms, duration: 400.ms, curve: Curves.easeOutCubic),
 
             SizedBox(height: GR.lg),
 
@@ -400,10 +585,7 @@ class _MedicationDetailSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Reminder times',
-                    style: AppTextStyles.body(context, weight: FontWeight.w500),
-                  ),
+                  Text('Reminder times', style: AppTextStyles.body(context, weight: FontWeight.w500)),
                   SizedBox(height: GR.sm),
                   Wrap(
                     spacing: GR.sm,
@@ -411,7 +593,7 @@ class _MedicationDetailSheet extends StatelessWidget {
                       return Container(
                         padding: EdgeInsets.symmetric(horizontal: GR.sm + 4, vertical: GR.xs + 2),
                         decoration: BoxDecoration(
-                          color: AppColors.accentBg,
+                          color: tc.accent.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(GR.radiusSm + 2),
                         ),
                         child: Text(
@@ -419,7 +601,7 @@ class _MedicationDetailSheet extends StatelessWidget {
                           style: AppTextStyles.caption(
                             context,
                             weight: FontWeight.w600,
-                            color: AppColors.accentDark,
+                            color: tc.accentDark,
                           ),
                         ),
                       );
@@ -427,7 +609,87 @@ class _MedicationDetailSheet extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            )
+                .animate(controller: _ctrl)
+                .fadeIn(delay: 300.ms, duration: 400.ms)
+                .slideY(begin: 0.15, end: 0, delay: 300.ms, duration: 400.ms, curve: Curves.easeOutCubic),
+
+            SizedBox(height: GR.lg),
+
+            // Action buttons
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: GR.lg),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Haptics.medium();
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: tc.cardBg,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                          border: Border.all(color: tc.border),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit_rounded, size: 16, color: tc.textPrimary),
+                              SizedBox(width: GR.xs + 2),
+                              Text('Edit', style: AppTextStyles.bodySmall(context, weight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: GR.sm),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Haptics.success();
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: takenToday ? tc.surface : tc.accent,
+                          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                takenToday ? Icons.check_rounded : Icons.check_circle_rounded,
+                                size: 16,
+                                color: takenToday ? tc.textMuted : Colors.white,
+                              ),
+                              SizedBox(width: GR.xs + 2),
+                              Text(
+                                takenToday ? 'Taken' : 'Mark Taken',
+                                style: AppTextStyles.bodySmall(
+                                  context,
+                                  weight: FontWeight.w600,
+                                  color: takenToday ? tc.textMuted : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+                .animate(controller: _ctrl)
+                .fadeIn(delay: 400.ms, duration: 400.ms)
+                .slideY(begin: 0.15, end: 0, delay: 400.ms, duration: 400.ms, curve: Curves.easeOutCubic),
 
             SizedBox(height: GR.xxl),
           ],
@@ -443,6 +705,7 @@ class _MedicationDetailSheet extends StatelessWidget {
     required String unit,
     required Color color,
     required Color bgColor,
+    required double progress,
   }) {
     final tc = ThemeColors.of(context);
     return Expanded(
@@ -450,24 +713,33 @@ class _MedicationDetailSheet extends StatelessWidget {
         padding: EdgeInsets.all(GR.md),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(GR.radiusMd),
+          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: AppTextStyles.caption(context, color: tc.textSecondary),
-            ),
+            Text(label, style: AppTextStyles.caption(context, color: tc.textSecondary)),
             SizedBox(height: GR.xs),
-            Text(
-              value,
-              style: AppTextStyles.h3(context, color: color),
-            ),
+            Text(value, style: AppTextStyles.h3(context, color: color)),
             SizedBox(height: GR.xs - 2),
-            Text(
-              unit,
-              style: AppTextStyles.caption(context, color: tc.textSecondary),
+            Text(unit, style: AppTextStyles.caption(context, color: tc.textSecondary)),
+            SizedBox(height: GR.sm),
+            Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: tc.surface,
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress.clamp(0.0, 1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -481,15 +753,9 @@ class _MedicationDetailSheet extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
       child: Row(
         children: [
-          Text(
-            label,
-            style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
-          ),
+          Text(label, style: AppTextStyles.bodySmall(context, color: tc.textSecondary)),
           const Spacer(),
-          Text(
-            value,
-            style: AppTextStyles.body(context, weight: FontWeight.w500),
-          ),
+          Text(value, style: AppTextStyles.body(context, weight: FontWeight.w500)),
         ],
       ),
     );
