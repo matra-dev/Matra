@@ -36,6 +36,7 @@ class _MedicationListScreenState extends ConsumerState<MedicationListScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
     _entranceCtrl.dispose();
     super.dispose();
   }

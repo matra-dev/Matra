@@ -29,6 +29,8 @@ class _HealthDashboardScreenState extends State<HealthDashboardScreen>
   }
 
   @override void dispose() {
+    _morphCtrl.stop();
+    _countCtrl.stop();
     _morphCtrl.dispose();
     _countCtrl.dispose();
     super.dispose();
@@ -553,7 +555,7 @@ class _DetailSheetState extends State<_DetailSheet> with SingleTickerProviderSta
     _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     Future.delayed(const Duration(milliseconds: 80), () { if (mounted) _ctrl.forward(); });
   }
-  @override void dispose() { _ctrl.dispose(); super.dispose(); }
+  @override void dispose() { _ctrl.stop(); _ctrl.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     return Container(

@@ -11,6 +11,13 @@ from app.core.deps import get_current_user
 router = APIRouter(prefix="/dose-logs", tags=["dose-logs"])
 
 
+def _serialize_dose_log(log: DoseLog) -> dict:
+    """Convert dose log to JSON-serializable dict with string IDs."""
+    data = log.model_dump(mode='json')
+    data['id'] = str(log.id)
+    return data
+
+
 @router.post("", response_model=APIResponse)
 async def create_dose_log(log: DoseLogCreate, current_user: User = Depends(get_current_user)):
     # Verify supplement exists and belongs to user
@@ -31,7 +38,7 @@ async def create_dose_log(log: DoseLogCreate, current_user: User = Depends(get_c
     
     new_log = DoseLog(**log.model_dump(), user_id=str(current_user.id))
     await new_log.insert()
-    return APIResponse(success=True, data=new_log.model_dump(), message="Dose logged")
+    return APIResponse(success=True, data=_serialize_dose_log(new_log), message="Dose logged")
 
 
 @router.delete("/{supplement_id}/{date}", response_model=APIResponse)
@@ -76,7 +83,7 @@ async def get_logs_for_supplement(supplement_id: str, current_user: User = Depen
         ExpressionField("supplement_id") == supplement_id,
         ExpressionField("user_id") == str(current_user.id)
     ).to_list()
-    return APIResponse(success=True, data=[l.model_dump() for l in logs])
+    return APIResponse(success=True, data=[_serialize_dose_log(l) for l in logs])
 
 
 @router.get("/today/{date}", response_model=APIResponse)
@@ -85,4 +92,4 @@ async def get_today_logs(date: str, current_user: User = Depends(get_current_use
         ExpressionField("date") == date,
         ExpressionField("user_id") == str(current_user.id)
     ).to_list()
-    return APIResponse(success=True, data=[l.model_dump() for l in logs])
+    return APIResponse(success=True, data=[_serialize_dose_log(l) for l in logs])

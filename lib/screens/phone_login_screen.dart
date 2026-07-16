@@ -86,6 +86,9 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
     for (final f in _otpFocusNodes) {
       f.dispose();
     }
+    _rotateController.stop();
+    _pulseController.stop();
+    _entranceCtrl.stop();
     _rotateController.dispose();
     _pulseController.dispose();
     _entranceCtrl.dispose();

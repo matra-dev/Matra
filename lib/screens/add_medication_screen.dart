@@ -76,6 +76,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
   void _nextStep() {
     Haptics.medium();
     if (_currentStep < 2) {
+      // Stop animations before state change to prevent ticker leaks
+      _entranceCtrl.stop();
+      _dotsCtrl.stop();
       setState(() => _currentStep++);
       _entranceCtrl.reset();
       _dotsCtrl.reset();
@@ -88,6 +91,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
   void _prevStep() {
     Haptics.light();
     if (_currentStep > 0) {
+      // Stop animations before state change to prevent ticker leaks
+      _entranceCtrl.stop();
+      _dotsCtrl.stop();
       setState(() => _currentStep--);
       _entranceCtrl.reset();
       _dotsCtrl.reset();
@@ -95,6 +101,22 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
     } else {
       Navigator.pop(context);
     }
+  }
+
+  /// Convert HH:MM times to Morning/Afternoon/Evening slots based on hour
+  List<String> _timesToSlots(List<String> times) {
+    final slots = <String>{};
+    for (final time in times) {
+      final hour = int.tryParse(time.split(':')[0]) ?? 0;
+      if (hour >= 5 && hour < 12) {
+        slots.add('Morning');
+      } else if (hour >= 12 && hour < 17) {
+        slots.add('Afternoon');
+      } else {
+        slots.add('Evening');
+      }
+    }
+    return slots.toList();
   }
 
   void _saveMedication() async {
@@ -131,15 +153,21 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
       dosageUnit = dosageMatch.group(2) ?? 'mg';
     }
     
+    // Normalize dosage unit for backend compatibility
+    final normalizedUnit = _normalizeDosageUnit(dosageUnit);
+    
+    // Convert HH:MM times to Morning/Afternoon/Evening slots
+    final timeSlots = _timesToSlots(_selectedTimes);
+    
     // Create the supplement
     final supplement = Supplement(
       id: 'local_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       dosageAmount: dosageAmount,
-      dosageUnit: dosageUnit,
+      dosageUnit: normalizedUnit,
       frequency: _dose,
       stockCount: _stockCount,
-      timeSlots: _selectedTimes,
+      timeSlots: timeSlots,
       startDate: DateTime.now().toIso8601String().split('T')[0],
       createdAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -150,6 +178,31 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
     if (mounted) {
       Navigator.pop(context);
     }
+  }
+
+  /// Normalize dosage unit to match backend pattern
+  String _normalizeDosageUnit(String unit) {
+    final lower = unit.toLowerCase().trim();
+    // Map common variants to standard units
+    if (lower.contains('cap') || lower.contains('pill')) return 'capsules';
+    if (lower.contains('tablet')) return 'tablet';
+    if (lower.contains('softgel')) return 'softgels';
+    if (lower.contains('drop')) return 'drops';
+    if (lower.contains('scoop')) return 'scoops';
+    if (lower.contains('serving')) return 'serving';
+    if (lower.contains('unit')) return 'units';
+    if (lower.contains('cup')) return 'cup';
+    if (lower.contains('tsp')) return 'tsp';
+    if (lower.contains('spray')) return 'spray';
+    if (lower.contains('bottle')) return 'bottle';
+    if (lower.contains('packet')) return 'packet';
+    if (lower.contains('patch')) return 'patch';
+    if (lower.contains('puff')) return 'puff';
+    // Standard units
+    if (lower == 'mg' || lower == 'mcg' || lower == 'iu' || lower == 'g' || lower == 'ml') {
+      return lower;
+    }
+    return lower;
   }
 
   Future<void> _searchApi(String query) async {
@@ -291,6 +344,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
 
   @override
   void dispose() {
+    // Stop animations before disposing to prevent _dependents.isEmpty assertion
+    _entranceCtrl.stop();
+    _dotsCtrl.stop();
     _entranceCtrl.dispose();
     _dotsCtrl.dispose();
     _searchFocus.dispose();

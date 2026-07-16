@@ -41,6 +41,7 @@ class _AppointmentScreenState extends State<AppointmentScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
     _entranceCtrl.dispose();
     super.dispose();
   }

@@ -130,6 +130,9 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _dotsCtrl.stop();
+    _calendarCtrl.stop();
     _entranceCtrl.dispose();
     _dotsCtrl.dispose();
     _calendarCtrl.dispose();
@@ -150,6 +153,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
       _expandedSlots.clear(); // collapse all when switching days
     });
     // Re-trigger dot matrix animation for new day
+    _dotsCtrl.stop();
     _dotsCtrl.reset();
     _dotsCtrl.forward();
   }

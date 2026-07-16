@@ -10,17 +10,24 @@ from app.core.deps import get_current_user
 router = APIRouter(prefix="/supplements", tags=["supplements"])
 
 
+def _serialize_supplement(supplement: Supplement) -> dict:
+    """Convert supplement to JSON-serializable dict with string IDs."""
+    data = supplement.model_dump(mode='json')
+    data['id'] = str(supplement.id)
+    return data
+
+
 @router.post("", response_model=APIResponse)
 async def create_supplement(supplement: SupplementCreate, current_user: User = Depends(get_current_user)):
     new_supp = Supplement(**supplement.model_dump(), user_id=str(current_user.id))
     await new_supp.insert()
-    return APIResponse(success=True, data=new_supp.model_dump(), message="Supplement created")
+    return APIResponse(success=True, data=_serialize_supplement(new_supp), message="Supplement created")
 
 
 @router.get("", response_model=APIResponse)
 async def get_all_supplements(current_user: User = Depends(get_current_user)):
     supplements = await Supplement.find(ExpressionField("user_id") == str(current_user.id)).to_list()
-    return APIResponse(success=True, data=[s.model_dump() for s in supplements])
+    return APIResponse(success=True, data=[_serialize_supplement(s) for s in supplements])
 
 
 @router.get("/{supplement_id}", response_model=APIResponse)
@@ -34,7 +41,7 @@ async def get_supplement(supplement_id: str, current_user: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Supplement not found")
     if supplement.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Not authorized")
-    return APIResponse(success=True, data=supplement.model_dump())
+    return APIResponse(success=True, data=_serialize_supplement(supplement))
 
 
 @router.put("/{supplement_id}", response_model=APIResponse)
@@ -52,7 +59,7 @@ async def update_supplement(supplement_id: str, update: SupplementUpdate, curren
     for key, value in update_data.items():
         setattr(supplement, key, value)
     await supplement.save()
-    return APIResponse(success=True, data=supplement.model_dump(), message="Supplement updated")
+    return APIResponse(success=True, data=_serialize_supplement(supplement), message="Supplement updated")
 
 
 @router.delete("/{supplement_id}", response_model=APIResponse)

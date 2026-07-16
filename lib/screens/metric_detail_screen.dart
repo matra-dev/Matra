@@ -45,6 +45,9 @@ class _MetricDetailScreenState extends State<MetricDetailScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _dotsCtrl.stop();
+    _trendCtrl.stop();
     _entranceCtrl.dispose();
     _dotsCtrl.dispose();
     _trendCtrl.dispose();

@@ -43,6 +43,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _nameCtrl.dispose();
+    _entranceCtrl.stop();
     _entranceCtrl.dispose();
     super.dispose();
   }

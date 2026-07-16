@@ -58,6 +58,10 @@ class _InsightsScreenState extends State<InsightsScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _trendCtrl.stop();
+    _calendarCtrl.stop();
+    _detailCtrl.stop();
     _entranceCtrl.dispose();
     _trendCtrl.dispose();
     _calendarCtrl.dispose();
@@ -71,8 +75,10 @@ class _InsightsScreenState extends State<InsightsScreen>
     Haptics.selection();
     setState(() => _activeTab = index);
     if (index == 2) {
+      _calendarCtrl.stop();
       _calendarCtrl.reset();
       _calendarCtrl.forward();
+      _detailCtrl.stop();
       _detailCtrl.reset();
       _detailCtrl.forward();
     }
@@ -1107,6 +1113,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     _calendarMonth =
                         DateTime(_calendarMonth.year, _calendarMonth.month - 1);
                   });
+                  _calendarCtrl.stop();
                   _calendarCtrl.reset();
                   _calendarCtrl.forward();
                 },
@@ -1150,6 +1157,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     _calendarMonth =
                         DateTime(_calendarMonth.year, _calendarMonth.month + 1);
                   });
+                  _calendarCtrl.stop();
                   _calendarCtrl.reset();
                   _calendarCtrl.forward();
                 },
@@ -1700,6 +1708,7 @@ class _InsightsScreenState extends State<InsightsScreen>
             onTap: () {
               Haptics.selection();
               setState(() => _selectedCalendarDay = day);
+              _detailCtrl.stop();
               _detailCtrl.reset();
               _detailCtrl.forward();
             },
@@ -1829,6 +1838,7 @@ class _InsightsScreenState extends State<InsightsScreen>
               _calendarMonth = DateTime(day.year, day.month);
               _calendarExpanded = true;
             });
+            _detailCtrl.stop();
             _detailCtrl.reset();
             _detailCtrl.forward();
           },

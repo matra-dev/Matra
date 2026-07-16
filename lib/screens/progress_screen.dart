@@ -40,6 +40,8 @@ class _ProgressScreenState extends State<ProgressScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _chartCtrl.stop();
     _entranceCtrl.dispose();
     _chartCtrl.dispose();
     super.dispose();
@@ -49,6 +51,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     if (charts == _isCharts) return;
     Haptics.selection();
     setState(() => _isCharts = charts);
+    _chartCtrl.stop();
     _chartCtrl.reset();
     _chartCtrl.forward();
   }

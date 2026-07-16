@@ -65,6 +65,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
     _dosageController.dispose();
     _frequencyController.dispose();
     _stockController.dispose();
+    _pageController.stop();
     _pageController.dispose();
     super.dispose();
   }

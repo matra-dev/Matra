@@ -42,6 +42,9 @@ class _LandingScreenState extends State<LandingScreen>
 
   @override
   void dispose() {
+    _rotateController.stop();
+    _pulseController.stop();
+    _entranceController.stop();
     _rotateController.dispose();
     _pulseController.dispose();
     _entranceController.dispose();

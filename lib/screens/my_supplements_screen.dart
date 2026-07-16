@@ -37,6 +37,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
 
   @override
   void dispose() {
+    _listController.stop();
     _listController.dispose();
     super.dispose();
   }
@@ -62,6 +63,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
     Haptics.selection();
     setState(() {
       _selectedTab = tab;
+      _listController.stop();
       _listController.reset();
       _listController.forward();
     });
@@ -176,6 +178,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                   onChanged: (value) {
                                     setState(() {
                                       _searchQuery = value;
+                                      _listController.stop();
                                       _listController.reset();
                                       _listController.forward();
                                     });
@@ -202,6 +205,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                   onTap: () {
                                     setState(() {
                                       _searchQuery = '';
+                                      _listController.stop();
                                       _listController.reset();
                                       _listController.forward();
                                     });

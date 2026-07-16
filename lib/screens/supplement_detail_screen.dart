@@ -45,6 +45,8 @@ class _SupplementDetailScreenState extends ConsumerState<SupplementDetailScreen>
 
   @override
   void dispose() {
+    _chartController.stop();
+    _pageController.stop();
     _chartController.dispose();
     _pageController.dispose();
     super.dispose();

@@ -7,6 +7,7 @@ import '../theme/app_text_styles.dart';
 import '../providers/app_provider.dart';
 import '../models/supplement_model.dart';
 import '../widgets/dot_matrix_loading.dart';
+import 'mood_journal_screen.dart';
 import 'add_medication_screen.dart';
 import 'medication_list_screen.dart';
 import 'supplement_detail_screen.dart';
@@ -46,6 +47,8 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _dotsCtrl.stop();
     _entranceCtrl.dispose();
     _dotsCtrl.dispose();
     super.dispose();
@@ -82,7 +85,38 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => const _MoodBottomSheet(),
+      builder: (bottomSheetContext) => _MoodBottomSheet(
+        onMoodSelected: (emoji, label) {
+          Navigator.of(bottomSheetContext).pop();
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (mounted) {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: MoodJournalScreen(
+                        moodEmoji: emoji,
+                        moodLabel: label,
+                      ),
+                    );
+                  },
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                      child: child,
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 400),
+                ),
+              );
+            }
+          });
+        },
+      ),
     );
   }
 
@@ -461,7 +495,9 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
 
 // ─── Mood Bottom Sheet ───────────────────────────────────────────────────────
 class _MoodBottomSheet extends StatefulWidget {
-  const _MoodBottomSheet();
+  final void Function(String emoji, String label) onMoodSelected;
+
+  const _MoodBottomSheet({required this.onMoodSelected});
 
   @override
   State<_MoodBottomSheet> createState() => _MoodBottomSheetState();
@@ -513,7 +549,10 @@ class _MoodBottomSheetState extends State<_MoodBottomSheet> {
                   return GestureDetector(
                     onTap: () {
                       Haptics.success();
-                      Navigator.pop(context);
+                      widget.onMoodSelected(
+                        mood['emoji'] as String,
+                        mood['label'] as String,
+                      );
                     },
                     child: Column(
                       children: [

@@ -46,6 +46,7 @@ class _MeasurementListScreenState extends State<MeasurementListScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
     _entranceCtrl.dispose();
     _searchController.dispose();
     super.dispose();

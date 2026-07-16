@@ -244,6 +244,8 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
 
   @override
   void dispose() {
+    _entranceCtrl.stop();
+    _sidebarCtrl.stop();
     _entranceCtrl.dispose();
     _sidebarCtrl.dispose();
     super.dispose();

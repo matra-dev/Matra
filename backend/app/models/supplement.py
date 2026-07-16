@@ -7,7 +7,7 @@ from beanie import Document
 class SupplementBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     dosage_amount: float = Field(..., gt=0)
-    dosage_unit: str = Field(..., pattern="^(mg|mcg|IU|g|ml)$")
+    dosage_unit: str = Field(..., pattern="^(mg|mcg|IU|g|ml|capsules|tablet|tablets|softgels|drops|scoops|serving|units|cup|tsp|spray|bottle|cap|pill|packet|patch|puff|drop)$")
     frequency: int = Field(..., ge=1, le=10)
     stock_count: int = Field(..., ge=0)
     time_slots: List[str] = Field(default_factory=list)
@@ -16,14 +16,21 @@ class SupplementBase(BaseModel):
     user_id: str = Field(...)
 
 
-class SupplementCreate(SupplementBase):
-    pass
+class SupplementCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    dosage_amount: float = Field(..., gt=0)
+    dosage_unit: str = Field(..., pattern="^(mg|mcg|IU|g|ml|capsules|tablet|tablets|softgels|drops|scoops|serving|units|cup|tsp|spray|bottle|cap|pill|packet|patch|puff|drop)$")
+    frequency: int = Field(..., ge=1, le=10)
+    stock_count: int = Field(..., ge=0)
+    time_slots: List[str] = Field(default_factory=list)
+    start_date: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
+    created_at: int = Field(default_factory=lambda: int(datetime.now().timestamp() * 1000))
 
 
 class SupplementUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     dosage_amount: Optional[float] = Field(None, gt=0)
-    dosage_unit: Optional[str] = Field(None, pattern="^(mg|mcg|IU|g|ml)$")
+    dosage_unit: Optional[str] = Field(None, pattern="^(mg|mcg|IU|g|ml|capsules|tablet|tablets|softgels|drops|scoops|serving|units|cup|tsp|spray|bottle|cap|pill|packet|patch|puff|drop)$")
     frequency: Optional[int] = Field(None, ge=1, le=10)
     stock_count: Optional[int] = Field(None, ge=0)
     time_slots: Optional[List[str]] = None

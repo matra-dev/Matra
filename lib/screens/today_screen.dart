@@ -39,6 +39,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
 
   @override
   void dispose() {
+    _listController.stop();
     _listController.dispose();
     super.dispose();
   }
@@ -101,6 +102,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     }
     Haptics.selection();
     setState(() => _selectedDayOffset = offset);
+    _listController.stop();
     _listController.reset();
     _listController.forward();
   }
