@@ -1,5 +1,7 @@
 import os
+import asyncio
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -20,6 +22,40 @@ load_dotenv()
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 DB_NAME = os.getenv("DB_NAME", "stacksense")
 
+# ─── Keep-Alive: Prevents Render Free Tier Spin-Down ────────────────────────
+# Render free tier spins down after 15 min of inactivity.
+# This self-pinger hits /health every 14 minutes to keep the service alive.
+# Also acts as a health monitor — logs if the service becomes unreachable.
+
+_KEEP_ALIVE_INTERVAL = 14 * 60  # 14 minutes (Render spins down after 15)
+_KEEP_ALIVE_URL = os.getenv("RENDER_EXTERNAL_URL")  # Auto-set by Render
+_KEEP_ALIVE_ENABLED = os.getenv("KEEP_ALIVE_ENABLED", "true").lower() == "true"
+
+
+async def _self_ping_loop():
+    """Background task that pings /health every 14 minutes to prevent spin-down."""
+    import aiohttp
+
+    url = _KEEP_ALIVE_URL
+    if not url:
+        # Fallback: try to construct from known Render pattern
+        service_name = os.getenv("RENDER_SERVICE_NAME", "matra")
+        url = f"https://{service_name}.onrender.com/health"
+
+    ping_url = f"{url.rstrip('/')}/health"
+
+    while True:
+        await asyncio.sleep(_KEEP_ALIVE_INTERVAL)
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                async with session.get(ping_url) as resp:
+                    if resp.status == 200:
+                        print(f"[{datetime.now().isoformat()}] Keep-alive ping OK: {ping_url}")
+                    else:
+                        print(f"[{datetime.now().isoformat()}] Keep-alive ping returned {resp.status}")
+        except Exception as e:
+            print(f"[{datetime.now().isoformat()}] Keep-alive ping failed: {e}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,7 +64,17 @@ async def lifespan(app: FastAPI):
         database=client[DB_NAME],
         document_models=[Supplement, DoseLog, User, Measurement, Appointment, WaterLog, CalorieLog]
     )
+
+    # Start keep-alive background task (only on Render)
+    keep_alive_task = None
+    if _KEEP_ALIVE_ENABLED and (_KEEP_ALIVE_URL or os.getenv("RENDER")):
+        keep_alive_task = asyncio.create_task(_self_ping_loop())
+        print(f"[{datetime.now().isoformat()}] Keep-alive pinger started (interval: {_KEEP_ALIVE_INTERVAL}s)")
+
     yield
+
+    if keep_alive_task:
+        keep_alive_task.cancel()
     client.close()
 
 
@@ -65,4 +111,4 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import '../services/medication_search_service.dart';
+import '../services/notification_service.dart';
 import '../providers/app_provider.dart';
 import '../models/supplement_model.dart';
 
@@ -29,11 +30,11 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
   final List<Map<String, dynamic>> _medications = MedicationSearchService.localMedications;
 
   // Step 2: Schedule
-  final List<String> _selectedTimes = ['08:00', '13:00', '20:00'];
+  final List<String> _selectedTimes = [];
 
   // Step 3: Details
-  int _stockCount = 30;
-  int _threshold = 10;
+  int _stockCount = 0;
+  int _threshold = 5;
   bool _remindRefill = true;
   int _dose = 1;
   String _selectedUnit = 'capsules';
@@ -174,6 +175,21 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
     
     // Add via provider (API-first with local fallback)
     await ref.read(supplementsProvider.notifier).addSupplement(supplement);
+
+    // Schedule notifications if reminders are enabled
+    if (_criticalAlerts) {
+      final notifications = NotificationService();
+      await notifications.scheduleAllSupplementReminders([supplement]);
+    }
+
+    // Show stock alert if low stock and refill reminders enabled
+    if (_remindRefill && _stockCount <= _threshold) {
+      final notifications = NotificationService();
+      await notifications.showStockAlert(
+        supplementName: supplement.name,
+        remaining: supplement.stockCount,
+      );
+    }
     
     if (mounted) {
       Navigator.pop(context);

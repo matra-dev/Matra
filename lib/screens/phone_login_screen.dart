@@ -30,7 +30,6 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
   bool _otpSent = false;
   int _resendSeconds = 0;
   String? _errorMessage;
-  String? _demoOtp;
 
   late final AnimationController _rotateController;
   late final AnimationController _pulseController;
@@ -129,7 +128,6 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
       if (response.data['success'] == true) {
         setState(() {
           _otpSent = true;
-          _demoOtp = 'Check console';
         });
         _startResendTimer();
         Haptics.success();
@@ -538,31 +536,6 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
                               child: Text(
                                 _errorMessage!,
                                 style: AppTextStyles.caption(context, color: tc.error),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: GR.lg),
-                    ],
-
-                    // Demo mode notice
-                    if (_demoOtp != null && _otpSent) ...[
-                      Container(
-                        padding: EdgeInsets.all(GR.md),
-                        decoration: BoxDecoration(
-                          color: tc.accent.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(GR.radiusMd),
-                          border: Border.all(color: tc.accent.withValues(alpha: 0.2)),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline_rounded, size: 16, color: tc.accent),
-                            SizedBox(width: GR.sm),
-                            Expanded(
-                              child: Text(
-                                l10n.demoModeNotice,
-                                style: AppTextStyles.caption(context, color: tc.accentDark),
                               ),
                             ),
                           ],

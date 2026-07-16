@@ -16,6 +16,11 @@ class ApiService {
   final _local = LocalStorageService();
 
   String get _defaultBaseUrl {
+    // Check for environment variable first (production Render URL)
+    const envUrl = String.fromEnvironment('API_BASE_URL');
+    if (envUrl.isNotEmpty) return envUrl;
+    
+    // Development fallback
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:8000';  // Android emulator localhost
     }

@@ -338,6 +338,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
                             value: '$waterTotal ml',
                             progress: waterProgress,
                             progressColor: const Color(0xFF4FC3F7),
+                            progressDark: const Color(0xFF0288D1),
                             delay: 250,
                           ),
                         ),
@@ -350,6 +351,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
                             value: '$calorieTotal kcal',
                             progress: calorieProgress,
                             progressColor: const Color(0xFFFFA726),
+                            progressDark: const Color(0xFFE65100),
                             delay: 350,
                           ),
                         ),
@@ -625,60 +627,138 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
     required String value,
     required double progress,
     required Color progressColor,
+    required Color progressDark,
     required int delay,
   }) {
     final tc = ThemeColors.of(context);
-    return GoldenCard(
-      padding: EdgeInsets.all(GR.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SizedBox(
+      height: 130,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 14, color: iconColor),
+          // Stacked back cards
+          Positioned(
+            top: -8,
+            left: 6,
+            right: 6,
+            child: Container(
+              height: 130,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(GR.radiusMd + 4),
               ),
-              const Spacer(),
-              Text(
-                label,
-                style: AppTextStyles.caption(context, color: tc.textSecondary),
-              ),
-            ],
-          ),
-          SizedBox(height: GR.sm + 2),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Artific',
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: tc.textPrimary,
             ),
           ),
-          SizedBox(height: GR.sm + 2),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
+          Positioned(
+            top: -4,
+            left: 3,
+            right: 3,
             child: Container(
-              height: 5,
+              height: 130,
               decoration: BoxDecoration(
-                color: tc.border.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(3),
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(GR.radiusMd + 4),
               ),
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: progress,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: progressColor,
-                    borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          // Main card
+          Container(
+            height: 130,
+            decoration: BoxDecoration(
+              color: tc.cardBg,
+              borderRadius: BorderRadius.circular(GR.radiusMd + 4),
+              border: Border.all(
+                color: iconColor.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(GR.md + 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              label,
+                              style: AppTextStyles.body(
+                                context,
+                                weight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              value,
+                              style: AppTextStyles.caption(
+                                context,
+                                color: tc.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: tc.surface,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 11,
+                          color: tc.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: tc.border.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: progress,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      progressColor.withValues(alpha: 0.6),
+                                      progressColor,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: GR.sm),
+                      Text(
+                        '${(progress * 100).toInt()}%',
+                        style: TextStyle(
+                          fontFamily: 'Artific',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: progressDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

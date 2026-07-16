@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../models/supplement_model.dart';
+import '../models/sync_status.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/haptics.dart';
@@ -128,12 +129,61 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     );
   }
 
+  Widget _buildSyncIndicator(BuildContext context, AsyncValue<SyncStatus> syncAsync, ThemeColors tc) {
+    return syncAsync.when(
+      data: (status) {
+        if (status == SyncStatus.synced) return const SizedBox.shrink();
+
+        final (icon, color, text) = switch (status) {
+          SyncStatus.syncing => (Icons.sync, const Color(0xFF00BFA5), 'Syncing...'),
+          SyncStatus.pending => (Icons.cloud_off, tc.textSecondary, 'Offline · Changes pending'),
+          SyncStatus.error => (Icons.error_outline, const Color(0xFFFF6B6B), 'Sync error · Will retry'),
+          _ => (null, null, null),
+        };
+
+        if (icon == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(GR.lg, 0, GR.lg, GR.sm),
+          child: Row(
+            children: [
+              Icon(icon, size: 14, color: color),
+              SizedBox(width: GR.xs),
+              Text(
+                text!,
+                style: TextStyle(
+                  fontFamily: 'Artific',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                  color: color,
+                ),
+              ),
+              if (status == SyncStatus.syncing)
+                SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(color!),
+                  ),
+                ).animate(onPlay: (c) => c.repeat())
+                 .rotate(duration: 1000.ms),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     final l10n = AppLocalizations.of(context)!;
     final supplementsAsync = ref.watch(supplementsProvider);
     ref.watch(doseLogsProvider);
+    final syncStatusAsync = ref.watch(syncStatusProvider);
     final weekDays = _getWeekDays();
     final selectedDate = _selectedDate;
 
@@ -217,6 +267,11 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                   ],
                 ),
               ),
+            ),
+
+            // Sync status indicator
+            SliverToBoxAdapter(
+              child: _buildSyncIndicator(context, syncStatusAsync, tc),
             ),
 
             // Week strip
@@ -603,110 +658,137 @@ class _WaterTrackerCardState extends ConsumerState<_WaterTrackerCard> {
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     final waterAsync = ref.watch(waterLogsProvider);
-    final dailyGoal = 2500; // ml
-    final current = waterAsync.value?.fold<int>(
-          0,
-          (sum, l) => sum + l.amountMl,
-        ) ??
-        0;
+    final waterGoalAsync = ref.watch(waterGoalProvider);
+    final dailyGoal = waterGoalAsync.value ?? 2500;
+    final current = waterAsync.value?.fold<int>(0, (sum, l) => sum + l.amountMl) ?? 0;
     final progress = (current / dailyGoal).clamp(0.0, 1.0);
     final remaining = (dailyGoal - current).clamp(0, dailyGoal);
+    final logs = waterAsync.value ?? [];
+
+    const waterColor = Color(0xFF4FC3F7);
+    const waterDark = Color(0xFF0288D1);
+
+    // 5x5 dot matrix = 25 dots
+    const totalDots = 25;
+    final activeDots = (progress * totalDots).round();
+
+    // Last log time
+    String lastLogText = 'No logs';
+    if (logs.isNotEmpty) {
+      final lastLog = logs.last;
+      final lastTime = DateTime.fromMillisecondsSinceEpoch(lastLog.timestamp);
+      final now = DateTime.now();
+      final diff = now.difference(lastTime);
+      if (diff.inMinutes < 1) { lastLogText = 'Just now'; }
+      else if (diff.inHours < 1) { lastLogText = '${diff.inMinutes}m ago'; }
+      else if (diff.inHours < 24) { lastLogText = '${diff.inHours}h ago'; }
+      else { lastLogText = DateFormat('h:mm a').format(lastTime); }
+    }
 
     return GestureDetector(
       onTap: _showAddWaterSheet,
       child: Container(
-        padding: EdgeInsets.all(GR.md + 2),
         decoration: BoxDecoration(
           color: tc.cardBg,
-          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
-          border: Border.all(color: tc.border),
+          borderRadius: BorderRadius.circular(GR.radiusMd + 4),
+          border: Border.all(color: waterColor.withValues(alpha: 0.2)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4FC3F7).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: EdgeInsets.all(GR.md + 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header: icon + title row + percentage
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: waterColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.water_drop_rounded, size: 16, color: waterColor),
                   ),
-                  child: const Icon(Icons.water_drop_rounded, size: 16, color: Color(0xFF4FC3F7)),
-                ),
-                const Spacer(),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: tc.accent.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
+                  SizedBox(width: GR.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Water',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.body(context, weight: FontWeight.w700),
+                        ),
+                        Text(
+                          lastLogText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption(context, color: tc.textMuted),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Icon(Icons.add_rounded, size: 14, color: tc.accent),
-                ),
-              ],
-            ),
-            SizedBox(height: GR.md),
-            Text(
-              '$current ml',
-              style: TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: tc.textPrimary,
-              ),
-            ),
-            SizedBox(height: GR.xs - 2),
-            Text(
-              remaining > 0 ? '$remaining ml to goal' : 'Goal reached!',
-              style: AppTextStyles.caption(context, color: tc.textSecondary),
-            ),
-            SizedBox(height: GR.sm + 2),
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: tc.border.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeOutCubic,
-                      width: progress * (MediaQuery.of(context).size.width * 0.35),
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4FC3F7),
-                        borderRadius: BorderRadius.circular(3),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: progress >= 1.0
+                          ? const Color(0xFF00BFA5).withValues(alpha: 0.1)
+                          : waterColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${(progress * 100).toInt()}%',
+                      style: TextStyle(
+                        fontFamily: 'Artific',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: progress >= 1.0 ? const Color(0xFF00BFA5) : waterDark,
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+
+              SizedBox(height: GR.sm + 2),
+
+              // Big number
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '$current / $dailyGoal ml',
+                  style: TextStyle(
+                    fontFamily: 'Artific',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: tc.textPrimary,
+                  ),
                 ),
               ),
-            ),
-            // Mini log dots
-            if (waterAsync.value != null && waterAsync.value!.isNotEmpty) ...[
-              SizedBox(height: GR.sm + 2),
-              Wrap(
-                spacing: 3,
-                runSpacing: 3,
-                children: waterAsync.value!.take(8).map((log) {
-                  return Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4FC3F7).withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  );
-                }).toList(),
+
+              // Status
+              Text(
+                progress >= 1.0 ? 'Goal reached!' : '$remaining ml left',
+                style: AppTextStyles.caption(
+                  context,
+                  color: progress >= 1.0 ? const Color(0xFF00BFA5) : tc.textSecondary,
+                ),
+              ),
+
+              SizedBox(height: GR.sm),
+
+              // Dot matrix progress
+              _buildDotMatrix(
+                totalDots: totalDots,
+                activeDots: activeDots,
+                color: waterColor,
+                tc: tc,
               ),
             ],
-          ],
+          ),
         ),
       ),
     ).animate(controller: widget.listController)
@@ -753,126 +835,151 @@ class _CalorieTrackerCardState extends ConsumerState<_CalorieTrackerCard> {
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     final calorieAsync = ref.watch(calorieLogsProvider);
-    final dailyGoal = 2000; // kcal
-    final current = calorieAsync.value?.fold<int>(
-          0,
-          (sum, l) => sum + l.calories,
-        ) ??
-        0;
+    final calorieGoalAsync = ref.watch(calorieGoalProvider);
+    final dailyGoal = calorieGoalAsync.value ?? 2000;
+    final current = calorieAsync.value?.fold<int>(0, (sum, l) => sum + l.calories) ?? 0;
     final progress = (current / dailyGoal).clamp(0.0, 1.0);
     final remaining = (dailyGoal - current).clamp(0, dailyGoal);
+    final logs = calorieAsync.value ?? [];
 
-    // Meal breakdown
+    const calorieColor = Color(0xFFFFA726);
+    const calorieDark = Color(0xFFE65100);
+
+    // 5x5 dot matrix = 25 dots
+    const totalDots = 25;
+    final activeDots = (progress * totalDots).round();
+
+    // Meal breakdown colors for dots
     final meals = <String, int>{};
-    for (final log in calorieAsync.value ?? []) {
+    for (final log in logs) {
       meals[log.mealType] = ((meals[log.mealType] ?? 0) + log.calories).toInt();
+    }
+    final mealColors = {
+      'breakfast': const Color(0xFF9575CD),
+      'lunch': const Color(0xFF4FC3F7),
+      'dinner': const Color(0xFFFF6B6B),
+      'snack': const Color(0xFF00BFA5),
+    };
+
+    // Last log time
+    String lastLogText = 'No logs';
+    if (logs.isNotEmpty) {
+      final lastLog = logs.last;
+      final lastTime = DateTime.fromMillisecondsSinceEpoch(lastLog.timestamp);
+      final now = DateTime.now();
+      final diff = now.difference(lastTime);
+      if (diff.inMinutes < 1) { lastLogText = 'Just now'; }
+      else if (diff.inHours < 1) { lastLogText = '${diff.inMinutes}m ago'; }
+      else if (diff.inHours < 24) { lastLogText = '${diff.inHours}h ago'; }
+      else { lastLogText = DateFormat('h:mm a').format(lastTime); }
     }
 
     return GestureDetector(
       onTap: _showAddCalorieSheet,
       child: Container(
-        padding: EdgeInsets.all(GR.md + 2),
         decoration: BoxDecoration(
           color: tc.cardBg,
-          borderRadius: BorderRadius.circular(GR.radiusMd + 2),
-          border: Border.all(color: tc.border),
+          borderRadius: BorderRadius.circular(GR.radiusMd + 4),
+          border: Border.all(color: calorieColor.withValues(alpha: 0.2)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFA726).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.local_fire_department_rounded, size: 16, color: Color(0xFFFFA726)),
-                ),
-                const Spacer(),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: tc.accent.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.add_rounded, size: 14, color: tc.accent),
-                ),
-              ],
-            ),
-            SizedBox(height: GR.md),
-            Text(
-              '$current kcal',
-              style: TextStyle(
-                fontFamily: 'Artific',
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: tc.textPrimary,
-              ),
-            ),
-            SizedBox(height: GR.xs - 2),
-            Text(
-              remaining > 0 ? '$remaining kcal to goal' : 'Goal reached!',
-              style: AppTextStyles.caption(context, color: tc.textSecondary),
-            ),
-            SizedBox(height: GR.sm + 2),
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: tc.border.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeOutCubic,
-                      width: progress * (MediaQuery.of(context).size.width * 0.35),
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFA726),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Meal breakdown
-            if (meals.isNotEmpty) ...[
-              SizedBox(height: GR.sm + 2),
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: meals.entries.map((entry) {
-                  final mealColors = {
-                    'breakfast': const Color(0xFF9575CD),
-                    'lunch': const Color(0xFF4FC3F7),
-                    'dinner': const Color(0xFFFF6B6B),
-                    'snack': const Color(0xFF00BFA5),
-                  };
-                  final color = mealColors[entry.key] ?? tc.textSecondary;
-                  return Container(
-                    padding: EdgeInsets.symmetric(horizontal: GR.sm, vertical: GR.xs),
+        child: Padding(
+          padding: EdgeInsets.all(GR.md + 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header: icon + title row + percentage
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(GR.radiusSm),
+                      color: calorieColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.local_fire_department_rounded, size: 16, color: calorieColor),
+                  ),
+                  SizedBox(width: GR.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Calories',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.body(context, weight: FontWeight.w700),
+                        ),
+                        Text(
+                          lastLogText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption(context, color: tc.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: progress >= 1.0
+                          ? const Color(0xFFFF6B6B).withValues(alpha: 0.1)
+                          : calorieColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${entry.key[0].toUpperCase()}${entry.key.substring(1)} ${entry.value}',
-                      style: AppTextStyles.micro(context, color: color, weight: FontWeight.w600),
+                      '${(progress * 100).toInt()}%',
+                      style: TextStyle(
+                        fontFamily: 'Artific',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: progress >= 1.0 ? const Color(0xFFFF6B6B) : calorieDark,
+                      ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: GR.sm + 2),
+
+              // Big number
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '$current / $dailyGoal kcal',
+                  style: TextStyle(
+                    fontFamily: 'Artific',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: tc.textPrimary,
+                  ),
+                ),
+              ),
+
+              // Status
+              Text(
+                progress >= 1.0 ? 'Over budget' : '$remaining kcal left',
+                style: AppTextStyles.caption(
+                  context,
+                  color: progress >= 1.0 ? const Color(0xFFFF6B6B) : tc.textSecondary,
+                ),
+              ),
+
+              SizedBox(height: GR.sm),
+
+              // Dot matrix progress with meal colors
+              _buildCalorieDotMatrix(
+                totalDots: totalDots,
+                activeDots: activeDots,
+                meals: meals,
+                mealColors: mealColors,
+                defaultColor: calorieColor,
+                tc: tc,
               ),
             ],
-          ],
+          ),
         ),
       ),
     ).animate(controller: widget.listController)
@@ -881,6 +988,86 @@ class _CalorieTrackerCardState extends ConsumerState<_CalorieTrackerCard> {
   }
 }
 
+// ─── Dot Matrix Builder ─────────────────────────────────────────────────
+Widget _buildDotMatrix({
+  required int totalDots,
+  required int activeDots,
+  required Color color,
+  required dynamic tc,
+}) {
+  return Wrap(
+    spacing: 4,
+    runSpacing: 4,
+    children: List.generate(totalDots, (i) {
+      final isActive = i < activeDots;
+      final intensity = isActive ? ((i + 1) / activeDots).clamp(0.4, 1.0) : 0.0;
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          color: isActive
+              ? Color.lerp(color.withValues(alpha: 0.2), color, intensity)
+              : tc.border.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(3),
+        ),
+      );
+    }),
+  );
+}
+
+// ─── Calorie Dot Matrix with Meal Colors ────────────────────────────────
+Widget _buildCalorieDotMatrix({
+  required int totalDots,
+  required int activeDots,
+  required Map<String, int> meals,
+  required Map<String, Color> mealColors,
+  required Color defaultColor,
+  required dynamic tc,
+}) {
+  // Assign colors to dots based on meal distribution
+  final dotColors = <Color>[];
+  if (meals.isNotEmpty && activeDots > 0) {
+    final totalMealCals = meals.values.fold<int>(0, (sum, v) => sum + v);
+    var dotsAssigned = 0;
+    for (final entry in meals.entries) {
+      final mealDotCount = ((entry.value / totalMealCals) * activeDots).round();
+      final color = mealColors[entry.key] ?? defaultColor;
+      for (var j = 0; j < mealDotCount && dotsAssigned < activeDots; j++) {
+        dotColors.add(color);
+        dotsAssigned++;
+      }
+    }
+    // Fill remaining with default
+    while (dotsAssigned < activeDots) {
+      dotColors.add(defaultColor);
+      dotsAssigned++;
+    }
+  }
+
+  return Wrap(
+    spacing: 4,
+    runSpacing: 4,
+    children: List.generate(totalDots, (i) {
+      final isActive = i < activeDots;
+      final dotColor = isActive && i < dotColors.length ? dotColors[i] : defaultColor;
+      final intensity = isActive ? ((i + 1) / activeDots).clamp(0.4, 1.0) : 0.0;
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          color: isActive
+              ? Color.lerp(dotColor.withValues(alpha: 0.2), dotColor, intensity)
+              : tc.border.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(3),
+        ),
+      );
+    }),
+  );
+}
 // ─── Add Water Bottom Sheet ───────────────────────────────────────────
 class _AddWaterSheet extends StatefulWidget {
   final Function(int) onAdd;

@@ -13,16 +13,11 @@ class AppointmentScreen extends StatefulWidget {
 class _AppointmentScreenState extends State<AppointmentScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
-  DateTime _selectedDate = DateTime(2026, 6, 26);
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
   String? _selectedDoctor;
 
-  final List<Map<String, String>> _doctors = [
-    {'name': 'Dr. Sarah Chen', 'specialty': 'General Practitioner'},
-    {'name': 'Dr. Michael Ross', 'specialty': 'Cardiologist'},
-    {'name': 'Dr. Emily Watson', 'specialty': 'Nutritionist'},
-    {'name': 'Dr. James Liu', 'specialty': 'Endocrinologist'},
-  ];
+  final List<Map<String, String>> _doctors = [];
 
   @override
   void initState() {

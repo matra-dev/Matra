@@ -3,20 +3,78 @@ import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
 import '../models/water_log_model.dart';
 import '../models/calorie_log_model.dart';
+import '../models/sync_status.dart';
 import '../services/local_storage_service.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
+import '../services/sync_service.dart';
+import '../services/notification_service.dart';
+import '../repositories/water_repository.dart';
+import '../repositories/calorie_repository.dart';
 import '../utils/app_date_utils.dart' as app_date;
 
-// Local Storage Provider
+// ─── Core Service Providers ───────────────────────────────────────────────
+
 final localStorageProvider = Provider<LocalStorageService>((ref) {
   return LocalStorageService();
 });
 
-// API Service Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
   final api = ApiService();
   api.initialize();
   return api;
+});
+
+final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
+  return ConnectivityService();
+});
+
+final syncServiceProvider = Provider<SyncService>((ref) {
+  return SyncService();
+});
+
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  return NotificationService();
+});
+
+// ─── Repository Providers ───────────────────────────────────────────────
+
+final waterRepositoryProvider = Provider<WaterRepository>((ref) {
+  return WaterRepository(
+    ref.read(apiServiceProvider),
+    ref.read(localStorageProvider),
+    ref.read(syncServiceProvider),
+    ref.read(connectivityServiceProvider),
+  );
+});
+
+final calorieRepositoryProvider = Provider<CalorieRepository>((ref) {
+  return CalorieRepository(
+    ref.read(apiServiceProvider),
+    ref.read(localStorageProvider),
+    ref.read(syncServiceProvider),
+    ref.read(connectivityServiceProvider),
+  );
+});
+
+// ─── Sync Status Provider ─────────────────────────────────────────────────
+
+final syncStatusProvider = StreamProvider<SyncStatus>((ref) {
+  return ref.read(syncServiceProvider).statusStream;
+});
+
+final isOnlineProvider = StreamProvider<bool>((ref) {
+  return ref.read(connectivityServiceProvider).onConnectivityChanged;
+});
+
+// ─── User Goals Providers ─────────────────────────────────────────────────
+
+final waterGoalProvider = FutureProvider<int>((ref) async {
+  return ref.read(localStorageProvider).getWaterGoal();
+});
+
+final calorieGoalProvider = FutureProvider<int>((ref) async {
+  return ref.read(localStorageProvider).getCalorieGoal();
 });
 
 // Auth State
@@ -298,39 +356,19 @@ final navigationIndexProvider = StateProvider<int>((ref) => 0);
 // ─── Water Logs State ───────────────────────────────────────────────────────
 
 final waterLogsProvider = StateNotifierProvider<WaterLogsNotifier, AsyncValue<List<WaterLog>>>((ref) {
-  return WaterLogsNotifier(
-    ref.read(localStorageProvider),
-    ref.read(apiServiceProvider),
-  );
+  return WaterLogsNotifier(ref.read(waterRepositoryProvider));
 });
 
 class WaterLogsNotifier extends StateNotifier<AsyncValue<List<WaterLog>>> {
-  final LocalStorageService _local;
-  final ApiService _api;
+  final WaterRepository _repo;
 
-  WaterLogsNotifier(this._local, this._api) : super(const AsyncValue.data([]));
+  WaterLogsNotifier(this._repo) : super(const AsyncValue.data([]));
 
   Future<void> loadTodayLogs() async {
     try {
       final today = app_date.DateUtils.getTodayDateString();
-
-      // Try API first
-      final isAuth = await _api.isAuthenticated();
-      if (isAuth) {
-        try {
-          final logs = await _api.getTodayWaterLogs(today);
-          state = AsyncValue.data(logs);
-          await _local.saveWaterLogs(logs);
-          return;
-        } catch (_) {
-          // Fall through to local
-        }
-      }
-
-      // Fallback to local
-      final allLogs = await _local.getWaterLogs();
-      final todayLogs = allLogs.where((l) => l.date == today).toList();
-      state = AsyncValue.data(todayLogs);
+      final logs = await _repo.loadTodayLogs(today);
+      state = AsyncValue.data(logs);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -338,22 +376,10 @@ class WaterLogsNotifier extends StateNotifier<AsyncValue<List<WaterLog>>> {
 
   Future<void> loadRangeLogs(String startDate, String endDate) async {
     try {
-      // Try API first
-      final isAuth = await _api.isAuthenticated();
-      if (isAuth) {
-        try {
-          final logs = await _api.getWaterLogsRange(startDate, endDate);
-          state = AsyncValue.data(logs);
-          await _local.saveWaterLogs(logs);
-          return;
-        } catch (_) {
-          // Fall through to local
-        }
-      }
-
-      // Fallback to local
-      final allLogs = await _local.getWaterLogs();
-      final rangeLogs = allLogs.where((l) => l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0).toList();
+      final allLogs = await _repo.loadTodayLogs(startDate); // Loads from local cache
+      final rangeLogs = allLogs.where((l) =>
+        l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0
+      ).toList();
       state = AsyncValue.data(rangeLogs);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -363,51 +389,18 @@ class WaterLogsNotifier extends StateNotifier<AsyncValue<List<WaterLog>>> {
   Future<void> addWaterLog(int amountMl, {String? note}) async {
     final current = state.value ?? [];
     final today = app_date.DateUtils.getTodayDateString();
-    final now = DateTime.now();
 
-    // Try API first
-    final isAuth = await _api.isAuthenticated();
-    if (isAuth) {
-      try {
-        final log = await _api.createWaterLog(amountMl, today, note: note);
-        final updated = [...current, log];
-        state = AsyncValue.data(updated);
-        await _local.saveWaterLogs(updated);
-        return;
-      } catch (_) {
-        // Fall through to local
-      }
-    }
-
-    // Local fallback
-    final log = WaterLog(
-      id: now.millisecondsSinceEpoch.toString(),
-      amountMl: amountMl,
-      userId: 'local_user',
-      date: today,
-      timestamp: now.millisecondsSinceEpoch,
-      note: note,
-    );
+    final log = await _repo.addLog(amountMl, today, note: note);
     final updated = [...current, log];
-    await _local.saveWaterLogs(updated);
     state = AsyncValue.data(updated);
   }
 
   Future<void> deleteWaterLog(String id) async {
     final current = state.value ?? [];
+    final today = app_date.DateUtils.getTodayDateString();
 
-    // Try API first
-    final isAuth = await _api.isAuthenticated();
-    if (isAuth) {
-      try {
-        await _api.deleteWaterLog(id);
-      } catch (_) {
-        // Continue with local update
-      }
-    }
-
+    await _repo.deleteLog(id, today);
     final updated = current.where((l) => l.id != id).toList();
-    await _local.saveWaterLogs(updated);
     state = AsyncValue.data(updated);
   }
 
@@ -434,39 +427,19 @@ class WaterLogsNotifier extends StateNotifier<AsyncValue<List<WaterLog>>> {
 // ─── Calorie Logs State ─────────────────────────────────────────────────────
 
 final calorieLogsProvider = StateNotifierProvider<CalorieLogsNotifier, AsyncValue<List<CalorieLog>>>((ref) {
-  return CalorieLogsNotifier(
-    ref.read(localStorageProvider),
-    ref.read(apiServiceProvider),
-  );
+  return CalorieLogsNotifier(ref.read(calorieRepositoryProvider));
 });
 
 class CalorieLogsNotifier extends StateNotifier<AsyncValue<List<CalorieLog>>> {
-  final LocalStorageService _local;
-  final ApiService _api;
+  final CalorieRepository _repo;
 
-  CalorieLogsNotifier(this._local, this._api) : super(const AsyncValue.data([]));
+  CalorieLogsNotifier(this._repo) : super(const AsyncValue.data([]));
 
   Future<void> loadTodayLogs() async {
     try {
       final today = app_date.DateUtils.getTodayDateString();
-
-      // Try API first
-      final isAuth = await _api.isAuthenticated();
-      if (isAuth) {
-        try {
-          final logs = await _api.getTodayCalorieLogs(today);
-          state = AsyncValue.data(logs);
-          await _local.saveCalorieLogs(logs);
-          return;
-        } catch (_) {
-          // Fall through to local
-        }
-      }
-
-      // Fallback to local
-      final allLogs = await _local.getCalorieLogs();
-      final todayLogs = allLogs.where((l) => l.date == today).toList();
-      state = AsyncValue.data(todayLogs);
+      final logs = await _repo.loadTodayLogs(today);
+      state = AsyncValue.data(logs);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -474,22 +447,10 @@ class CalorieLogsNotifier extends StateNotifier<AsyncValue<List<CalorieLog>>> {
 
   Future<void> loadRangeLogs(String startDate, String endDate) async {
     try {
-      // Try API first
-      final isAuth = await _api.isAuthenticated();
-      if (isAuth) {
-        try {
-          final logs = await _api.getCalorieLogsRange(startDate, endDate);
-          state = AsyncValue.data(logs);
-          await _local.saveCalorieLogs(logs);
-          return;
-        } catch (_) {
-          // Fall through to local
-        }
-      }
-
-      // Fallback to local
-      final allLogs = await _local.getCalorieLogs();
-      final rangeLogs = allLogs.where((l) => l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0).toList();
+      final allLogs = await _repo.loadTodayLogs(startDate);
+      final rangeLogs = allLogs.where((l) =>
+        l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0
+      ).toList();
       state = AsyncValue.data(rangeLogs);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -499,52 +460,18 @@ class CalorieLogsNotifier extends StateNotifier<AsyncValue<List<CalorieLog>>> {
   Future<void> addCalorieLog(int calories, String mealType, {String? note}) async {
     final current = state.value ?? [];
     final today = app_date.DateUtils.getTodayDateString();
-    final now = DateTime.now();
 
-    // Try API first
-    final isAuth = await _api.isAuthenticated();
-    if (isAuth) {
-      try {
-        final log = await _api.createCalorieLog(calories, mealType, today, note: note);
-        final updated = [...current, log];
-        state = AsyncValue.data(updated);
-        await _local.saveCalorieLogs(updated);
-        return;
-      } catch (_) {
-        // Fall through to local
-      }
-    }
-
-    // Local fallback
-    final log = CalorieLog(
-      id: now.millisecondsSinceEpoch.toString(),
-      calories: calories,
-      mealType: mealType,
-      userId: 'local_user',
-      date: today,
-      timestamp: now.millisecondsSinceEpoch,
-      note: note,
-    );
+    final log = await _repo.addLog(calories, mealType, today, note: note);
     final updated = [...current, log];
-    await _local.saveCalorieLogs(updated);
     state = AsyncValue.data(updated);
   }
 
   Future<void> deleteCalorieLog(String id) async {
     final current = state.value ?? [];
+    final today = app_date.DateUtils.getTodayDateString();
 
-    // Try API first
-    final isAuth = await _api.isAuthenticated();
-    if (isAuth) {
-      try {
-        await _api.deleteCalorieLog(id);
-      } catch (_) {
-        // Continue with local update
-      }
-    }
-
+    await _repo.deleteLog(id, today);
     final updated = current.where((l) => l.id != id).toList();
-    await _local.saveCalorieLogs(updated);
     state = AsyncValue.data(updated);
   }
 
