@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
+import '../models/water_log_model.dart';
+import '../models/calorie_log_model.dart';
 
 class LocalStorageService {
   static final LocalStorageService _instance = LocalStorageService._internal();
@@ -89,7 +91,49 @@ class LocalStorageService {
     await init();
     await _prefs?.remove('@stacksense/supplements');
     await _prefs?.remove('@stacksense/dose_logs');
+    await _prefs?.remove('@stacksense/water_logs');
+    await _prefs?.remove('@stacksense/calorie_logs');
     await _prefs?.remove('@stacksense/token');
     await _prefs?.remove('@stacksense/onboarding_seen');
+  }
+
+  // ─── Water Logs ───────────────────────────────────────────────────────────
+
+  Future<List<WaterLog>> getWaterLogs() async {
+    await init();
+    final jsonStr = _prefs?.getString('@stacksense/water_logs');
+    if (jsonStr == null) return [];
+    try {
+      final List<dynamic> data = jsonDecode(jsonStr);
+      return data.map((e) => WaterLog.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveWaterLogs(List<WaterLog> logs) async {
+    await init();
+    final data = logs.map((l) => l.toJson()).toList();
+    await _prefs?.setString('@stacksense/water_logs', jsonEncode(data));
+  }
+
+  // ─── Calorie Logs ─────────────────────────────────────────────────────────
+
+  Future<List<CalorieLog>> getCalorieLogs() async {
+    await init();
+    final jsonStr = _prefs?.getString('@stacksense/calorie_logs');
+    if (jsonStr == null) return [];
+    try {
+      final List<dynamic> data = jsonDecode(jsonStr);
+      return data.map((e) => CalorieLog.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveCalorieLogs(List<CalorieLog> logs) async {
+    await init();
+    final data = logs.map((l) => l.toJson()).toList();
+    await _prefs?.setString('@stacksense/calorie_logs', jsonEncode(data));
   }
 }

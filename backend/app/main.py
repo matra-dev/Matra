@@ -11,7 +11,9 @@ from app.models.dose_log import DoseLog
 from app.models.user import User
 from app.models.measurement import Measurement
 from app.models.appointment import Appointment
-from app.routers import supplements, dose_logs, auth, insights, measurements, appointments, admin
+from app.models.water_log import WaterLog
+from app.models.calorie_log import CalorieLog
+from app.routers import supplements, dose_logs, auth, insights, measurements, appointments, admin, water_logs, calorie_logs
 
 load_dotenv()
 
@@ -24,7 +26,7 @@ async def lifespan(app: FastAPI):
     client = AsyncIOMotorClient(MONGODB_URL)
     await init_beanie(
         database=client[DB_NAME],
-        document_models=[Supplement, DoseLog, User, Measurement, Appointment]
+        document_models=[Supplement, DoseLog, User, Measurement, Appointment, WaterLog, CalorieLog]
     )
     yield
     client.close()
@@ -52,6 +54,8 @@ app.include_router(insights.router)
 app.include_router(measurements.router)
 app.include_router(appointments.router)
 app.include_router(admin.router)
+app.include_router(water_logs.router)
+app.include_router(calorie_logs.router)
 
 
 @app.get("/")

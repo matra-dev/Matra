@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
+import '../models/water_log_model.dart';
+import '../models/calorie_log_model.dart';
 import '../services/local_storage_service.dart';
 import '../services/api_service.dart';
 import '../utils/app_date_utils.dart' as app_date;
@@ -292,3 +294,286 @@ final selectedSupplementProvider = StateProvider<Supplement?>((ref) => null);
 
 // Navigation index
 final navigationIndexProvider = StateProvider<int>((ref) => 0);
+
+// ─── Water Logs State ───────────────────────────────────────────────────────
+
+final waterLogsProvider = StateNotifierProvider<WaterLogsNotifier, AsyncValue<List<WaterLog>>>((ref) {
+  return WaterLogsNotifier(
+    ref.read(localStorageProvider),
+    ref.read(apiServiceProvider),
+  );
+});
+
+class WaterLogsNotifier extends StateNotifier<AsyncValue<List<WaterLog>>> {
+  final LocalStorageService _local;
+  final ApiService _api;
+
+  WaterLogsNotifier(this._local, this._api) : super(const AsyncValue.data([]));
+
+  Future<void> loadTodayLogs() async {
+    try {
+      final today = app_date.DateUtils.getTodayDateString();
+
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        try {
+          final logs = await _api.getTodayWaterLogs(today);
+          state = AsyncValue.data(logs);
+          await _local.saveWaterLogs(logs);
+          return;
+        } catch (_) {
+          // Fall through to local
+        }
+      }
+
+      // Fallback to local
+      final allLogs = await _local.getWaterLogs();
+      final todayLogs = allLogs.where((l) => l.date == today).toList();
+      state = AsyncValue.data(todayLogs);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> loadRangeLogs(String startDate, String endDate) async {
+    try {
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        try {
+          final logs = await _api.getWaterLogsRange(startDate, endDate);
+          state = AsyncValue.data(logs);
+          await _local.saveWaterLogs(logs);
+          return;
+        } catch (_) {
+          // Fall through to local
+        }
+      }
+
+      // Fallback to local
+      final allLogs = await _local.getWaterLogs();
+      final rangeLogs = allLogs.where((l) => l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0).toList();
+      state = AsyncValue.data(rangeLogs);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> addWaterLog(int amountMl, {String? note}) async {
+    final current = state.value ?? [];
+    final today = app_date.DateUtils.getTodayDateString();
+    final now = DateTime.now();
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        final log = await _api.createWaterLog(amountMl, today, note: note);
+        final updated = [...current, log];
+        state = AsyncValue.data(updated);
+        await _local.saveWaterLogs(updated);
+        return;
+      } catch (_) {
+        // Fall through to local
+      }
+    }
+
+    // Local fallback
+    final log = WaterLog(
+      id: now.millisecondsSinceEpoch.toString(),
+      amountMl: amountMl,
+      userId: 'local_user',
+      date: today,
+      timestamp: now.millisecondsSinceEpoch,
+      note: note,
+    );
+    final updated = [...current, log];
+    await _local.saveWaterLogs(updated);
+    state = AsyncValue.data(updated);
+  }
+
+  Future<void> deleteWaterLog(String id) async {
+    final current = state.value ?? [];
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        await _api.deleteWaterLog(id);
+      } catch (_) {
+        // Continue with local update
+      }
+    }
+
+    final updated = current.where((l) => l.id != id).toList();
+    await _local.saveWaterLogs(updated);
+    state = AsyncValue.data(updated);
+  }
+
+  int getTodayTotal() {
+    final today = app_date.DateUtils.getTodayDateString();
+    return state.value
+            ?.where((l) => l.date == today)
+            .fold<int>(0, (sum, l) => sum + l.amountMl) ??
+        0;
+  }
+
+  List<WaterLog> getLogsForDate(String date) {
+    return state.value?.where((l) => l.date == date).toList() ?? [];
+  }
+
+  int getTotalForDate(String date) {
+    return state.value
+            ?.where((l) => l.date == date)
+            .fold<int>(0, (sum, l) => sum + l.amountMl) ??
+        0;
+  }
+}
+
+// ─── Calorie Logs State ─────────────────────────────────────────────────────
+
+final calorieLogsProvider = StateNotifierProvider<CalorieLogsNotifier, AsyncValue<List<CalorieLog>>>((ref) {
+  return CalorieLogsNotifier(
+    ref.read(localStorageProvider),
+    ref.read(apiServiceProvider),
+  );
+});
+
+class CalorieLogsNotifier extends StateNotifier<AsyncValue<List<CalorieLog>>> {
+  final LocalStorageService _local;
+  final ApiService _api;
+
+  CalorieLogsNotifier(this._local, this._api) : super(const AsyncValue.data([]));
+
+  Future<void> loadTodayLogs() async {
+    try {
+      final today = app_date.DateUtils.getTodayDateString();
+
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        try {
+          final logs = await _api.getTodayCalorieLogs(today);
+          state = AsyncValue.data(logs);
+          await _local.saveCalorieLogs(logs);
+          return;
+        } catch (_) {
+          // Fall through to local
+        }
+      }
+
+      // Fallback to local
+      final allLogs = await _local.getCalorieLogs();
+      final todayLogs = allLogs.where((l) => l.date == today).toList();
+      state = AsyncValue.data(todayLogs);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> loadRangeLogs(String startDate, String endDate) async {
+    try {
+      // Try API first
+      final isAuth = await _api.isAuthenticated();
+      if (isAuth) {
+        try {
+          final logs = await _api.getCalorieLogsRange(startDate, endDate);
+          state = AsyncValue.data(logs);
+          await _local.saveCalorieLogs(logs);
+          return;
+        } catch (_) {
+          // Fall through to local
+        }
+      }
+
+      // Fallback to local
+      final allLogs = await _local.getCalorieLogs();
+      final rangeLogs = allLogs.where((l) => l.date.compareTo(startDate) >= 0 && l.date.compareTo(endDate) <= 0).toList();
+      state = AsyncValue.data(rangeLogs);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> addCalorieLog(int calories, String mealType, {String? note}) async {
+    final current = state.value ?? [];
+    final today = app_date.DateUtils.getTodayDateString();
+    final now = DateTime.now();
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        final log = await _api.createCalorieLog(calories, mealType, today, note: note);
+        final updated = [...current, log];
+        state = AsyncValue.data(updated);
+        await _local.saveCalorieLogs(updated);
+        return;
+      } catch (_) {
+        // Fall through to local
+      }
+    }
+
+    // Local fallback
+    final log = CalorieLog(
+      id: now.millisecondsSinceEpoch.toString(),
+      calories: calories,
+      mealType: mealType,
+      userId: 'local_user',
+      date: today,
+      timestamp: now.millisecondsSinceEpoch,
+      note: note,
+    );
+    final updated = [...current, log];
+    await _local.saveCalorieLogs(updated);
+    state = AsyncValue.data(updated);
+  }
+
+  Future<void> deleteCalorieLog(String id) async {
+    final current = state.value ?? [];
+
+    // Try API first
+    final isAuth = await _api.isAuthenticated();
+    if (isAuth) {
+      try {
+        await _api.deleteCalorieLog(id);
+      } catch (_) {
+        // Continue with local update
+      }
+    }
+
+    final updated = current.where((l) => l.id != id).toList();
+    await _local.saveCalorieLogs(updated);
+    state = AsyncValue.data(updated);
+  }
+
+  int getTodayTotal() {
+    final today = app_date.DateUtils.getTodayDateString();
+    return state.value
+            ?.where((l) => l.date == today)
+            .fold<int>(0, (sum, l) => sum + l.calories) ??
+        0;
+  }
+
+  List<CalorieLog> getLogsForDate(String date) {
+    return state.value?.where((l) => l.date == date).toList() ?? [];
+  }
+
+  int getTotalForDate(String date) {
+    return state.value
+            ?.where((l) => l.date == date)
+            .fold<int>(0, (sum, l) => sum + l.calories) ??
+        0;
+  }
+
+  Map<String, int> getTodayByMeal() {
+    final today = app_date.DateUtils.getTodayDateString();
+    final todayLogs = state.value?.where((l) => l.date == today) ?? [];
+    final result = <String, int>{};
+    for (final log in todayLogs) {
+      result[log.mealType] = (result[log.mealType] ?? 0) + log.calories;
+    }
+    return result;
+  }
+}

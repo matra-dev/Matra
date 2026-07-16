@@ -2,18 +2,20 @@ import 'health_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
+import '../providers/app_provider.dart';
 
-class InsightsScreen extends StatefulWidget {
+class InsightsScreen extends ConsumerStatefulWidget {
   const InsightsScreen({super.key});
 
   @override
-  State<InsightsScreen> createState() => _InsightsScreenState();
+  ConsumerState<InsightsScreen> createState() => _InsightsScreenState();
 }
 
-class _InsightsScreenState extends State<InsightsScreen>
+class _InsightsScreenState extends ConsumerState<InsightsScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final AnimationController _trendCtrl;
@@ -416,6 +418,48 @@ class _InsightsScreenState extends State<InsightsScreen>
                   delay: 500.ms,
                   duration: 700.ms,
                   curve: Curves.easeOutCubic),
+
+          SizedBox(height: GR.xl + 2),
+
+          // ── Water & Calorie Tracking Summary ───────────────────
+          Consumer(
+            builder: (context, ref, _) {
+              final waterTotal = ref.watch(waterLogsProvider.notifier).getTodayTotal();
+              final calorieTotal = ref.watch(calorieLogsProvider.notifier).getTodayTotal();
+              final waterGoal = 2500;
+              final calorieGoal = 2000;
+              final waterProgress = (waterTotal / waterGoal).clamp(0.0, 1.0);
+              final calorieProgress = (calorieTotal / calorieGoal).clamp(0.0, 1.0);
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: _TrackerMiniCard(
+                      icon: Icons.water_drop_rounded,
+                      iconColor: const Color(0xFF4FC3F7),
+                      label: 'Water Today',
+                      value: '$waterTotal ml',
+                      progress: waterProgress,
+                      progressColor: const Color(0xFF4FC3F7),
+                      delay: 600,
+                    ),
+                  ),
+                  SizedBox(width: GR.sm),
+                  Expanded(
+                    child: _TrackerMiniCard(
+                      icon: Icons.local_fire_department_rounded,
+                      iconColor: const Color(0xFFFFA726),
+                      label: 'Calories Today',
+                      value: '$calorieTotal kcal',
+                      progress: calorieProgress,
+                      progressColor: const Color(0xFFFFA726),
+                      delay: 700,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
 
           SizedBox(height: GR.xxl + GR.xl),
         ],
@@ -2550,5 +2594,91 @@ class _DayPill extends StatelessWidget {
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutBack,
         );
+  }
+}
+
+// ─── Tracker Mini Card (used in Overview tab) ────────────────────────────────
+class _TrackerMiniCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+  final double progress;
+  final Color progressColor;
+  final int delay;
+
+  const _TrackerMiniCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    required this.progress,
+    required this.progressColor,
+    required this.delay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+    return GoldenCard(
+      padding: EdgeInsets.all(GR.md + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: iconColor),
+              ),
+              const Spacer(),
+              Text(
+                label,
+                style: AppTextStyles.caption(context, color: tc.textSecondary),
+              ),
+            ],
+          ),
+          SizedBox(height: GR.sm + 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Artific',
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: tc.textPrimary,
+            ),
+          ),
+          SizedBox(height: GR.sm + 2),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: Container(
+              height: 5,
+              decoration: BoxDecoration(
+                color: tc.border.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: progressColor,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate()
+        .fadeIn(delay: Duration(milliseconds: 500 + delay), duration: 500.ms)
+        .slideY(begin: 0.2, end: 0, delay: Duration(milliseconds: 500 + delay), duration: 500.ms, curve: Curves.easeOutCubic);
   }
 }

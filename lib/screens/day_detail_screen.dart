@@ -314,6 +314,52 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
               ),
             ),
 
+            // ── Water & Calorie Summary ──────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(GR.lg, GR.lg, GR.lg, 0),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final dayStr = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day).toIso8601String().split('T')[0];
+                    final waterTotal = ref.watch(waterLogsProvider.notifier).getTotalForDate(dayStr);
+                    final calorieTotal = ref.watch(calorieLogsProvider.notifier).getTotalForDate(dayStr);
+                    final waterGoal = 2500;
+                    final calorieGoal = 2000;
+                    final waterProgress = (waterTotal / waterGoal).clamp(0.0, 1.0);
+                    final calorieProgress = (calorieTotal / calorieGoal).clamp(0.0, 1.0);
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildTrackerSummaryCard(
+                            icon: Icons.water_drop_rounded,
+                            iconColor: const Color(0xFF4FC3F7),
+                            label: 'Water',
+                            value: '$waterTotal ml',
+                            progress: waterProgress,
+                            progressColor: const Color(0xFF4FC3F7),
+                            delay: 250,
+                          ),
+                        ),
+                        SizedBox(width: GR.sm),
+                        Expanded(
+                          child: _buildTrackerSummaryCard(
+                            icon: Icons.local_fire_department_rounded,
+                            iconColor: const Color(0xFFFFA726),
+                            label: 'Calories',
+                            value: '$calorieTotal kcal',
+                            progress: calorieProgress,
+                            progressColor: const Color(0xFFFFA726),
+                            delay: 350,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+
             // ── Monthly Calendar ─────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
@@ -565,6 +611,78 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen>
             ),
           ],
         ),
+      ),
+    )
+        .animate(controller: _entranceCtrl)
+        .fadeIn(delay: Duration(milliseconds: 400 + delay), duration: 500.ms)
+        .slideY(begin: 0.3, end: 0, delay: Duration(milliseconds: 400 + delay), duration: 500.ms, curve: Curves.easeOutCubic);
+  }
+
+  Widget _buildTrackerSummaryCard({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required double progress,
+    required Color progressColor,
+    required int delay,
+  }) {
+    final tc = ThemeColors.of(context);
+    return GoldenCard(
+      padding: EdgeInsets.all(GR.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: iconColor),
+              ),
+              const Spacer(),
+              Text(
+                label,
+                style: AppTextStyles.caption(context, color: tc.textSecondary),
+              ),
+            ],
+          ),
+          SizedBox(height: GR.sm + 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Artific',
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: tc.textPrimary,
+            ),
+          ),
+          SizedBox(height: GR.sm + 2),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: Container(
+              height: 5,
+              decoration: BoxDecoration(
+                color: tc.border.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: progressColor,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     )
         .animate(controller: _entranceCtrl)

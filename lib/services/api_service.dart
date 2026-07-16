@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import '../models/supplement_model.dart';
 import '../models/dose_log_model.dart';
+import '../models/water_log_model.dart';
+import '../models/calorie_log_model.dart';
 import 'local_storage_service.dart';
 
 class ApiService {
@@ -141,6 +143,63 @@ class ApiService {
 
   Future<void> removeDoseLog(String supplementId, String date) async {
     await _dio.delete('/dose-logs/$supplementId/$date');
+  }
+
+  // ─── Water Logs ─────────────────────────────────────────────────────────
+
+  Future<List<WaterLog>> getTodayWaterLogs(String date) async {
+    final response = await _dio.get('/water-logs/today/$date');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.map((e) => WaterLog.fromJson(e)).toList() ?? [];
+  }
+
+  Future<List<WaterLog>> getWaterLogsRange(String startDate, String endDate) async {
+    final response = await _dio.get('/water-logs/range/$startDate/$endDate');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.map((e) => WaterLog.fromJson(e)).toList() ?? [];
+  }
+
+  Future<WaterLog> createWaterLog(int amountMl, String date, {String? note}) async {
+    final response = await _dio.post('/water-logs', data: {
+      'amount_ml': amountMl,
+      'date': date,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      if (note != null) 'note': note,
+    });
+    return WaterLog.fromJson(response.data['data']);
+  }
+
+  Future<void> deleteWaterLog(String id) async {
+    await _dio.delete('/water-logs/$id');
+  }
+
+  // ─── Calorie Logs ───────────────────────────────────────────────────────
+
+  Future<List<CalorieLog>> getTodayCalorieLogs(String date) async {
+    final response = await _dio.get('/calorie-logs/today/$date');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.map((e) => CalorieLog.fromJson(e)).toList() ?? [];
+  }
+
+  Future<List<CalorieLog>> getCalorieLogsRange(String startDate, String endDate) async {
+    final response = await _dio.get('/calorie-logs/range/$startDate/$endDate');
+    final data = response.data['data'] as List<dynamic>?;
+    return data?.map((e) => CalorieLog.fromJson(e)).toList() ?? [];
+  }
+
+  Future<CalorieLog> createCalorieLog(int calories, String mealType, String date, {String? note}) async {
+    final response = await _dio.post('/calorie-logs', data: {
+      'calories': calories,
+      'meal_type': mealType,
+      'date': date,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      if (note != null) 'note': note,
+    });
+    return CalorieLog.fromJson(response.data['data']);
+  }
+
+  Future<void> deleteCalorieLog(String id) async {
+    await _dio.delete('/calorie-logs/$id');
   }
 
   // ─── Insights ───────────────────────────────────────────────────────────
