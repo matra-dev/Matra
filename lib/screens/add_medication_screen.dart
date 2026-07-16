@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../widgets/time_picker_bottom_sheet.dart';import '../widgets/dot_matrix_loading.dart';import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/haptics.dart';
@@ -177,22 +177,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
 
   void _addTime() async {
     final now = TimeOfDay.now();
-    final picked = await showTimePicker(
+    final picked = await showTimePickerBottomSheet(
       context: context,
       initialTime: now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: ThemeColors.of(context).cardBg,
-              hourMinuteTextColor: ThemeColors.of(context).textPrimary,
-              dialHandColor: ThemeColors.of(context).accent,
-              dialBackgroundColor: ThemeColors.of(context).surface,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) {
       final formatted = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
@@ -423,7 +410,7 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
                   child: Center(
                     child: Text(
                       _currentStep == 2 ? 'Save' : 'Next',
-                      style: AppTextStyles.button(context),
+                      style: AppTextStyles.button(context, color: tc.cardBg),
                     ),
                   ),
                 ),
@@ -721,13 +708,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
                 Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: GR.lg),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: tc.accent,
-                      ),
+                    child: DotMatrixLoading(
+                      dotSize: 5,
+                      color: tc.accent,
                     ),
                   ),
                 ),
@@ -879,12 +862,12 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
               child: Column(
                 children: [
                   Text(
-                    _nameController.text,
+                    'Medication & Settings',
                     style: AppTextStyles.body(context, color: tc.textMuted),
                   ),
                   SizedBox(height: GR.xs),
                   Text(
-                    'Inventory & Settings',
+                    _nameController.text,
                     style: AppTextStyles.h2(context),
                     textAlign: TextAlign.center,
                   ),
@@ -902,7 +885,51 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
 
             SizedBox(height: GR.xl + 2),
 
-            // Dose card
+            // Stock card with compact stepper (moved up)
+            GoldenCard(
+              padding: EdgeInsets.all(GR.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: tc.textMuted),
+                      SizedBox(width: GR.xs + 2),
+                      Text(
+                        'CURRENT INVENTORY',
+                        style: AppTextStyles.body(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: GR.md),
+                  Row(
+                    children: [
+                      Text(
+                        'Amount',
+                        style: AppTextStyles.body(context, weight: FontWeight.w500),
+                      ),
+                      const Spacer(),
+                      _buildStepper(
+                        value: _stockCount,
+                        onDecrement: () => _changeStock(-1),
+                        onIncrement: () => _changeStock(1),
+                        label: '$_stockCount $_selectedUnit',
+                        accentColor: tc.accent,
+                        bgColor: tc.accentBg,
+                        textColor: tc.accentDark,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+                .animate(controller: _entranceCtrl)
+                .fadeIn(delay: 100.ms, duration: 500.ms)
+                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+
+            SizedBox(height: GR.lg),
+
+            // Dose card (moved down)
             GoldenCard(
               padding: EdgeInsets.all(GR.lg),
               child: Column(
@@ -974,50 +1001,6 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen>
                         ),
                       );
                     }).toList(),
-                  ),
-                ],
-              ),
-            )
-                .animate(controller: _entranceCtrl)
-                .fadeIn(delay: 100.ms, duration: 500.ms)
-                .slideY(begin: 0.2, end: 0, delay: 100.ms, duration: 500.ms, curve: Curves.easeOutCubic),
-
-            SizedBox(height: GR.lg),
-
-            // Stock card with compact stepper
-            GoldenCard(
-              padding: EdgeInsets.all(GR.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inventory_2_outlined, size: GR.iconSm - 2, color: tc.textMuted),
-                      SizedBox(width: GR.xs + 2),
-                      Text(
-                        'CURRENT INVENTORY',
-                        style: AppTextStyles.body(context),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: GR.md),
-                  Row(
-                    children: [
-                      Text(
-                        'Amount',
-                        style: AppTextStyles.body(context, weight: FontWeight.w500),
-                      ),
-                      const Spacer(),
-                      _buildStepper(
-                        value: _stockCount,
-                        onDecrement: () => _changeStock(-1),
-                        onIncrement: () => _changeStock(1),
-                        label: '$_stockCount $_selectedUnit',
-                        accentColor: tc.accent,
-                        bgColor: tc.accentBg,
-                        textColor: tc.accentDark,
-                      ),
-                    ],
                   ),
                 ],
               ),

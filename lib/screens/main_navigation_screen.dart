@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import 'today_screen.dart';
@@ -17,36 +18,6 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    TodayScreen(),
-    InsightsScreen(),
-    TreatmentScreen(),
-    SettingsScreen(),
-  ];
-
-  final List<_NavItemData> _items = [
-    _NavItemData(
-      icon: Icons.check_circle_outlined,
-      activeIcon: Icons.check_circle_rounded,
-      label: 'Today',
-    ),
-    _NavItemData(
-      icon: Icons.insights_outlined,
-      activeIcon: Icons.insights_rounded,
-      label: 'Insights',
-    ),
-    _NavItemData(
-      icon: Icons.medication_outlined,
-      activeIcon: Icons.medication_rounded,
-      label: 'Treatment',
-    ),
-    _NavItemData(
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings_rounded,
-      label: 'Settings',
-    ),
-  ];
-
   void _onTap(int index) {
     if (index != _currentIndex) {
       Haptics.light();
@@ -57,6 +28,37 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    final List<Widget> screens = const [
+      TodayScreen(),
+      InsightsScreen(),
+      TreatmentScreen(),
+      SettingsScreen(),
+    ];
+
+    final List<_NavItemData> items = [
+      _NavItemData(
+        icon: Icons.check_circle_outlined,
+        activeIcon: Icons.check_circle_rounded,
+        label: l10n.today,
+      ),
+      _NavItemData(
+        icon: Icons.insights_outlined,
+        activeIcon: Icons.insights_rounded,
+        label: l10n.insights,
+      ),
+      _NavItemData(
+        icon: Icons.medication_outlined,
+        activeIcon: Icons.medication_rounded,
+        label: l10n.treatment,
+      ),
+      _NavItemData(
+        icon: Icons.settings_outlined,
+        activeIcon: Icons.settings_rounded,
+        label: l10n.settings,
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: tc.bg,
@@ -74,7 +76,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             },
             child: KeyedSubtree(
               key: ValueKey<int>(_currentIndex),
-              child: _screens[_currentIndex],
+              child: screens[_currentIndex],
             ),
           ),
           Positioned(
@@ -107,8 +109,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                     borderRadius: BorderRadius.circular(28),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(_items.length, (index) {
-                        final item = _items[index];
+                      children: List.generate(items.length, (index) {
+                        final item = items[index];
                         final isSelected = _currentIndex == index;
 
                         return GestureDetector(

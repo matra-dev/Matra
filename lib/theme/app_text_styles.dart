@@ -157,7 +157,9 @@ class ThemeColors {
   Color get orange => isDark ? const Color(0xFFFFB74D) : const Color(0xFFFFA726);
   Color get orangeLight => isDark ? const Color(0xFFFFA726).withValues(alpha: 0.2) : const Color(0xFFFFF3E0);
   Color get blue => isDark ? const Color(0xFF82B1FF) : const Color(0xFF448AFF);
+  Color get blueLight => isDark ? const Color(0xFF82B1FF).withValues(alpha: 0.2) : const Color(0xFFE1F5FE);
   Color get purple => isDark ? const Color(0xFFB39DDB) : const Color(0xFF7E57C2);
+  Color get purpleLight => isDark ? const Color(0xFFB39DDB).withValues(alpha: 0.2) : const Color(0xFFEDE7F6);
   Color get red => isDark ? const Color(0xFFFF8A80) : const Color(0xFFEF5350);
   Color get error => isDark ? const Color(0xFFFF8A80) : const Color(0xFFEF5350);
   Color get amber => isDark ? const Color(0xFFFFD180) : const Color(0xFFFFB74D);

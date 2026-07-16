@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../widgets/dot_matrix_loading.dart';import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/api_service.dart';
@@ -271,8 +271,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                           ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                              child: DotMatrixLoading(
+                                dotSize: 4,
                                 color: Colors.white,
                               ),
                             )

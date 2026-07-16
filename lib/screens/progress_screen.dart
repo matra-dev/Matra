@@ -89,7 +89,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               curve: Curves.easeOutCubic,
                               padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: _isCharts ? tc.textPrimary : Colors.transparent,
+                                color: _isCharts ? tc.accent : Colors.transparent,
                                 borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(
@@ -110,7 +110,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               curve: Curves.easeOutCubic,
                               padding: EdgeInsets.symmetric(horizontal: GR.md, vertical: GR.sm),
                               decoration: BoxDecoration(
-                                color: !_isCharts ? tc.textPrimary : Colors.transparent,
+                                color: !_isCharts ? tc.accent : Colors.transparent,
                                 borderRadius: BorderRadius.circular(GR.radiusMd),
                               ),
                               child: Text(

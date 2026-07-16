@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import '../widgets/dot_matrix_loading.dart';import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../models/supplement_model.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_text_styles.dart';
@@ -52,8 +53,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
     return grouped;
   }
 
-  List<String> _getOrderedSlots(Map<String, List<Supplement>> grouped) {
-    const order = ['Morning', 'Afternoon', 'Evening'];
+  List<String> _getOrderedSlots(Map<String, List<Supplement>> grouped, AppLocalizations l10n) {
+    final order = [l10n.morning, l10n.afternoon, l10n.evening];
     return order.where((slot) => grouped.containsKey(slot) && grouped[slot]!.isNotEmpty).toList();
   }
 
@@ -71,8 +72,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
       } else {
         Haptics.error();
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Out of stock!'), backgroundColor: AppColors.red),
+            SnackBar(content: Text(l10n.outOfStock), backgroundColor: AppColors.red),
           );
         }
       }
@@ -126,6 +128,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final supplementsAsync = ref.watch(supplementsProvider);
     ref.watch(doseLogsProvider);
     final weekDays = _getWeekDays();
@@ -289,24 +292,24 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
             supplementsAsync.when(
               data: (supplements) {
                 if (supplements.isEmpty) {
-                  return const SliverFillRemaining(
+                  return SliverFillRemaining(
                     child: EmptyState(
                       icon: Icons.medication_rounded,
-                      title: 'No Supplements Yet',
-                      subtitle: 'Add your first supplement to start tracking.',
+                      title: l10n.noSupplementsYet,
+                      subtitle: l10n.noSupplementsSubtitle,
                     ),
                   );
                 }
 
                 final grouped = _groupByTimeSlot(supplements);
-                final orderedSlots = _getOrderedSlots(grouped);
+                final orderedSlots = _getOrderedSlots(grouped, l10n);
 
                 if (orderedSlots.isEmpty) {
-                  return const SliverFillRemaining(
+                  return SliverFillRemaining(
                     child: EmptyState(
                       icon: Icons.schedule_rounded,
-                      title: 'No Time Slots Assigned',
-                      subtitle: 'Assign time slots to your supplements.',
+                      title: l10n.noTimeSlotsAssigned,
+                      subtitle: l10n.assignTimeSlots,
                     ),
                   );
                 }
@@ -332,18 +335,18 @@ class _TodayScreenState extends ConsumerState<TodayScreen>
                   ),
                 );
               },
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
+              loading: () => SliverFillRemaining(
+                child: DotMatrixLoadingCenter(dotSize: 6, color: tc.accent),
               ),
               error: (err, _) => SliverFillRemaining(
                 child: EmptyState(
                   icon: Icons.cloud_off_rounded,
-                  title: 'Unable to Connect',
-                  subtitle: 'Check your connection.',
+                  title: l10n.unableToConnect,
+                  subtitle: l10n.checkConnection,
                   action: TextButton.icon(
                     onPressed: () => ref.read(supplementsProvider.notifier).loadSupplements(),
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Retry'),
+                    label: Text(l10n.retry),
                   ),
                 ),
               ),

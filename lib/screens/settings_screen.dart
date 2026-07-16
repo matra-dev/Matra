@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import '../widgets/time_picker_bottom_sheet.dart';import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 
@@ -20,6 +21,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
     final isDark = ref.watch(darkModeProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: tc.bg,
@@ -33,12 +35,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Settings',
+                      l10n.settings,
                       style: AppTextStyles.h2(context),
                     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                     SizedBox(height: GR.xs),
                     Text(
-                      'Customize your experience',
+                      l10n.customizeYourExperience,
                       style: AppTextStyles.bodySmall(context),
                     ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                   ],
@@ -47,13 +49,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
-                title: 'Notifications',
+                title: l10n.notifications,
                 delay: 200,
                 children: [
                   _buildToggleTile(
                     icon: Icons.notifications_outlined,
-                    title: 'Daily Reminders',
-                    subtitle: 'Get reminded to take your supplements',
+                    title: l10n.dailyReminders,
+                    subtitle: l10n.dailyRemindersDesc,
                     value: _remindersEnabled,
                     onChanged: (v) {
                       Haptics.light();
@@ -62,27 +64,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   if (_remindersEnabled)
                     _buildTimePickerTile(
-                      title: 'Reminder Time',
+                      title: l10n.reminderTime,
                       time: _reminderTime,
                       onTap: () async {
                         Haptics.light();
-                        final picked = await showTimePicker(
+                        final picked = await showTimePickerBottomSheet(
                           context: context,
                           initialTime: _reminderTime,
-                          builder: (context, child) {
-                            return Theme(
-                              data: Theme.of(context).copyWith(
-                                timePickerTheme: TimePickerThemeData(
-                                  backgroundColor: tc.cardBg,
-                                  dialBackgroundColor: tc.surface,
-                                  dialTextColor: tc.textPrimary,
-                                  hourMinuteTextColor: tc.textPrimary,
-                                  dayPeriodTextColor: tc.textPrimary,
-                                ),
-                              ),
-                              child: child!,
-                            );
-                          },
                         );
                         if (picked != null) {
                           setState(() => _reminderTime = picked);
@@ -91,8 +79,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   _buildToggleTile(
                     icon: Icons.inventory_2_outlined,
-                    title: 'Low Stock Alerts',
-                    subtitle: 'Warn when supplements run low',
+                    title: l10n.lowStockAlerts,
+                    subtitle: l10n.lowStockAlertsDesc,
                     value: _lowStockAlerts,
                     onChanged: (v) {
                       Haptics.light();
@@ -104,7 +92,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
-                title: 'Language',
+                title: l10n.language,
                 delay: 250,
                 children: [
                   _buildLanguageTile(context),
@@ -113,7 +101,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
-                title: 'Accessibility',
+                title: l10n.accessibility,
                 delay: 275,
                 children: [
                   _buildFontSizeTile(context),
@@ -122,13 +110,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
-                title: 'Appearance',
+                title: l10n.appearance,
                 delay: 300,
                 children: [
                   _buildToggleTile(
                     icon: Icons.dark_mode_outlined,
-                    title: 'Dark Mode',
-                    subtitle: 'Switch to dark theme',
+                    title: l10n.darkMode,
+                    subtitle: l10n.darkModeDesc,
                     value: isDark,
                     onChanged: (v) {
                       Haptics.light();
@@ -140,22 +128,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             SliverToBoxAdapter(
               child: _buildSection(
-                title: 'About',
+                title: l10n.about,
                 delay: 400,
                 children: [
                   _buildInfoTile(
                     icon: Icons.info_outline,
-                    title: 'Version',
+                    title: l10n.version,
                     value: '1.0.0',
                   ),
                   _buildInfoTile(
                     icon: Icons.code_outlined,
-                    title: 'Build',
+                    title: l10n.build,
                     value: '2024.12.1',
                   ),
                   _buildActionTile(
                     icon: Icons.description_outlined,
-                    title: 'Privacy Policy',
+                    title: l10n.privacyPolicy,
                     onTap: () {
                       Haptics.light();
                       _showComingSoon(context);
@@ -164,7 +152,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   // Help & Support — static, no onTap
                   _buildInfoTile(
                     icon: Icons.support_agent_outlined,
-                    title: 'Help & Support',
+                    title: l10n.helpSupport,
                     value: '',
                   ),
                 ],
@@ -216,6 +204,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildLanguageTile(BuildContext context) {
     final tc = ThemeColors.of(context);
     final currentLocale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     final languages = {
       'en': 'English',
@@ -239,7 +228,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Language',
+                    l10n.language,
                     style: AppTextStyles.body(context, weight: FontWeight.w500),
                   ),
                   SizedBox(height: GR.xs - 2),
@@ -261,6 +250,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     Haptics.medium();
     final tc = ThemeColors.of(context);
     final currentLocale = ref.read(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     final languages = [
       {'code': 'en', 'name': 'English', 'native': 'English'},
@@ -291,7 +281,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               Padding(
                 padding: EdgeInsets.all(GR.lg),
-                child: Text('Select Language', style: AppTextStyles.h3(context)),
+                child: Text(l10n.selectLanguage, style: AppTextStyles.h3(context)),
               ),
               ...languages.map((lang) {
                 final isSelected = lang['code'] == currentLocale.languageCode;
@@ -420,6 +410,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     Haptics.medium();
     final tc = ThemeColors.of(context);
     final currentLevel = ref.read(fontSizeProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     final levels = [
       {'level': FontSizeLevel.small, 'label': 'Small', 'desc': 'Compact text for more content', 'sample': 'Aa'},
@@ -450,7 +441,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               Padding(
                 padding: EdgeInsets.all(GR.lg),
-                child: Text('Text Size', style: AppTextStyles.h3(context)),
+                child: Text(l10n.textSize, style: AppTextStyles.h3(context)),
               ),
               ...levels.map((l) {
                 final level = l['level'] as FontSizeLevel;
@@ -697,24 +688,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showComingSoon(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: tc.cardBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GR.radiusLg)),
         title: Text(
-          'Coming Soon',
+          l10n.comingSoon,
           style: AppTextStyles.h2(context),
         ),
         content: Text(
-          'This feature will be available in a future update.',
+          l10n.comingSoonDesc,
           style: AppTextStyles.bodySmall(context),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Got it',
+              l10n.gotIt,
               style: AppTextStyles.body(context, weight: FontWeight.w600),
             ),
           ),

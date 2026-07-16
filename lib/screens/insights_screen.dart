@@ -2,6 +2,7 @@ import 'health_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 
@@ -80,6 +81,7 @@ class _InsightsScreenState extends State<InsightsScreen>
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
         backgroundColor: tc.bg,
         body: SafeArea(
@@ -126,11 +128,11 @@ class _InsightsScreenState extends State<InsightsScreen>
                 padding: EdgeInsets.symmetric(horizontal: GR.lg),
                 child: Row(
                   children: [
-                    _buildTabButton('Overview', 0),
+                    _buildTabButton(l10n.overview, 0),
                     SizedBox(width: GR.sm),
-                    _buildTabButton('Trends', 1),
+                    _buildTabButton(l10n.trends, 1),
                     SizedBox(width: GR.sm),
-                    _buildTabButton('History', 2),
+                    _buildTabButton(l10n.history, 2),
                   ],
                 ),
               ),
@@ -166,6 +168,7 @@ class _InsightsScreenState extends State<InsightsScreen>
 
   Widget _buildTabButton(String label, int index) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isActive = _activeTab == index;
 
     return Expanded(
@@ -176,10 +179,10 @@ class _InsightsScreenState extends State<InsightsScreen>
           curve: Curves.easeOutCubic,
           padding: EdgeInsets.symmetric(vertical: GR.sm + 2),
           decoration: BoxDecoration(
-            color: isActive ? tc.textPrimary : tc.surface,
+            color: isActive ? tc.accent : tc.surface,
             borderRadius: BorderRadius.circular(GR.radiusLg - 1),
             border: Border.all(
-              color: isActive ? tc.textPrimary : tc.border,
+              color: isActive ? tc.accent : tc.border,
             ),
           ),
           child: Center(
@@ -201,6 +204,7 @@ class _InsightsScreenState extends State<InsightsScreen>
   // ─── Tab 1: Overview ─────────────────────────────────────────────────────
   Widget _buildOverviewTab() {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Carousel data: each supplement with its stats
     final supplements = [
@@ -335,7 +339,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     ),
                     SizedBox(width: GR.xs + 2),
                     Text(
-                      'OVERALL ADHERENCE',
+                      l10n.overallAdherence,
                       style: AppTextStyles.caption(context),
                     ),
                     const Spacer(),
@@ -351,7 +355,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                       child: Row(
                         children: [
                           Text(
-                            'View All',
+                            l10n.viewAll,
                             style: AppTextStyles.caption(context,
                                 color: tc.accent),
                           ),
@@ -608,6 +612,7 @@ class _InsightsScreenState extends State<InsightsScreen>
   // ─── Tab 2: Trends ───────────────────────────────────────────────────────────
   Widget _buildTrendsTab() {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: GR.md + 2),
@@ -631,7 +636,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     ),
                     SizedBox(width: GR.xs + 2),
                     Text(
-                      'ADHERENCE TREND',
+                      l10n.adherenceTrend,
                       style: AppTextStyles.caption(context),
                     ),
                     const Spacer(),
@@ -724,7 +729,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                         ),
                         SizedBox(width: GR.xs),
                         Text(
-                          'Taken',
+                          l10n.taken,
                           style: AppTextStyles.caption(context,
                               color: tc.textSecondary),
                         ),
@@ -739,7 +744,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                         ),
                         SizedBox(width: GR.xs),
                         Text(
-                          'Missed',
+                          l10n.missed,
                           style: AppTextStyles.caption(context,
                               color: tc.textSecondary),
                         ),
@@ -778,7 +783,7 @@ class _InsightsScreenState extends State<InsightsScreen>
                     ),
                     SizedBox(width: GR.xs + 2),
                     Text(
-                      '30-DAY STREAK',
+                      l10n.dayStreak,
                       style: AppTextStyles.caption(context),
                     ),
                     const Spacer(),
@@ -820,6 +825,7 @@ class _InsightsScreenState extends State<InsightsScreen>
   // ─── Tab 3: History ──────────────────────────────────────────────────────────
   Widget _buildHistoryTab() {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
 
     // Rich per-dose data: date -> list of {name, dosage, time, taken, icon, color}

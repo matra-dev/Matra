@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import '../widgets/dot_matrix_loading.dart';import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/app_provider.dart';
 import '../models/supplement_model.dart';
 import '../utils/haptics.dart';
+import '../theme/app_text_styles.dart';
 import 'supplement_detail_screen.dart';
 import 'supplement_form_screen.dart';
 
@@ -68,13 +69,14 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final supplementsAsync = ref.watch(supplementsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: supplementsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          loading: () => Center(child: DotMatrixLoadingCenter(dotSize: 6, color: tc.accent)),
           error: (err, stack) => Center(child: Text('Error: $err')),
           data: (allSupplements) {
             final supplements = _filterSupplements(allSupplements);
@@ -93,7 +95,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -103,18 +105,18 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                       fontFamily: 'Artific',
                                       fontSize: 28,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF1A1A1A),
+                                      color: tc.textPrimary,
                                       letterSpacing: -0.8,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  const SizedBox(height: 4),
                                   Text(
                                     'Manage your medications',
                                     style: TextStyle(
                                       fontFamily: 'Artific',
                                       fontSize: 14,
                                       fontWeight: FontWeight.w400,
-                                      color: Color(0xFF999999),
+                                      color: tc.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -132,11 +134,11 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF4CAF50),
+                                  color: tc.accent,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+                                      color: tc.accent.withValues(alpha: 0.3),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -160,14 +162,14 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                         Container(
                           height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: tc.cardBg,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
+                            border: Border.all(color: tc.border, width: 1),
                           ),
                           child: Row(
                             children: [
                               const SizedBox(width: 14),
-                              const Icon(Icons.search_rounded, size: 18, color: Color(0xFFAAAAAA)),
+                              Icon(Icons.search_rounded, size: 18, color: tc.textMuted),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: TextField(
@@ -178,17 +180,17 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                       _listController.forward();
                                     });
                                   },
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Artific',
                                     fontSize: 14,
-                                    color: Color(0xFF1A1A1A),
+                                    color: tc.textPrimary,
                                   ),
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     hintText: 'Search medications...',
                                     hintStyle: TextStyle(
                                       fontFamily: 'Artific',
                                       fontSize: 14,
-                                      color: Color(0xFFBBBBBB),
+                                      color: tc.textMuted,
                                     ),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.zero,
@@ -204,9 +206,9 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                                       _listController.forward();
                                     });
                                   },
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Icon(Icons.close_rounded, size: 16, color: Color(0xFFAAAAAA)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Icon(Icons.close_rounded, size: 16, color: tc.textMuted),
                                   ),
                                 ),
                               const SizedBox(width: 6),
@@ -240,7 +242,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                               count: lowStockCount,
                               isSelected: _selectedTab == _FilterTab.lowStock,
                               onTap: () => _onTabChanged(_FilterTab.lowStock),
-                              accentColor: const Color(0xFFF9A825),
+                              accentColor: tc.amber,
                             ),
                           ],
                         ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(
@@ -248,7 +250,7 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                         ),
 
                         const SizedBox(height: 16),
-                        const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                        Divider(height: 1, color: tc.border),
                       ],
                     ),
                   ),
@@ -264,16 +266,16 @@ class _MySupplementsScreenState extends ConsumerState<MySupplementsScreen>
                           Icon(
                             _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.medication_outlined,
                             size: 40,
-                            color: const Color(0xFFDDDDDD),
+                            color: tc.border,
                           ),
                           const SizedBox(height: 12),
                           Text(
                             _searchQuery.isNotEmpty ? 'No matches' : 'No medications',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Artific',
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF999999),
+                              color: tc.textSecondary,
                             ),
                           ),
                         ],
@@ -335,8 +337,9 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isSelected ? (accentColor ?? Colors.black) : Colors.white;
-    final textColor = isSelected ? Colors.white : const Color(0xFF666666);
+    final tc = ThemeColors.of(context);
+    final bgColor = isSelected ? (accentColor ?? tc.textPrimary) : tc.cardBg;
+    final textColor = isSelected ? Colors.white : tc.textSecondary;
 
     return GestureDetector(
       onTap: onTap,
@@ -347,7 +350,7 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(10),
-          border: isSelected ? null : Border.all(color: const Color(0xFFEEEEEE), width: 1),
+          border: isSelected ? null : Border.all(color: tc.border, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -365,7 +368,7 @@ class _FilterChip extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white.withValues(alpha: 0.2) : const Color(0xFFF5F5F5),
+                color: isSelected ? Colors.white.withValues(alpha: 0.2) : tc.surface,
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(
@@ -415,6 +418,7 @@ class _MedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final isLow = supplement.isLowStock;
     final isOut = supplement.stockCount <= 0;
     final itemDelay = Duration(milliseconds: 200 + (index * 70));
@@ -438,10 +442,10 @@ class _MedCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: tc.cardBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isLow ? const Color(0xFFFFE082) : const Color(0xFFEEEEEE),
+              color: isLow ? tc.amber : tc.border,
               width: isLow ? 1.5 : 1,
             ),
           ),
@@ -453,13 +457,13 @@ class _MedCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isOut ? const Color(0xFFEEEEEE) : color.withValues(alpha: 0.1),
+                  color: isOut ? tc.border : color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.medication_rounded,
                   size: 20,
-                  color: isOut ? const Color(0xFFBBBBBB) : color,
+                  color: isOut ? tc.textMuted : color,
                 ),
               ),
               const SizedBox(width: 12),
@@ -477,7 +481,7 @@ class _MedCard extends StatelessWidget {
                         fontFamily: 'Artific',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isOut ? const Color(0xFFBBBBBB) : const Color(0xFF1A1A1A),
+                        color: isOut ? tc.textMuted : tc.textPrimary,
                         letterSpacing: -0.2,
                         height: 1.2,
                       ),
@@ -494,7 +498,7 @@ class _MedCard extends StatelessWidget {
                             fontFamily: 'Artific',
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: isOut ? const Color(0xFFCCCCCC) : const Color(0xFF888888),
+                            color: isOut ? tc.textMuted : tc.textSecondary,
                             height: 1.2,
                           ),
                         ),
@@ -503,7 +507,7 @@ class _MedCard extends StatelessWidget {
                           width: 3,
                           height: 3,
                           decoration: BoxDecoration(
-                            color: isOut ? const Color(0xFFDDDDDD) : const Color(0xFFCCCCCC),
+                            color: isOut ? tc.border : tc.textMuted,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -516,7 +520,7 @@ class _MedCard extends StatelessWidget {
                               fontFamily: 'Artific',
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
-                              color: isOut ? const Color(0xFFCCCCCC) : const Color(0xFF888888),
+                              color: isOut ? tc.textMuted : tc.textSecondary,
                               height: 1.2,
                             ),
                             maxLines: 1,
@@ -544,10 +548,10 @@ class _MedCard extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: isOut
-                          ? const Color(0xFFCCCCCC)
+                          ? tc.textMuted
                           : isLow
-                              ? const Color(0xFFF9A825)
-                              : const Color(0xFF4CAF50),
+                              ? tc.amber
+                              : tc.accent,
                       height: 1.2,
                     ),
                   ),
@@ -559,7 +563,7 @@ class _MedCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(2),
                       child: Container(
-                        color: const Color(0xFFEEEEEE),
+                        color: tc.border,
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor: isOut
@@ -567,10 +571,10 @@ class _MedCard extends StatelessWidget {
                               : (supplement.stockCount / 30).clamp(0.0, 1.0),
                           child: Container(
                             color: isOut
-                                ? const Color(0xFFCCCCCC)
+                                ? tc.textMuted
                                 : isLow
-                                    ? const Color(0xFFF9A825)
-                                    : const Color(0xFF4CAF50),
+                                    ? tc.amber
+                                    : tc.accent,
                           ),
                         ),
                       ),
@@ -579,10 +583,10 @@ class _MedCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
-                color: Color(0xFFCCCCCC),
+                color: tc.textMuted,
               ),
             ],
           ),

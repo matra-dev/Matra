@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
 import '../providers/app_provider.dart';
@@ -88,6 +89,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final supplementsAsync = ref.watch(supplementsProvider);
 
     return Scaffold(
@@ -132,12 +134,12 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                   child: Column(
                     children: [
                       Text(
-                        'Adherence',
+                        l10n.adherence,
                         style: AppTextStyles.h2(context),
                       ),
                       SizedBox(height: GR.xs + 2),
                       Text(
-                        'This Week \u00B7 Track your progress',
+                        '${l10n.thisWeek} \u00B7 ${l10n.trackYourProgress}',
                         style: AppTextStyles.bodySmall(context),
                       ),
                     ],
@@ -194,7 +196,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                       border: Border.all(color: tc.accentLight),
                     ),
                     child: Text(
-                      'Excellent',
+                      l10n.excellent,
                       style: AppTextStyles.caption(context, weight: FontWeight.w700, color: tc.accentDark),
                     ),
                   ),
@@ -227,7 +229,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                     Expanded(
                       child: _QuickActionButton(
                         icon: Icons.add_rounded,
-                        label: 'Add Med',
+                        label: l10n.addMed,
                         color: tc.accentDark,
                         delay: 100,
                         controller: _entranceCtrl,
@@ -238,7 +240,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                     Expanded(
                       child: _QuickActionButton(
                         icon: Icons.sentiment_satisfied_rounded,
-                        label: 'Mood',
+                        label: l10n.mood,
                         color: tc.textSecondary,
                         delay: 150,
                         controller: _entranceCtrl,
@@ -254,14 +256,14 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                 Row(
                   children: [
                     Text(
-                      'My Medications',
+                      l10n.myMedications,
                       style: AppTextStyles.h3(context),
                     ),
                     const Spacer(),
                     GestureDetector(
                       onTap: _navigateToMedicationList,
                       child: Text(
-                        'See All',
+                        l10n.seeAll,
                         style: AppTextStyles.caption(context, color: tc.accent),
                       ),
                     ),
@@ -280,14 +282,14 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                     child: Padding(
                       padding: EdgeInsets.all(GR.xl),
                       child: Text(
-                        'Error loading medications',
+                        l10n.error,
                         style: AppTextStyles.bodySmall(context, color: tc.textMuted),
                       ),
                     ),
                   ),
                   data: (supplements) {
                     if (supplements.isEmpty) {
-                      return _buildEmptyState(context, tc);
+                      return _buildEmptyState(context, tc, l10n);
                     }
                     return Column(
                       children: supplements.take(5).toList().asMap().entries.map((entry) {
@@ -324,7 +326,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                                       ),
                                       SizedBox(height: GR.xs - 2),
                                       Text(
-                                        _formatSchedule(supp.timeSlots),
+                                        _formatSchedule(supp.timeSlots, l10n),
                                         style: AppTextStyles.bodySmall(context),
                                       ),
                                     ],
@@ -367,7 +369,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, ThemeColors tc) {
+  Widget _buildEmptyState(BuildContext context, ThemeColors tc, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: GR.xl, horizontal: GR.lg),
@@ -388,12 +390,12 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
             ),
             SizedBox(height: GR.lg),
             Text(
-              'Build Your Stack',
+              l10n.buildYourStack,
               style: AppTextStyles.h3(context),
             ),
             SizedBox(height: GR.sm),
             Text(
-              'Add supplements to track your daily regimen and monitor adherence.',
+              l10n.buildYourStackDesc,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodySmall(context, color: tc.textSecondary),
             ),
@@ -413,7 +415,7 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
                     Icon(Icons.add_rounded, size: 16, color: tc.accent),
                     SizedBox(width: GR.sm),
                     Text(
-                      'Add First Supplement',
+                      l10n.addFirstSupplementShort,
                       style: AppTextStyles.bodySmall(
                         context,
                         weight: FontWeight.w600,
@@ -450,10 +452,10 @@ class _TreatmentScreenState extends ConsumerState<TreatmentScreen>
     return Icons.medication_rounded;
   }
 
-  String _formatSchedule(List<String> timeSlots) {
-    if (timeSlots.isEmpty) return 'No schedule set';
-    if (timeSlots.length == 1) return 'Daily \u2014 ${timeSlots.first}';
-    return 'Daily \u2014 ${timeSlots.join(', ')}';
+  String _formatSchedule(List<String> timeSlots, AppLocalizations l10n) {
+    if (timeSlots.isEmpty) return l10n.noTimeSlotsAssigned;
+    if (timeSlots.length == 1) return '${l10n.daily} \u2014 ${timeSlots.first}';
+    return '${l10n.daily} \u2014 ${timeSlots.join(', ')}';
   }
 }
 
@@ -477,6 +479,7 @@ class _MoodBottomSheetState extends State<_MoodBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final tc = ThemeColors.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: tc.bg,
@@ -498,7 +501,7 @@ class _MoodBottomSheetState extends State<_MoodBottomSheet> {
               ),
               SizedBox(height: GR.lg),
               Text(
-                'How are you feeling?',
+                l10n.howAreYouFeeling,
                 style: AppTextStyles.h3(context),
               ),
               SizedBox(height: GR.xl),

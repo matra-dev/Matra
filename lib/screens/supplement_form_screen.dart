@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../widgets/dot_matrix_loading.dart';import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:uuid/uuid.dart';
@@ -6,6 +6,7 @@ import '../models/supplement_model.dart';
 import '../providers/app_provider.dart';
 import '../utils/haptics.dart';
 import '../utils/app_date_utils.dart' as app_date;
+import '../theme/app_text_styles.dart';
 
 class SupplementFormScreen extends ConsumerStatefulWidget {
   final Supplement? supplement;
@@ -77,9 +78,9 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
     if (_timeSlots.isEmpty) {
       Haptics.error();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Please select at least one time slot'),
-          backgroundColor: Color(0xFFE53935),
+          backgroundColor: ThemeColors.of(context).red,
         ),
       );
       return;
@@ -121,7 +122,7 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
       Haptics.error();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFE53935)),
+          SnackBar(content: Text('Error: $e'), backgroundColor: ThemeColors.of(context).red),
         );
       }
     } finally {
@@ -131,8 +132,9 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: tc.bg,
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -146,17 +148,17 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close_rounded, size: 24, color: Color(0xFF1A1A1A)),
+                        child: Icon(Icons.close_rounded, size: 24, color: tc.textPrimary),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
                           child: Text(
-                            'Edit Supplement',
+                            _isEdit ? 'Edit Supplement' : 'Add Supplement',
                             style: TextStyle(
                               fontFamily: 'Artific',
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
+                              color: tc.textPrimary,
                             ),
                           ),
                         ),
@@ -292,17 +294,17 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
                       child: Container(
                         height: 52,
                         decoration: BoxDecoration(
-                          color: Colors.black,
+                          color: tc.textPrimary,
                           borderRadius: BorderRadius.circular(26),
                         ),
                         child: _isSubmitting
-                            ? const Center(
+                            ? Center(
                                 child: SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  child: DotMatrixLoading(
+                                    dotSize: 4,
+                                    color: tc.cardBg,
                                   ),
                                 ),
                               )
@@ -311,15 +313,15 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
                                 children: [
                                   Icon(
                                     _isEdit ? Icons.save_rounded : Icons.add_rounded,
-                                    color: Colors.white,
+                                    color: tc.cardBg,
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     _isEdit ? 'Save Changes' : 'Add to Stack',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'Artific',
-                                      color: Colors.white,
+                                      color: tc.cardBg,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 15,
                                     ),
@@ -348,11 +350,11 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
       padding: const EdgeInsets.only(bottom: 8, left: 2),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Artific',
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF999999),
+          color: ThemeColors.of(context).textMuted,
         ),
       ),
     );
@@ -381,28 +383,28 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F4F8),
+          color: ThemeColors.of(context).surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: hint == 'Vitamin C' ? TextCapitalization.words : TextCapitalization.none,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Artific',
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+            color: ThemeColors.of(context).textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
+            hintStyle: TextStyle(
               fontFamily: 'Artific',
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Color(0xFFAAAAAA),
+              color: ThemeColors.of(context).textMuted,
             ),
-            prefixIcon: Icon(prefixIcon, size: 20, color: const Color(0xFF666666)),
+            prefixIcon: Icon(prefixIcon, size: 20, color: ThemeColors.of(context).textSecondary),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -428,20 +430,20 @@ class _SupplementFormScreenState extends ConsumerState<SupplementFormScreen>
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F4F8),
+          color: ThemeColors.of(context).surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: _dosageUnit,
             isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: Color(0xFF666666)),
+            icon: Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: ThemeColors.of(context).textSecondary),
             borderRadius: BorderRadius.circular(16),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Artific',
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1A1A1A),
+              color: ThemeColors.of(context).textPrimary,
             ),
             items: _dosageUnits.map((unit) {
               return DropdownMenuItem(
@@ -474,24 +476,25 @@ class _TimeSlotRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
     final slots = [
       _SlotData(
         label: 'Morning',
         icon: Icons.wb_sunny_rounded,
-        activeColor: const Color(0xFFFFB74D),
-        activeBg: const Color(0xFFFFF3E0),
+        activeColor: tc.orange,
+        activeBg: tc.orangeLight,
       ),
       _SlotData(
         label: 'Afternoon',
         icon: Icons.wb_cloudy_rounded,
-        activeColor: const Color(0xFF4FC3F7),
-        activeBg: const Color(0xFFE1F5FE),
+        activeColor: tc.blue,
+        activeBg: tc.blueLight,
       ),
       _SlotData(
         label: 'Evening',
         icon: Icons.nights_stay_rounded,
-        activeColor: const Color(0xFF9575CD),
-        activeBg: const Color(0xFFEDE7F6),
+        activeColor: tc.purple,
+        activeBg: tc.purpleLight,
       ),
     ];
 
@@ -508,7 +511,7 @@ class _TimeSlotRow extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: isSelected ? slot.activeColor : const Color(0xFFF5F5F5),
+                  color: isSelected ? slot.activeColor : tc.surface,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
@@ -517,7 +520,7 @@ class _TimeSlotRow extends StatelessWidget {
                     Icon(
                       slot.icon,
                       size: 16,
-                      color: isSelected ? Colors.white : const Color(0xFF888888),
+                      color: isSelected ? tc.cardBg : tc.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -526,7 +529,7 @@ class _TimeSlotRow extends StatelessWidget {
                         fontFamily: 'Artific',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : const Color(0xFF888888),
+                        color: isSelected ? tc.cardBg : tc.textSecondary,
                       ),
                     ),
                   ],

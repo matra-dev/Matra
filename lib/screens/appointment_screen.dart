@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../widgets/time_picker_bottom_sheet.dart';import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/haptics.dart';
 import '../theme/app_text_styles.dart';
@@ -83,22 +83,9 @@ class _AppointmentScreenState extends State<AppointmentScreen>
 
   Future<void> _pickTime() async {
     Haptics.light();
-    final picked = await showTimePicker(
+    final picked = await showTimePickerBottomSheet(
       context: context,
       initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.accentDark,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) setState(() => _selectedTime = picked);
   }

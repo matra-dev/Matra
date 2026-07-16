@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData icon;
@@ -18,6 +18,8 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = ThemeColors.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -28,13 +30,13 @@ class EmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
+                color: tc.accent.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 36,
-                color: AppColors.primary.withValues(alpha: 0.5),
+                color: tc.accent.withValues(alpha: 0.5),
               ),
             )
                 .animate()
@@ -43,11 +45,11 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: tc.textPrimary,
               ),
               textAlign: TextAlign.center,
             )
@@ -57,11 +59,11 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Artific',
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
+                color: tc.textSecondary,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
